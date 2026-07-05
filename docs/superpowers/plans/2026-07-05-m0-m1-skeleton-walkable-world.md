@@ -98,6 +98,7 @@ Boundaries: `core` imports nothing from `content` or `client` and has no DOM typ
 ### Task 1: Repository root scaffolding
 
 **Files:**
+
 - Create: `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `.node-version`, `.gitignore`, `LICENSE`, `README.md`
 
 - [ ] **Step 1: Create the feature branch**
@@ -209,6 +210,7 @@ git add -A && git commit -m "Scaffold repository root: pnpm workspace, GPLv3, RE
 ### Task 2: Toolchain — TypeScript, oxlint, oxfmt, vitest
 
 **Files:**
+
 - Create: `tsconfig.base.json`, `tsconfig.json`, `.oxlintrc.json`, `vitest.config.ts`
 
 - [ ] **Step 1: Install root dev dependencies (exact pins, current stable)**
@@ -273,12 +275,12 @@ Notes: `erasableSyntaxOnly` + `allowImportingTsExtensions` let Node 24 run our `
 - [ ] **Step 5: Write `vitest.config.ts`**
 
 ```ts
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ['packages/*/src/**/*.test.ts'],
-    environment: 'node',
+    include: ["packages/*/src/**/*.test.ts"],
+    environment: "node",
     passWithNoTests: true,
   },
 });
@@ -301,6 +303,7 @@ git add -A && git commit -m "Add strict TypeScript, oxlint, oxfmt, and vitest to
 ### Task 3: Package skeletons — core, content, client
 
 **Files:**
+
 - Create: `packages/core/package.json`, `packages/core/tsconfig.json`, `packages/core/src/index.ts`
 - Create: `packages/content/package.json`, `packages/content/tsconfig.json`, `packages/content/src/index.ts`
 - Create: `packages/client/package.json`, `packages/client/tsconfig.json`
@@ -331,7 +334,7 @@ git add -A && git commit -m "Add strict TypeScript, oxlint, oxfmt, and vitest to
 - [ ] **Step 3: Write `packages/core/src/index.ts`** (placeholder; grows in Tasks 8-11)
 
 ```ts
-export const CORE_VERSION = '0.0.0';
+export const CORE_VERSION = "0.0.0";
 ```
 
 - [ ] **Step 4: Write `packages/content/package.json` and install zod**
@@ -368,7 +371,7 @@ pnpm --filter @pirata/content add -E @pirata/core@workspace:*
 and `packages/content/src/index.ts`:
 
 ```ts
-export const CONTENT_VERSION = '0.0.0';
+export const CONTENT_VERSION = "0.0.0";
 ```
 
 - [ ] **Step 6: Write `packages/client/package.json` and `packages/client/tsconfig.json`** (source files come in Task 4)
@@ -393,11 +396,13 @@ export const CONTENT_VERSION = '0.0.0';
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
-    "types": ["vite/client", "node"]
+    "types": ["node"]
   },
   "include": ["src", "vite.config.ts"]
 }
 ```
+
+(`"types"` gains `"vite/client"` in Task 4, once vite is actually installed — listing it now would fail typecheck.)
 
 ```bash
 pnpm --filter @pirata/client add -E @pirata/core@workspace:* @pirata/content@workspace:*
@@ -419,7 +424,9 @@ git add -A && git commit -m "Add core, content, and client package skeletons"
 ### Task 4: Client — empty Phaser canvas served by Vite
 
 **Files:**
+
 - Create: `packages/client/vite.config.ts`, `packages/client/index.html`, `packages/client/src/main.ts`
+- Modify: `packages/client/tsconfig.json`
 
 - [ ] **Step 1: Install phaser and vite**
 
@@ -430,13 +437,15 @@ pnpm --filter @pirata/client add -DE vite
 
 If pnpm reports blocked build scripts (pnpm 10 blocks postinstall by default), run `pnpm approve-builds` and approve **esbuild** only.
 
+Now that vite is installed, restore the Vite ambient types that Task 3's fallback dropped: in `packages/client/tsconfig.json`, change `"types": ["node"]` back to `"types": ["vite/client", "node"]`.
+
 - [ ] **Step 2: Write `packages/client/vite.config.ts`**
 
 ```ts
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: process.env['BASE_PATH'] ?? '/',
+  base: process.env["BASE_PATH"] ?? "/",
 });
 ```
 
@@ -470,29 +479,33 @@ export default defineConfig({
 - [ ] **Step 4: Write `packages/client/src/main.ts`** (M0 version — replaced in Task 14)
 
 ```ts
-import Phaser from 'phaser';
+import { AUTO, Game, Scale, Scene } from "phaser";
 
-class BootScene extends Phaser.Scene {
+class BootScene extends Scene {
   constructor() {
-    super('boot');
+    super("boot");
   }
 
   create(): void {
-    this.add.text(384, 256, 'Pirata — M0', { color: '#d9a441', fontSize: '32px' }).setOrigin(0.5);
+    this.add.text(384, 256, "Pirata — M0", { color: "#d9a441", fontSize: "32px" }).setOrigin(0.5);
   }
 }
 
-export const game = new Phaser.Game({
-  type: Phaser.AUTO,
-  parent: 'game',
+export const game = new Game({
+  type: AUTO,
+  parent: "game",
   width: 768,
   height: 512,
-  backgroundColor: '#101418',
+  backgroundColor: "#101418",
   pixelArt: true,
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+  scale: { mode: Scale.FIT, autoCenter: Scale.CENTER_BOTH },
   scene: [BootScene],
 });
 ```
+
+(Named imports, not `import Phaser from "phaser"` + `Phaser.*` access: phaser ships real
+named ESM exports, so oxlint's `no-named-as-default-member` correctly rejects the
+default-import pattern.)
 
 - [ ] **Step 5: Verify build and served output**
 
@@ -514,6 +527,7 @@ git add -A && git commit -m "Boot empty Phaser 4 canvas via Vite"
 ### Task 5: prek git hooks
 
 **Files:**
+
 - Create: `.pre-commit-config.yaml`
 
 - [ ] **Step 1: Write `.pre-commit-config.yaml`** (fast checks only; CI runs the full suite)
@@ -551,6 +565,7 @@ git add -A && git commit -m "Add prek hooks running oxlint and oxfmt"
 ### Task 6: CI workflow
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 
 - [ ] **Step 1: Resolve current action SHAs** (never trust remembered SHAs)
@@ -578,9 +593,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@<sha> # <tag>
         with:
@@ -617,6 +637,7 @@ git add -A && git commit -m "Add CI workflow: lint, format, typecheck, test, bui
 ### Task 7: GitHub Pages deploy workflow (completes M0)
 
 **Files:**
+
 - Create: `.github/workflows/deploy.yml`
 
 - [ ] **Step 1: Resolve SHAs for the Pages actions** (same method as Task 6)
@@ -645,11 +666,12 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -696,6 +718,7 @@ git add -A && git commit -m "Add GitHub Pages deploy workflow"
 ### Task 8: Core — state, intents, events, seeded RNG
 
 **Files:**
+
 - Create: `packages/core/src/rng.ts`, `packages/core/src/state.ts`, `packages/core/src/intent.ts`, `packages/core/src/event.ts`
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/src/rng.test.ts`
@@ -703,11 +726,11 @@ git add -A && git commit -m "Add GitHub Pages deploy workflow"
 - [ ] **Step 1: Write the failing RNG test** — `packages/core/src/rng.test.ts`
 
 ```ts
-import { describe, expect, it } from 'vitest';
-import { nextFloat, nextInt, seedRng } from './rng.ts';
+import { describe, expect, it } from "vitest";
+import { nextFloat, nextInt, seedRng } from "./rng.ts";
 
-describe('seeded rng', () => {
-  it('produces the same sequence for the same seed', () => {
+describe("seeded rng", () => {
+  it("produces the same sequence for the same seed", () => {
     let a = seedRng(1234);
     let b = seedRng(1234);
     for (let i = 0; i < 100; i += 1) {
@@ -719,11 +742,11 @@ describe('seeded rng', () => {
     }
   });
 
-  it('produces different first values for different seeds', () => {
+  it("produces different first values for different seeds", () => {
     expect(nextFloat(seedRng(1)).value).not.toBe(nextFloat(seedRng(2)).value);
   });
 
-  it('keeps floats in [0, 1)', () => {
+  it("keeps floats in [0, 1)", () => {
     let state = seedRng(99);
     for (let i = 0; i < 1000; i += 1) {
       const r = nextFloat(state);
@@ -733,7 +756,7 @@ describe('seeded rng', () => {
     }
   });
 
-  it('keeps ints in [0, max)', () => {
+  it("keeps ints in [0, max)", () => {
     let state = seedRng(7);
     for (let i = 0; i < 1000; i += 1) {
       const r = nextInt(state, 6);
@@ -742,8 +765,26 @@ describe('seeded rng', () => {
       state = r.state;
     }
   });
+
+  it("matches the mulberry32 golden sequence for seed 1234", () => {
+    // Pins the algorithm constants and state advancement. If this test
+    // fails, the change breaks deterministic replay and save compatibility.
+    const expected = [
+      0.07329497812315822, 0.7034119898453355, 0.9028560190927237, 0.9705493662040681,
+      0.04096397617831826,
+    ];
+    let state = seedRng(1234);
+    for (const value of expected) {
+      const r = nextFloat(state);
+      expect(r.value).toBe(value);
+      state = r.state;
+    }
+  });
 });
 ```
+
+(The golden values pin the exact algorithm: the range/determinism tests alone
+stay green under constant drift, which would silently corrupt saves.)
 
 - [ ] **Step 2: Run to verify it fails**
 
@@ -790,7 +831,7 @@ Expected: PASS (4 tests).
 `packages/core/src/state.ts`:
 
 ```ts
-import { seedRng, type RngState } from './rng.ts';
+import { seedRng, type RngState } from "./rng.ts";
 
 export interface Vec2 {
   readonly x: number;
@@ -825,10 +866,10 @@ export function createGameState(options: {
 `packages/core/src/intent.ts`:
 
 ```ts
-export type Direction = 'north' | 'south' | 'east' | 'west';
+export type Direction = "north" | "south" | "east" | "west";
 
 export interface MoveIntent {
-  readonly type: 'move';
+  readonly type: "move";
   readonly direction: Direction;
 }
 
@@ -845,16 +886,16 @@ export const DIRECTION_DELTAS: Record<Direction, { readonly dx: number; readonly
 `packages/core/src/event.ts`:
 
 ```ts
-import type { Vec2 } from './state.ts';
+import type { Vec2 } from "./state.ts";
 
 export interface PlayerMovedEvent {
-  readonly type: 'player-moved';
+  readonly type: "player-moved";
   readonly from: Vec2;
   readonly to: Vec2;
 }
 
 export interface MovementBlockedEvent {
-  readonly type: 'movement-blocked';
+  readonly type: "movement-blocked";
   readonly at: Vec2;
   readonly toward: Vec2;
 }
@@ -865,10 +906,10 @@ export type GameEvent = PlayerMovedEvent | MovementBlockedEvent;
 - [ ] **Step 6: Update `packages/core/src/index.ts`**
 
 ```ts
-export { seedRng, nextFloat, nextInt, type RngState } from './rng.ts';
-export { createGameState, type GameState, type PlayerState, type Vec2 } from './state.ts';
-export { DIRECTION_DELTAS, type Direction, type Intent, type MoveIntent } from './intent.ts';
-export type { GameEvent, MovementBlockedEvent, PlayerMovedEvent } from './event.ts';
+export { seedRng, nextFloat, nextInt, type RngState } from "./rng.ts";
+export { createGameState, type GameState, type PlayerState, type Vec2 } from "./state.ts";
+export { DIRECTION_DELTAS, type Direction, type Intent, type MoveIntent } from "./intent.ts";
+export type { GameEvent, MovementBlockedEvent, PlayerMovedEvent } from "./event.ts";
 ```
 
 (Remove the `CORE_VERSION` placeholder export.)
@@ -883,6 +924,7 @@ git add -A && git commit -m "Add core state, intents, events, and seeded RNG"
 ### Task 9: Core — Tiled map parser
 
 **Files:**
+
 - Create: `packages/core/src/map.ts`
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/src/map.test.ts`
@@ -890,8 +932,8 @@ git add -A && git commit -m "Add core state, intents, events, and seeded RNG"
 - [ ] **Step 1: Write the failing tests** — `packages/core/src/map.test.ts`
 
 ```ts
-import { describe, expect, it } from 'vitest';
-import { isBlocked, MapParseError, parseTiledMap } from './map.ts';
+import { describe, expect, it } from "vitest";
+import { isBlocked, MapParseError, parseTiledMap } from "./map.ts";
 
 function tiledFixture(): Record<string, unknown> {
   return {
@@ -900,20 +942,20 @@ function tiledFixture(): Record<string, unknown> {
     tilewidth: 32,
     tileheight: 32,
     layers: [
-      { name: 'ground', type: 'tilelayer', data: [1, 1, 1, 1, 1, 1] },
-      { name: 'walls', type: 'tilelayer', data: [2, 0, 0, 0, 0, 2] },
+      { name: "ground", type: "tilelayer", data: [1, 1, 1, 1, 1, 1] },
+      { name: "walls", type: "tilelayer", data: [2, 0, 0, 0, 0, 2] },
       {
-        name: 'spawns',
-        type: 'objectgroup',
-        objects: [{ name: 'player', x: 32, y: 0 }],
+        name: "spawns",
+        type: "objectgroup",
+        objects: [{ name: "player", x: 32, y: 0 }],
       },
     ],
   };
 }
 
-describe('parseTiledMap', () => {
-  it('builds a MapModel with collision and spawn', () => {
-    const map = parseTiledMap('test', tiledFixture());
+describe("parseTiledMap", () => {
+  it("builds a MapModel with collision and spawn", () => {
+    const map = parseTiledMap("test", tiledFixture());
     expect(map.width).toBe(3);
     expect(map.height).toBe(2);
     expect(map.playerSpawn).toEqual({ x: 1, y: 0 });
@@ -922,36 +964,34 @@ describe('parseTiledMap', () => {
     expect(isBlocked(map, 2, 1)).toBe(true);
   });
 
-  it('treats out-of-bounds as blocked', () => {
-    const map = parseTiledMap('test', tiledFixture());
+  it("treats out-of-bounds as blocked", () => {
+    const map = parseTiledMap("test", tiledFixture());
     expect(isBlocked(map, -1, 0)).toBe(true);
     expect(isBlocked(map, 3, 0)).toBe(true);
     expect(isBlocked(map, 0, 2)).toBe(true);
   });
 
-  it('rejects a map without a walls layer', () => {
+  it("rejects a map without a walls layer", () => {
     const fixture = tiledFixture();
-    fixture['layers'] = (fixture['layers'] as { name: string }[]).filter(
-      (l) => l.name !== 'walls',
-    );
-    expect(() => parseTiledMap('broken', fixture)).toThrow(MapParseError);
-    expect(() => parseTiledMap('broken', fixture)).toThrow(/broken.*walls/);
+    fixture["layers"] = (fixture["layers"] as { name: string }[]).filter((l) => l.name !== "walls");
+    expect(() => parseTiledMap("broken", fixture)).toThrow(MapParseError);
+    expect(() => parseTiledMap("broken", fixture)).toThrow(/broken.*walls/);
   });
 
-  it('rejects a walls layer with the wrong tile count', () => {
+  it("rejects a walls layer with the wrong tile count", () => {
     const fixture = tiledFixture();
-    const layers = fixture['layers'] as { name: string; data?: number[] }[];
-    const walls = layers.find((l) => l.name === 'walls');
+    const layers = fixture["layers"] as { name: string; data?: number[] }[];
+    const walls = layers.find((l) => l.name === "walls");
     walls?.data?.pop();
-    expect(() => parseTiledMap('short', fixture)).toThrow(/expected 6/);
+    expect(() => parseTiledMap("short", fixture)).toThrow(/expected 6/);
   });
 
-  it('rejects a map without a player spawn', () => {
+  it("rejects a map without a player spawn", () => {
     const fixture = tiledFixture();
-    const layers = fixture['layers'] as { name: string; objects?: { name: string }[] }[];
-    const spawns = layers.find((l) => l.name === 'spawns');
+    const layers = fixture["layers"] as { name: string; objects?: { name: string }[] }[];
+    const spawns = layers.find((l) => l.name === "spawns");
     if (spawns !== undefined) spawns.objects = [];
-    expect(() => parseTiledMap('nospawn', fixture)).toThrow(/player/);
+    expect(() => parseTiledMap("nospawn", fixture)).toThrow(/player/);
   });
 });
 ```
@@ -967,7 +1007,7 @@ Expected: FAIL — cannot resolve `./map.ts`.
 - [ ] **Step 3: Write `packages/core/src/map.ts`**
 
 ```ts
-import type { Vec2 } from './state.ts';
+import type { Vec2 } from "./state.ts";
 
 export interface MapModel {
   readonly id: string;
@@ -1002,15 +1042,15 @@ export class MapParseError extends Error {}
 
 export function parseTiledMap(id: string, raw: unknown): MapModel {
   const map = raw as Partial<TiledMap>;
-  if (typeof map.width !== 'number' || typeof map.height !== 'number') {
+  if (typeof map.width !== "number" || typeof map.height !== "number") {
     throw new MapParseError(`map "${id}": missing numeric width/height`);
   }
-  if (typeof map.tilewidth !== 'number' || typeof map.tileheight !== 'number') {
+  if (typeof map.tilewidth !== "number" || typeof map.tileheight !== "number") {
     throw new MapParseError(`map "${id}": missing numeric tilewidth/tileheight`);
   }
   const layers = Array.isArray(map.layers) ? (map.layers as TiledLayer[]) : [];
 
-  const walls = layers.find((layer) => layer.type === 'tilelayer' && layer.name === 'walls');
+  const walls = layers.find((layer) => layer.type === "tilelayer" && layer.name === "walls");
   if (walls?.data === undefined) {
     throw new MapParseError(`map "${id}": missing "walls" tile layer (add it in Tiled)`);
   }
@@ -1021,8 +1061,8 @@ export function parseTiledMap(id: string, raw: unknown): MapModel {
     );
   }
 
-  const spawns = layers.find((layer) => layer.type === 'objectgroup' && layer.name === 'spawns');
-  const player = spawns?.objects?.find((object) => object.name === 'player');
+  const spawns = layers.find((layer) => layer.type === "objectgroup" && layer.name === "spawns");
+  const player = spawns?.objects?.find((object) => object.name === "player");
   if (player === undefined) {
     throw new MapParseError(
       `map "${id}": missing "player" object in a "spawns" object layer (add it in Tiled)`,
@@ -1058,7 +1098,7 @@ pnpm test
 Expected: PASS. Add to `packages/core/src/index.ts`:
 
 ```ts
-export { isBlocked, MapParseError, parseTiledMap, type MapModel } from './map.ts';
+export { isBlocked, MapParseError, parseTiledMap, type MapModel } from "./map.ts";
 ```
 
 ```bash
@@ -1069,6 +1109,7 @@ git add -A && git commit -m "Parse Tiled maps into an engine-neutral MapModel"
 ### Task 10: Core — movement via advance()
 
 **Files:**
+
 - Create: `packages/core/src/advance.ts`
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/src/advance.test.ts`
@@ -1076,12 +1117,12 @@ git add -A && git commit -m "Parse Tiled maps into an engine-neutral MapModel"
 - [ ] **Step 1: Write the failing tests** — `packages/core/src/advance.test.ts`
 
 ```ts
-import fc from 'fast-check';
-import { describe, expect, it } from 'vitest';
-import { advance } from './advance.ts';
-import type { Direction } from './intent.ts';
-import { isBlocked, type MapModel } from './map.ts';
-import { createGameState } from './state.ts';
+import { array, assert, constantFrom, property } from "fast-check";
+import { describe, expect, it } from "vitest";
+import { advance } from "./advance.ts";
+import type { Direction } from "./intent.ts";
+import { isBlocked, type MapModel } from "./map.ts";
+import { createGameState } from "./state.ts";
 
 function mapFromAscii(rows: readonly string[]): MapModel {
   const height = rows.length;
@@ -1090,56 +1131,56 @@ function mapFromAscii(rows: readonly string[]): MapModel {
   let spawn = { x: 1, y: 1 };
   rows.forEach((row, y) => {
     [...row].forEach((ch, x) => {
-      blocked.push(ch === '#');
-      if (ch === 'P') spawn = { x, y };
+      blocked.push(ch === "#");
+      if (ch === "P") spawn = { x, y };
     });
   });
-  return { id: 'fixture', width, height, blocked, playerSpawn: spawn };
+  return { id: "fixture", width, height, blocked, playerSpawn: spawn };
 }
 
-const map = mapFromAscii(['#####', '#P..#', '#.#.#', '#####']);
+const map = mapFromAscii(["#####", "#P..#", "#.#.#", "#####"]);
 
 function freshState() {
   return createGameState({ seed: 42, mapId: map.id, playerSpawn: map.playerSpawn });
 }
 
-describe('advance: move', () => {
-  it('moves the player into an open tile and reports it', () => {
-    const result = advance(freshState(), { type: 'move', direction: 'east' }, map);
+describe("advance: move", () => {
+  it("moves the player into an open tile and reports it", () => {
+    const result = advance(freshState(), { type: "move", direction: "east" }, map);
     expect(result.state.player.pos).toEqual({ x: 2, y: 1 });
     expect(result.state.tick).toBe(1);
     expect(result.events).toEqual([
-      { type: 'player-moved', from: { x: 1, y: 1 }, to: { x: 2, y: 1 } },
+      { type: "player-moved", from: { x: 1, y: 1 }, to: { x: 2, y: 1 } },
     ]);
   });
 
-  it('blocks movement into a wall, still advancing the tick', () => {
-    const result = advance(freshState(), { type: 'move', direction: 'north' }, map);
+  it("blocks movement into a wall, still advancing the tick", () => {
+    const result = advance(freshState(), { type: "move", direction: "north" }, map);
     expect(result.state.player.pos).toEqual({ x: 1, y: 1 });
     expect(result.state.tick).toBe(1);
     expect(result.events).toEqual([
-      { type: 'movement-blocked', at: { x: 1, y: 1 }, toward: { x: 1, y: 0 } },
+      { type: "movement-blocked", at: { x: 1, y: 1 }, toward: { x: 1, y: 0 } },
     ]);
   });
 
-  it('does not mutate the input state', () => {
+  it("does not mutate the input state", () => {
     const state = freshState();
-    advance(state, { type: 'move', direction: 'east' }, map);
+    advance(state, { type: "move", direction: "east" }, map);
     expect(state.player.pos).toEqual({ x: 1, y: 1 });
     expect(state.tick).toBe(0);
   });
 });
 
-const directions: readonly Direction[] = ['north', 'south', 'east', 'west'];
+const directions: readonly Direction[] = ["north", "south", "east", "west"];
 
-describe('advance: properties', () => {
-  it('is deterministic for any intent sequence', () => {
-    fc.assert(
-      fc.property(fc.array(fc.constantFrom(...directions), { maxLength: 200 }), (moves) => {
+describe("advance: properties", () => {
+  it("is deterministic for any intent sequence", () => {
+    assert(
+      property(array(constantFrom(...directions), { maxLength: 200 }), (moves) => {
         const run = (): string => {
           let state = freshState();
           for (const direction of moves) {
-            state = advance(state, { type: 'move', direction }, map).state;
+            state = advance(state, { type: "move", direction }, map).state;
           }
           return JSON.stringify(state);
         };
@@ -1148,12 +1189,12 @@ describe('advance: properties', () => {
     );
   });
 
-  it('never places the player on a blocked tile', () => {
-    fc.assert(
-      fc.property(fc.array(fc.constantFrom(...directions), { maxLength: 200 }), (moves) => {
+  it("never places the player on a blocked tile", () => {
+    assert(
+      property(array(constantFrom(...directions), { maxLength: 200 }), (moves) => {
         let state = freshState();
         for (const direction of moves) {
-          state = advance(state, { type: 'move', direction }, map).state;
+          state = advance(state, { type: "move", direction }, map).state;
           expect(isBlocked(map, state.player.pos.x, state.player.pos.y)).toBe(false);
         }
       }),
@@ -1173,10 +1214,10 @@ Expected: FAIL — cannot resolve `./advance.ts`.
 - [ ] **Step 3: Write `packages/core/src/advance.ts`**
 
 ```ts
-import type { GameEvent } from './event.ts';
-import { DIRECTION_DELTAS, type Intent } from './intent.ts';
-import { isBlocked, type MapModel } from './map.ts';
-import type { GameState } from './state.ts';
+import type { GameEvent } from "./event.ts";
+import { DIRECTION_DELTAS, type Intent } from "./intent.ts";
+import { isBlocked, type MapModel } from "./map.ts";
+import type { GameState } from "./state.ts";
 
 export interface AdvanceResult {
   readonly state: GameState;
@@ -1191,18 +1232,20 @@ export function advance(state: GameState, intent: Intent, map: MapModel): Advanc
   if (isBlocked(map, to.x, to.y)) {
     return {
       state: { ...state, tick: state.tick + 1 },
-      events: [{ type: 'movement-blocked', at: from, toward: to }],
+      events: [{ type: "movement-blocked", at: from, toward: to }],
     };
   }
 
   return {
     state: { ...state, tick: state.tick + 1, player: { pos: to } },
-    events: [{ type: 'player-moved', from, to }],
+    events: [{ type: "player-moved", from, to }],
   };
 }
 ```
 
 (`Intent` currently has one member; when more intent types arrive in M2, this becomes an explicit switch on `intent.type`.)
+
+(Executed with one review addition folded into this task: `parseTiledMap` now also validates the player spawn lands inside map bounds — MapParseError "player spawn at (x,y) is outside the map (WxH)" — with a test.)
 
 - [ ] **Step 4: Run to verify pass, export, commit**
 
@@ -1213,7 +1256,7 @@ pnpm test
 Expected: PASS. Add to `packages/core/src/index.ts`:
 
 ```ts
-export { advance, type AdvanceResult } from './advance.ts';
+export { advance, type AdvanceResult } from "./advance.ts";
 ```
 
 ```bash
@@ -1224,6 +1267,7 @@ git add -A && git commit -m "Add movement with collision via advance()"
 ### Task 11: Core — versioned save/load
 
 **Files:**
+
 - Create: `packages/core/src/save.ts`
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/src/save.test.ts`
@@ -1231,25 +1275,25 @@ git add -A && git commit -m "Add movement with collision via advance()"
 - [ ] **Step 1: Write the failing tests** — `packages/core/src/save.test.ts`
 
 ```ts
-import { describe, expect, it } from 'vitest';
-import { deserialize, SaveError, serialize } from './save.ts';
-import { createGameState } from './state.ts';
+import { describe, expect, it } from "vitest";
+import { deserialize, SaveError, serialize } from "./save.ts";
+import { createGameState } from "./state.ts";
 
-describe('save round-trip', () => {
-  it('serializes and deserializes to an identical state', () => {
-    const state = createGameState({ seed: 7, mapId: 'port_town', playerSpawn: { x: 3, y: 4 } });
+describe("save round-trip", () => {
+  it("serializes and deserializes to an identical state", () => {
+    const state = createGameState({ seed: 7, mapId: "port_town", playerSpawn: { x: 3, y: 4 } });
     expect(deserialize(serialize(state))).toEqual(state);
   });
 
-  it('rejects malformed JSON', () => {
-    expect(() => deserialize('not json{')).toThrow(SaveError);
+  it("rejects malformed JSON", () => {
+    expect(() => deserialize("not json{")).toThrow(SaveError);
   });
 
-  it('rejects an unsupported version', () => {
+  it("rejects an unsupported version", () => {
     expect(() => deserialize(JSON.stringify({ version: 999, state: {} }))).toThrow(/version 999/);
   });
 
-  it('rejects a payload without state', () => {
+  it("rejects a payload without state", () => {
     expect(() => deserialize(JSON.stringify({ version: 1 }))).toThrow(SaveError);
   });
 });
@@ -1266,7 +1310,7 @@ Expected: FAIL — cannot resolve `./save.ts`.
 - [ ] **Step 3: Write `packages/core/src/save.ts`**
 
 ```ts
-import type { GameState } from './state.ts';
+import type { GameState } from "./state.ts";
 
 export const SAVE_VERSION = 1;
 
@@ -1287,7 +1331,7 @@ export function deserialize(payload: string): GameState {
   try {
     parsed = JSON.parse(payload);
   } catch (cause) {
-    throw new SaveError('save file is not valid JSON', { cause });
+    throw new SaveError("save file is not valid JSON", { cause });
   }
   const file = parsed as Partial<SaveFile>;
   if (file.version !== SAVE_VERSION) {
@@ -1296,7 +1340,7 @@ export function deserialize(payload: string): GameState {
     );
   }
   if (file.state === undefined) {
-    throw new SaveError('save file has no state');
+    throw new SaveError("save file has no state");
   }
   return file.state;
 }
@@ -1311,7 +1355,7 @@ pnpm test
 Expected: PASS. Add to `packages/core/src/index.ts`:
 
 ```ts
-export { deserialize, SaveError, serialize, SAVE_VERSION } from './save.ts';
+export { deserialize, SaveError, serialize, SAVE_VERSION } from "./save.ts";
 ```
 
 ```bash
@@ -1322,6 +1366,7 @@ git add -A && git commit -m "Add versioned save serialization with fail-fast err
 ### Task 12: Content — pack manifest schema and loader
 
 **Files:**
+
 - Create: `packages/content/src/schemas.ts`, `packages/content/src/loader.ts`
 - Modify: `packages/content/src/index.ts`
 - Test: `packages/content/src/loader.test.ts`
@@ -1329,38 +1374,38 @@ git add -A && git commit -m "Add versioned save serialization with fail-fast err
 - [ ] **Step 1: Write the failing tests** — `packages/content/src/loader.test.ts`
 
 ```ts
-import { describe, expect, it } from 'vitest';
-import { ContentError, parsePackManifest } from './loader.ts';
+import { describe, expect, it } from "vitest";
+import { ContentError, parsePackManifest } from "./loader.ts";
 
 const valid = {
-  id: 'base',
-  name: 'Pirata Base Game',
-  version: '0.1.0',
-  license: 'CC-BY-SA-4.0',
-  authors: ['Pirata contributors'],
+  id: "base",
+  name: "Pirata Base Game",
+  version: "0.1.0",
+  license: "CC-BY-SA-4.0",
+  authors: ["Pirata contributors"],
 };
 
-describe('parsePackManifest', () => {
-  it('parses a valid manifest and defaults dependencies to []', () => {
-    const manifest = parsePackManifest(valid, 'packs/base/pack.json');
-    expect(manifest.id).toBe('base');
+describe("parsePackManifest", () => {
+  it("parses a valid manifest and defaults dependencies to []", () => {
+    const manifest = parsePackManifest(valid, "packs/base/pack.json");
+    expect(manifest.id).toBe("base");
     expect(manifest.dependencies).toEqual([]);
   });
 
-  it('names the source file and the missing field in errors', () => {
+  it("names the source file and the missing field in errors", () => {
     const { name: _dropped, ...missingName } = valid;
-    expect(() => parsePackManifest(missingName, 'packs/broken/pack.json')).toThrow(ContentError);
-    expect(() => parsePackManifest(missingName, 'packs/broken/pack.json')).toThrow(
+    expect(() => parsePackManifest(missingName, "packs/broken/pack.json")).toThrow(ContentError);
+    expect(() => parsePackManifest(missingName, "packs/broken/pack.json")).toThrow(
       /packs\/broken\/pack\.json[\s\S]*name/,
     );
   });
 
-  it('rejects unknown fields (strict schema)', () => {
-    expect(() => parsePackManifest({ ...valid, sneaky: true }, 'p.json')).toThrow(/sneaky/);
+  it("rejects unknown fields (strict schema)", () => {
+    expect(() => parsePackManifest({ ...valid, sneaky: true }, "p.json")).toThrow(/sneaky/);
   });
 
-  it('rejects a pack id that is not lowercase snake_case', () => {
-    expect(() => parsePackManifest({ ...valid, id: 'Bad-Id' }, 'p.json')).toThrow(/snake_case/);
+  it("rejects a pack id that is not lowercase snake_case", () => {
+    expect(() => parsePackManifest({ ...valid, id: "Bad-Id" }, "p.json")).toThrow(/snake_case/);
   });
 });
 ```
@@ -1376,7 +1421,7 @@ Expected: FAIL — cannot resolve `./loader.ts`.
 - [ ] **Step 3: Write `packages/content/src/schemas.ts`**
 
 ```ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const packManifestSchema = z.strictObject({
   id: z
@@ -1395,7 +1440,7 @@ export type PackManifest = z.infer<typeof packManifestSchema>;
 - [ ] **Step 4: Write `packages/content/src/loader.ts`**
 
 ```ts
-import { packManifestSchema, type PackManifest } from './schemas.ts';
+import { packManifestSchema, type PackManifest } from "./schemas.ts";
 
 export class ContentError extends Error {}
 
@@ -1403,8 +1448,8 @@ export function parsePackManifest(raw: unknown, source: string): PackManifest {
   const result = packManifestSchema.safeParse(raw);
   if (!result.success) {
     const details = result.error.issues
-      .map((issue) => `  ${issue.path.join('.') || '(root)'}: ${issue.message}`)
-      .join('\n');
+      .map((issue) => `  ${issue.path.join(".") || "(root)"}: ${issue.message}`)
+      .join("\n");
     throw new ContentError(`${source}: invalid pack manifest\n${details}`);
   }
   return result.data;
@@ -1420,8 +1465,8 @@ pnpm test
 Expected: PASS. Replace `packages/content/src/index.ts` with:
 
 ```ts
-export { ContentError, parsePackManifest } from './loader.ts';
-export { packManifestSchema, type PackManifest } from './schemas.ts';
+export { ContentError, parsePackManifest } from "./loader.ts";
+export { packManifestSchema, type PackManifest } from "./schemas.ts";
 ```
 
 ```bash
@@ -1432,6 +1477,7 @@ git add -A && git commit -m "Add Zod pack manifest schema with fail-fast loader"
 ### Task 13: Content — base pack, town map generator, validation CLI
 
 **Files:**
+
 - Create: `scripts/build-town-map.ts`, `packages/content/packs/base/pack.json`, `packages/content/src/validate.ts`
 - Create (generated): `packages/content/packs/base/maps/port_town.map.json`
 - Modify: `.github/workflows/ci.yml`
@@ -1454,25 +1500,25 @@ git add -A && git commit -m "Add Zod pack manifest schema with fail-fast loader"
 The town is authored as ASCII here for reviewability; the committed output is standard Tiled JSON that contributors can open and edit in Tiled (which becomes the normal map-contribution path). Legend: `#` building/wall, `~` water (blocked), `.` open ground, `P` player spawn.
 
 ```ts
-import { writeFileSync } from 'node:fs';
+import { writeFileSync } from "node:fs";
 
 const LAYOUT: readonly string[] = [
-  '########################',
-  '#................~~~~~~#',
-  '#.####..####.....~~~~~~#',
-  '#.#..#..#..#.....~~~~~~#',
-  '#.#..#..####......~~~~~#',
-  '#.####...........P..~~~#',
-  '#.................~~~~~#',
-  '#.####..####......~~~~~#',
-  '#.#..#..#..#......~~~~~#',
-  '#.#..#..####......~~~~~#',
-  '#.####............~~~~~#',
-  '#.................~~~~~#',
-  '#.......####.......~~~~#',
-  '#.......#..#.......~~~~#',
-  '#.......####......~~~~~#',
-  '########################',
+  "########################",
+  "#................~~~~~~#",
+  "#.####..####.....~~~~~~#",
+  "#.#..#..#..#.....~~~~~~#",
+  "#.#..#..####......~~~~~#",
+  "#.####...........P..~~~#",
+  "#.................~~~~~#",
+  "#.####..####......~~~~~#",
+  "#.#..#..#..#......~~~~~#",
+  "#.#..#..####......~~~~~#",
+  "#.####............~~~~~#",
+  "#.................~~~~~#",
+  "#.......####.......~~~~#",
+  "#.......#..#.......~~~~#",
+  "#.......####......~~~~~#",
+  "########################",
 ];
 
 const TILE = 32;
@@ -1483,7 +1529,7 @@ const GID_WATER = 3;
 const height = LAYOUT.length;
 const width = LAYOUT[0]?.length ?? 0;
 if (LAYOUT.some((row) => row.length !== width)) {
-  throw new Error('layout rows must all have the same length');
+  throw new Error("layout rows must all have the same length");
 }
 
 const ground: number[] = [];
@@ -1493,28 +1539,28 @@ let spawn: { x: number; y: number } | undefined;
 LAYOUT.forEach((row, y) => {
   [...row].forEach((ch, x) => {
     ground.push(GID_GROUND);
-    if (ch === '#') {
+    if (ch === "#") {
       walls.push(GID_WALL);
-    } else if (ch === '~') {
+    } else if (ch === "~") {
       walls.push(GID_WATER);
     } else {
       walls.push(0);
     }
-    if (ch === 'P') {
+    if (ch === "P") {
       spawn = { x, y };
     }
   });
 });
 
 if (spawn === undefined) {
-  throw new Error('layout has no P (player spawn) tile');
+  throw new Error("layout has no P (player spawn) tile");
 }
 
 const map = {
-  type: 'map',
-  version: '1.10',
-  orientation: 'orthogonal',
-  renderorder: 'right-down',
+  type: "map",
+  version: "1.10",
+  orientation: "orthogonal",
+  renderorder: "right-down",
   infinite: false,
   width,
   height,
@@ -1525,12 +1571,12 @@ const map = {
   tilesets: [
     {
       firstgid: 1,
-      name: 'placeholder',
+      name: "placeholder",
       tilewidth: TILE,
       tileheight: TILE,
       tilecount: 3,
       columns: 3,
-      image: 'placeholder.png',
+      image: "placeholder.png",
       imagewidth: 96,
       imageheight: 32,
       margin: 0,
@@ -1540,8 +1586,8 @@ const map = {
   layers: [
     {
       id: 1,
-      name: 'ground',
-      type: 'tilelayer',
+      name: "ground",
+      type: "tilelayer",
       width,
       height,
       data: ground,
@@ -1552,8 +1598,8 @@ const map = {
     },
     {
       id: 2,
-      name: 'walls',
-      type: 'tilelayer',
+      name: "walls",
+      type: "tilelayer",
       width,
       height,
       data: walls,
@@ -1564,12 +1610,12 @@ const map = {
     },
     {
       id: 3,
-      name: 'spawns',
-      type: 'objectgroup',
+      name: "spawns",
+      type: "objectgroup",
       objects: [
         {
           id: 1,
-          name: 'player',
+          name: "player",
           x: spawn.x * TILE,
           y: spawn.y * TILE,
           width: TILE,
@@ -1587,7 +1633,7 @@ const map = {
   ],
 };
 
-const outPath = 'packages/content/packs/base/maps/port_town.map.json';
+const outPath = "packages/content/packs/base/maps/port_town.map.json";
 writeFileSync(outPath, `${JSON.stringify(map, null, 2)}\n`);
 console.log(`wrote ${outPath} (${width}x${height}, spawn at ${spawn.x},${spawn.y})`);
 ```
@@ -1603,27 +1649,24 @@ Expected: `wrote packages/content/packs/base/maps/port_town.map.json (24x16, spa
 - [ ] **Step 4: Write `packages/content/src/validate.ts`** (Node CLI; run from repo root)
 
 ```ts
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { parseTiledMap } from '@pirata/core';
-import { parsePackManifest } from './loader.ts';
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { parseTiledMap } from "@pirata/core";
+import { parsePackManifest } from "./loader.ts";
 
-const packDir = process.argv[2] ?? 'packages/content/packs/base';
-const manifestPath = join(packDir, 'pack.json');
-const manifest = parsePackManifest(
-  JSON.parse(readFileSync(manifestPath, 'utf8')),
-  manifestPath,
-);
+const packDir = process.argv[2] ?? "packages/content/packs/base";
+const manifestPath = join(packDir, "pack.json");
+const manifest = parsePackManifest(JSON.parse(readFileSync(manifestPath, "utf8")), manifestPath);
 
-const mapsDir = join(packDir, 'maps');
-const mapFiles = readdirSync(mapsDir).filter((file) => file.endsWith('.map.json'));
+const mapsDir = join(packDir, "maps");
+const mapFiles = readdirSync(mapsDir).filter((file) => file.endsWith(".map.json"));
 if (mapFiles.length === 0) {
   console.error(`${mapsDir}: no .map.json files found`);
   process.exit(1);
 }
 for (const file of mapFiles) {
-  const raw: unknown = JSON.parse(readFileSync(join(mapsDir, file), 'utf8'));
-  parseTiledMap(file.replace('.map.json', ''), raw);
+  const raw: unknown = JSON.parse(readFileSync(join(mapsDir, file), "utf8"));
+  parseTiledMap(file.replace(".map.json", ""), raw);
 }
 console.log(`pack "${manifest.id}" OK: ${String(mapFiles.length)} map(s) validated`);
 ```
@@ -1641,7 +1684,7 @@ Now prove it fails fast: temporarily rename the `walls` layer in `port_town.map.
 - [ ] **Step 6: Add content validation to CI** — in `.github/workflows/ci.yml`, after the `- run: pnpm test` line, insert:
 
 ```yaml
-      - run: pnpm validate:content
+- run: pnpm validate:content
 ```
 
 ```bash
@@ -1658,13 +1701,14 @@ git add -A && git commit -m "Add base content pack with generated port town map"
 ### Task 14: Client — walkable world scene
 
 **Files:**
+
 - Create: `packages/client/src/world-scene.ts`, `packages/client/src/global.d.ts`
 - Modify: `packages/client/src/main.ts`
 
 - [ ] **Step 1: Write `packages/client/src/global.d.ts`** (debug/testing hook — the agent-native way to drive the game)
 
 ```ts
-import type { GameState, Intent } from '@pirata/core';
+import type { GameState, Intent } from "@pirata/core";
 
 declare global {
   interface Window {
@@ -1681,7 +1725,7 @@ export {};
 - [ ] **Step 2: Write `packages/client/src/world-scene.ts`**
 
 ```ts
-import townJson from '@pirata/content/packs/base/maps/port_town.map.json';
+import townJson from "@pirata/content/packs/base/maps/port_town.map.json";
 import {
   advance,
   createGameState,
@@ -1693,41 +1737,41 @@ import {
   type GameState,
   type Intent,
   type MapModel,
-} from '@pirata/core';
-import Phaser from 'phaser';
+} from "@pirata/core";
+import { GameObjects, Input, Scene } from "phaser";
 
 const TILE = 32;
 const MOVE_COOLDOWN_MS = 140;
-const SAVE_KEY = 'pirata-save';
+const SAVE_KEY = "pirata-save";
 const TILE_COLORS = [0x8a795d, 0x4d4338, 0x1d3f6e];
 
-export class WorldScene extends Phaser.Scene {
+export class WorldScene extends Scene {
   private map!: MapModel;
   private state!: GameState;
-  private playerSprite!: Phaser.GameObjects.Rectangle;
-  private keys!: ReadonlyArray<readonly [Direction, Phaser.Input.Keyboard.Key]>;
+  private playerSprite!: GameObjects.Rectangle;
+  private keys!: ReadonlyArray<readonly [Direction, Input.Keyboard.Key]>;
   private lastMoveAt = 0;
 
   constructor() {
-    super('world');
+    super("world");
   }
 
   preload(): void {
-    this.load.tilemapTiledJSON('port_town', townJson as unknown as object);
+    this.load.tilemapTiledJSON("port_town", townJson as unknown as object);
   }
 
   create(): void {
-    this.map = parseTiledMap('port_town', townJson);
+    this.map = parseTiledMap("port_town", townJson);
     this.state = this.loadOrCreateState();
 
     this.createPlaceholderTileset();
-    const tilemap = this.make.tilemap({ key: 'port_town' });
-    const tileset = tilemap.addTilesetImage('placeholder', 'placeholder');
+    const tilemap = this.make.tilemap({ key: "port_town" });
+    const tileset = tilemap.addTilesetImage("placeholder", "placeholder");
     if (tileset === null) {
-      throw new Error('failed to attach placeholder tileset to tilemap');
+      throw new Error("failed to attach placeholder tileset to tilemap");
     }
-    tilemap.createLayer('ground', tileset);
-    tilemap.createLayer('walls', tileset);
+    tilemap.createLayer("ground", tileset);
+    tilemap.createLayer("walls", tileset);
 
     const { x, y } = this.state.player.pos;
     this.playerSprite = this.add.rectangle(
@@ -1749,7 +1793,7 @@ export class WorldScene extends Phaser.Scene {
     }
     for (const [direction, key] of this.keys) {
       if (key.isDown) {
-        this.apply({ type: 'move', direction });
+        this.apply({ type: "move", direction });
         this.lastMoveAt = time;
         return;
       }
@@ -1760,7 +1804,7 @@ export class WorldScene extends Phaser.Scene {
     const result = advance(this.state, intent, this.map);
     this.state = result.state;
     for (const event of result.events) {
-      if (event.type === 'player-moved') {
+      if (event.type === "player-moved") {
         this.tweens.add({
           targets: this.playerSprite,
           x: event.to.x * TILE + TILE / 2,
@@ -1777,7 +1821,7 @@ export class WorldScene extends Phaser.Scene {
       graphics.fillStyle(color, 1);
       graphics.fillRect(index * TILE, 0, TILE, TILE);
     });
-    graphics.generateTexture('placeholder', TILE * TILE_COLORS.length, TILE);
+    graphics.generateTexture("placeholder", TILE * TILE_COLORS.length, TILE);
     graphics.destroy();
   }
 
@@ -1804,22 +1848,22 @@ export class WorldScene extends Phaser.Scene {
   private setUpKeys(): void {
     const keyboard = this.input.keyboard;
     if (keyboard === null) {
-      throw new Error('keyboard input is unavailable');
+      throw new Error("keyboard input is unavailable");
     }
     this.keys = [
-      ['north', keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)],
-      ['north', keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W)],
-      ['south', keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN)],
-      ['south', keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)],
-      ['west', keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)],
-      ['west', keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)],
-      ['east', keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)],
-      ['east', keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)],
+      ["north", keyboard.addKey(Input.Keyboard.KeyCodes.UP)],
+      ["north", keyboard.addKey(Input.Keyboard.KeyCodes.W)],
+      ["south", keyboard.addKey(Input.Keyboard.KeyCodes.DOWN)],
+      ["south", keyboard.addKey(Input.Keyboard.KeyCodes.S)],
+      ["west", keyboard.addKey(Input.Keyboard.KeyCodes.LEFT)],
+      ["west", keyboard.addKey(Input.Keyboard.KeyCodes.A)],
+      ["east", keyboard.addKey(Input.Keyboard.KeyCodes.RIGHT)],
+      ["east", keyboard.addKey(Input.Keyboard.KeyCodes.D)],
     ];
   }
 
   private setUpPersistence(): void {
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       localStorage.setItem(SAVE_KEY, serialize(this.state));
     });
   }
@@ -1838,17 +1882,17 @@ export class WorldScene extends Phaser.Scene {
 - [ ] **Step 3: Replace `packages/client/src/main.ts`**
 
 ```ts
-import Phaser from 'phaser';
-import { WorldScene } from './world-scene.ts';
+import { AUTO, Game, Scale } from "phaser";
+import { WorldScene } from "./world-scene.ts";
 
-export const game = new Phaser.Game({
-  type: Phaser.AUTO,
-  parent: 'game',
+export const game = new Game({
+  type: AUTO,
+  parent: "game",
   width: 768,
   height: 512,
-  backgroundColor: '#101418',
+  backgroundColor: "#101418",
   pixelArt: true,
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+  scale: { mode: Scale.FIT, autoCenter: Scale.CENTER_BOTH },
   scene: [WorldScene],
 });
 ```
@@ -1873,20 +1917,23 @@ git add -A && git commit -m "Render port town and walk the player via core inten
 ### Task 15: Playwright smoke test
 
 **Files:**
+
 - Create: `playwright.config.ts`, `e2e/smoke.spec.ts`, `e2e/types.d.ts`
-- Modify: `.github/workflows/ci.yml`
+- Modify: `.github/workflows/ci.yml`, `package.json` (root gains
+  `"@pirata/core": "workspace:*"` in devDependencies — `e2e/types.d.ts`
+  imports its types, and pnpm only links declared deps)
 
 - [ ] **Step 1: Write `playwright.config.ts`**
 
 ```ts
-import { defineConfig } from '@playwright/test';
+import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  testDir: 'e2e',
-  use: { baseURL: 'http://127.0.0.1:4173' },
+  testDir: "e2e",
+  use: { baseURL: "http://127.0.0.1:4173" },
   webServer: {
-    command: 'pnpm --filter @pirata/client preview --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173',
+    command: "pnpm --filter @pirata/client preview --host 127.0.0.1 --port 4173",
+    url: "http://127.0.0.1:4173",
     reuseExistingServer: false,
   },
 });
@@ -1895,7 +1942,7 @@ export default defineConfig({
 - [ ] **Step 2: Write `e2e/types.d.ts`** (the hook's shape, restated for the test context)
 
 ```ts
-import type { GameState, Intent } from '@pirata/core';
+import type { GameState, Intent } from "@pirata/core";
 
 declare global {
   interface Window {
@@ -1912,28 +1959,25 @@ export {};
 - [ ] **Step 3: Write the failing test** — `e2e/smoke.spec.ts`
 
 ```ts
-import { expect, test } from '@playwright/test';
+import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await page.goto("/");
   await page.waitForFunction(() => window.__pirata !== undefined);
 });
 
-test('boots and the core responds to dispatched intents', async ({ page }) => {
+test("boots and the core responds to dispatched intents", async ({ page }) => {
   const before = await page.evaluate(() => window.__pirata?.getState().player.pos);
-  await page.evaluate(() => window.__pirata?.dispatch({ type: 'move', direction: 'east' }));
+  await page.evaluate(() => window.__pirata?.dispatch({ type: "move", direction: "east" }));
   const after = await page.evaluate(() => window.__pirata?.getState().player.pos);
   expect(after).not.toEqual(before);
 });
 
-test('keyboard input moves the player', async ({ page }) => {
+test("keyboard input moves the player", async ({ page }) => {
   const before = await page.evaluate(() => window.__pirata?.getState().tick ?? 0);
-  await page.keyboard.down('ArrowRight');
-  await page.waitForFunction(
-    (tick) => (window.__pirata?.getState().tick ?? 0) > tick,
-    before,
-  );
-  await page.keyboard.up('ArrowRight');
+  await page.keyboard.down("ArrowRight");
+  await page.waitForFunction((tick) => (window.__pirata?.getState().tick ?? 0) > tick, before);
+  await page.keyboard.up("ArrowRight");
 });
 ```
 
@@ -1949,20 +1993,20 @@ Expected: 2 passed. (The spawn at (17,5) has open ground to the east, so the `ea
 - [ ] **Step 5: Add the e2e job to CI** — append to `.github/workflows/ci.yml` (same SHA pins as the `checks` job):
 
 ```yaml
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@<sha> # <tag>
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@<sha> # <tag>
-      - uses: actions/setup-node@<sha> # <tag>
-        with:
-          node-version-file: .node-version
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+e2e:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@<sha> # <tag>
+      with:
+        persist-credentials: false
+    - uses: pnpm/action-setup@<sha> # <tag>
+    - uses: actions/setup-node@<sha> # <tag>
+      with:
+        node-version-file: .node-version
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm exec playwright install --with-deps chromium
+    - run: pnpm test:e2e
 ```
 
 ```bash
@@ -1978,6 +2022,7 @@ git add -A && git commit -m "Add Playwright smoke test driving the debug intent 
 ### Task 16: Community scaffolding — attribution, contributing, ADR
 
 **Files:**
+
 - Create: `ATTRIBUTION.md`, `scripts/check-attribution.ts`, `CONTRIBUTING.md`, `docs/adr/0001-web-native-typescript-stack.md`
 - Modify: `.github/workflows/ci.yml`
 
@@ -1999,21 +2044,21 @@ arrives with its own attribution rows._
 - [ ] **Step 2: Write `scripts/check-attribution.ts`**
 
 ```ts
-import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 const ASSET_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|ogg|mp3|wav|flac|ttf|otf|woff2?)$/i;
 
-const tracked = execSync('git ls-files', { encoding: 'utf8' })
-  .split('\n')
+const tracked = execSync("git ls-files", { encoding: "utf8" })
+  .split("\n")
   .filter((file) => ASSET_EXTENSIONS.test(file));
 
-const attribution = readFileSync('ATTRIBUTION.md', 'utf8');
+const attribution = readFileSync("ATTRIBUTION.md", "utf8");
 const missing = tracked.filter((file) => !attribution.includes(file));
 
 if (missing.length > 0) {
   console.error(
-    `assets missing from ATTRIBUTION.md:\n${missing.map((file) => `  ${file}`).join('\n')}`,
+    `assets missing from ATTRIBUTION.md:\n${missing.map((file) => `  ${file}`).join("\n")}`,
   );
   process.exit(1);
 }
@@ -2035,13 +2080,13 @@ Expected: `attribution OK (0 tracked assets)`. Then prove it catches violations:
 
 Pirata is built to be hacked on. Pick your on-ramp:
 
-| I want to… | Where | Skills needed |
-| ---------- | ----- | ------------- |
-| Add/balance items, NPCs, factions, dialogue, rumors | `packages/content/packs/base/` (JSON) | none — schemas validate your work |
-| Make or edit maps | `packages/content/packs/base/maps/` with [Tiled](https://www.mapeditor.org/) | Tiled only |
-| Contribute art | LPC style (32px top-down); add a row to `ATTRIBUTION.md` | pixel art |
-| Change game rules | `packages/core/` (pure TypeScript, fully unit-tested) | TypeScript |
-| Improve rendering/UI | `packages/client/` (Phaser 4 + DOM) | TypeScript/web |
+| I want to…                                          | Where                                                                        | Skills needed                     |
+| --------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------- |
+| Add/balance items, NPCs, factions, dialogue, rumors | `packages/content/packs/base/` (JSON)                                        | none — schemas validate your work |
+| Make or edit maps                                   | `packages/content/packs/base/maps/` with [Tiled](https://www.mapeditor.org/) | Tiled only                        |
+| Contribute art                                      | LPC style (32px top-down); add a row to `ATTRIBUTION.md`                     | pixel art                         |
+| Change game rules                                   | `packages/core/` (pure TypeScript, fully unit-tested)                        | TypeScript                        |
+| Improve rendering/UI                                | `packages/client/` (Phaser 4 + DOM)                                          | TypeScript/web                    |
 
 ## Ground rules
 
@@ -2049,7 +2094,9 @@ Pirata is built to be hacked on. Pick your on-ramp:
   live in `docs/adr/`.
 - `pnpm install && pnpm --filter @pirata/client dev` gets you a running game.
 - Before a PR: `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
-  && pnpm validate:content && pnpm check:attribution`.
+&& pnpm validate:content && pnpm check:attribution`.
+- Formatting is enforced by oxfmt for code **and** markdown — if
+  `format:check` complains, `pnpm format` fixes everything automatically.
 - Code is GPLv3; original art contributions are CC-BY-SA 4.0 (CC0 welcome).
   Every asset needs an `ATTRIBUTION.md` row.
 ```
@@ -2087,7 +2134,7 @@ end-to-end without a browser.
 - [ ] **Step 6: Add the attribution check to CI** — in `.github/workflows/ci.yml`, after the `- run: pnpm validate:content` line, insert:
 
 ```yaml
-      - run: pnpm check:attribution
+- run: pnpm check:attribution
 ```
 
 ```bash
@@ -2130,9 +2177,14 @@ Report completion and give the user this checklist (pushing requires their YubiK
 
 1. Plug in YubiKey; `git push -u origin feat/m0-m1-skeleton`.
 2. Create the GitHub repo/PR (`gh repo create ryzokuken/pirata --public` if it doesn't exist; then `gh pr create`).
-3. In repo settings → Pages: set Source to "GitHub Actions".
-4. After merging: confirm CI is green and the game is live at `https://ryzokuken.github.io/pirata/`.
-5. If the repo name ever differs from `pirata`, update `BASE_PATH` in `deploy.yml`.
+3. **Enable branch protection on `main` with the CI `checks` job as a required
+   status check** (settings → branches, or a ruleset). This is mandatory, not
+   optional: deploy.yml runs independently of CI on every push to main, so
+   branch protection is the only thing guaranteeing that what deploys has
+   passed lint/typecheck/tests.
+4. In repo settings → Pages: set Source to "GitHub Actions".
+5. After merging: confirm CI is green and the game is live at `https://ryzokuken.github.io/pirata/`.
+6. If the repo name ever differs from `pirata`, update `BASE_PATH` in `deploy.yml`.
 
 ---
 
@@ -2144,3 +2196,6 @@ Report completion and give the user this checklist (pushing requires their YubiK
 - Multi-pack loading with dependency order and extends/replaces semantics (one pack exists)
 - NPCs, dialogue, reputation (M2); stealth/crime (M3); rumors, combat, desperation (M4)
 - PWA/offline install, touch input, docs site
+- Screen-reader fallback content inside the Phaser canvas region (review note, Task 4)
+- Pixel-art crispness: integer scaling/zoom instead of bare `Scale.FIT` (review note, Task 4)
+- Code-split the ~1.3 MB Phaser chunk if initial load matters (review note, Task 4)

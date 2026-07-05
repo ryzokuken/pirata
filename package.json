@@ -1,0 +1,32 @@
+{
+  "name": "pirata",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @pirata/client dev",
+    "lint": "oxlint --deny-warnings",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "tsc --noEmit && pnpm -r --if-present typecheck",
+    "test": "vitest run",
+    "test:e2e": "pnpm --filter @pirata/client build && playwright test",
+    "build": "pnpm -r --if-present build",
+    "build:maps": "node scripts/build-town-map.ts",
+    "validate:content": "node packages/content/src/validate.ts",
+    "check:attribution": "node scripts/check-attribution.ts"
+  },
+  "devDependencies": {
+    "@pirata/core": "workspace:*",
+    "@playwright/test": "1.61.1",
+    "@types/node": "24.13.2",
+    "fast-check": "4.8.0",
+    "oxfmt": "0.57.0",
+    "oxlint": "1.72.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.9"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.3.0"
+}
