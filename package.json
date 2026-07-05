@@ -1,0 +1,19 @@
+{
+  "name": "pirata",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.3.0",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "lint": "oxlint --deny-warnings",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "tsc --noEmit && pnpm -r --if-present typecheck",
+    "test": "vitest run",
+    "test:e2e": "pnpm --filter @pirata/client build && playwright test",
+    "build": "pnpm -r --if-present build",
+    "build:maps": "node scripts/build-town-map.ts",
+    "validate:content": "node packages/content/src/validate.ts",
+    "check:attribution": "node scripts/check-attribution.ts"
+  }
+}
