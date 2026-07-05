@@ -1919,7 +1919,9 @@ git add -A && git commit -m "Render port town and walk the player via core inten
 **Files:**
 
 - Create: `playwright.config.ts`, `e2e/smoke.spec.ts`, `e2e/types.d.ts`
-- Modify: `.github/workflows/ci.yml`
+- Modify: `.github/workflows/ci.yml`, `package.json` (root gains
+  `"@pirata/core": "workspace:*"` in devDependencies — `e2e/types.d.ts`
+  imports its types, and pnpm only links declared deps)
 
 - [ ] **Step 1: Write `playwright.config.ts`**
 
