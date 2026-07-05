@@ -593,9 +593,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@<sha> # <tag>
         with:
@@ -661,11 +666,12 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -2149,9 +2155,14 @@ Report completion and give the user this checklist (pushing requires their YubiK
 
 1. Plug in YubiKey; `git push -u origin feat/m0-m1-skeleton`.
 2. Create the GitHub repo/PR (`gh repo create ryzokuken/pirata --public` if it doesn't exist; then `gh pr create`).
-3. In repo settings → Pages: set Source to "GitHub Actions".
-4. After merging: confirm CI is green and the game is live at `https://ryzokuken.github.io/pirata/`.
-5. If the repo name ever differs from `pirata`, update `BASE_PATH` in `deploy.yml`.
+3. **Enable branch protection on `main` with the CI `checks` job as a required
+   status check** (settings → branches, or a ruleset). This is mandatory, not
+   optional: deploy.yml runs independently of CI on every push to main, so
+   branch protection is the only thing guaranteeing that what deploys has
+   passed lint/typecheck/tests.
+4. In repo settings → Pages: set Source to "GitHub Actions".
+5. After merging: confirm CI is green and the game is live at `https://ryzokuken.github.io/pirata/`.
+6. If the repo name ever differs from `pirata`, update `BASE_PATH` in `deploy.yml`.
 
 ---
 
