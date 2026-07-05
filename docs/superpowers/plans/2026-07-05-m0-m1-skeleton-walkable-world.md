@@ -1245,6 +1245,8 @@ export function advance(state: GameState, intent: Intent, map: MapModel): Advanc
 
 (`Intent` currently has one member; when more intent types arrive in M2, this becomes an explicit switch on `intent.type`.)
 
+(Executed with one review addition folded into this task: `parseTiledMap` now also validates the player spawn lands inside map bounds — MapParseError "player spawn at (x,y) is outside the map (WxH)" — with a test.)
+
 - [ ] **Step 4: Run to verify pass, export, commit**
 
 ```bash
