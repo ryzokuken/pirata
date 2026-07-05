@@ -35,20 +35,20 @@ Cataclysm: DDA (systemic depth, data-driven content), Sid Meier's Pirates!
 
 ## 2. Decisions Summary
 
-| Decision | Choice |
-|---|---|
-| Game shape | Exploration-freedom RPG: factions, per-faction/per-NPC reputation, stealth, crime, rumor-driven exploration. Other systems start simple, iterate. |
-| Default playstyle | Curiosity and conflict avoidance. Combat is a failure mode by default; violence stays available as a deliberate faction/player choice. |
-| Tone | Realistic and gritty: spoiling supplies, festering wounds, fraying morale, survival pressure on voyages. |
-| Combat v1 | Simple turn-based party combat. Iterated on later like any other module — no special abstraction ceremony. |
-| Multiplayer | None. Community lives in modding, forks, shared stories. |
-| Platform | Browser-first via web-native stack; desktop/mobile follow from PWA and wrappers. |
-| Stack | TypeScript monorepo: pure headless simulation core + Phaser 4 client + JSON content packs. |
-| Art | 2D top-down pixel art, LPC asset family (32px), Kenney/CC0 for gaps. |
-| Maps | Tiled, stored as JSON, consumed by both core (logic) and client (rendering). |
-| Modding model | Data-driven content packs (CDDA model) + fork-friendly GPL code. No sandboxed scripting engine in v1. |
-| Licensing | Code GPLv3; assets CC-BY-SA/GPL (LPC) and CC0/CC-BY per asset, tracked and CI-enforced. |
-| v0 goal | One-port vertical slice: arrive, socialize, transgress, follow a rumor, profit. |
+| Decision          | Choice                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Game shape        | Exploration-freedom RPG: factions, per-faction/per-NPC reputation, stealth, crime, rumor-driven exploration. Other systems start simple, iterate. |
+| Default playstyle | Curiosity and conflict avoidance. Combat is a failure mode by default; violence stays available as a deliberate faction/player choice.            |
+| Tone              | Realistic and gritty: spoiling supplies, festering wounds, fraying morale, survival pressure on voyages.                                          |
+| Combat v1         | Simple turn-based party combat. Iterated on later like any other module — no special abstraction ceremony.                                        |
+| Multiplayer       | None. Community lives in modding, forks, shared stories.                                                                                          |
+| Platform          | Browser-first via web-native stack; desktop/mobile follow from PWA and wrappers.                                                                  |
+| Stack             | TypeScript monorepo: pure headless simulation core + Phaser 4 client + JSON content packs.                                                        |
+| Art               | 2D top-down pixel art, LPC asset family (32px), Kenney/CC0 for gaps.                                                                              |
+| Maps              | Tiled, stored as JSON, consumed by both core (logic) and client (rendering).                                                                      |
+| Modding model     | Data-driven content packs (CDDA model) + fork-friendly GPL code. No sandboxed scripting engine in v1.                                             |
+| Licensing         | Code GPLv3; assets CC-BY-SA/GPL (LPC) and CC0/CC-BY per asset, tracked and CI-enforced.                                                           |
+| v0 goal           | One-port vertical slice: arrive, socialize, transgress, follow a rumor, profit.                                                                   |
 
 ## 3. Principles
 
@@ -93,7 +93,7 @@ Node. Owns:
 - **`GameState`** — fully serializable (save/load is `JSON.stringify`-shaped),
   producible from a seed + action log (deterministic replay).
 - **Systems** — functions of the form `advance(state, intent) → { state,
-  events }`. Seeded RNG only; no ambient randomness, no wall-clock time.
+events }`. Seeded RNG only; no ambient randomness, no wall-clock time.
 - **Intents & events** — the client sends typed intents (move, talk, steal,
   attack); core returns state changes plus a typed event stream
   (`NpcWitnessedCrime`, `ReputationChanged`, `RumorHeard`) that the client
