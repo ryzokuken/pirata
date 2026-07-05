@@ -30,4 +30,5 @@ jobs:
       - run: pnpm format:check
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm validate:content
       - run: pnpm build
