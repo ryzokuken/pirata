@@ -479,9 +479,9 @@ export default defineConfig({
 - [ ] **Step 4: Write `packages/client/src/main.ts`** (M0 version — replaced in Task 14)
 
 ```ts
-import Phaser from "phaser";
+import { AUTO, Game, Scale, Scene } from "phaser";
 
-class BootScene extends Phaser.Scene {
+class BootScene extends Scene {
   constructor() {
     super("boot");
   }
@@ -491,17 +491,21 @@ class BootScene extends Phaser.Scene {
   }
 }
 
-export const game = new Phaser.Game({
-  type: Phaser.AUTO,
+export const game = new Game({
+  type: AUTO,
   parent: "game",
   width: 768,
   height: 512,
   backgroundColor: "#101418",
   pixelArt: true,
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+  scale: { mode: Scale.FIT, autoCenter: Scale.CENTER_BOTH },
   scene: [BootScene],
 });
 ```
+
+(Named imports, not `import Phaser from "phaser"` + `Phaser.*` access: phaser ships real
+named ESM exports, so oxlint's `no-named-as-default-member` correctly rejects the
+default-import pattern.)
 
 - [ ] **Step 5: Verify build and served output**
 
@@ -1708,18 +1712,18 @@ import {
   type Intent,
   type MapModel,
 } from "@pirata/core";
-import Phaser from "phaser";
+import { GameObjects, Input, Scene } from "phaser";
 
 const TILE = 32;
 const MOVE_COOLDOWN_MS = 140;
 const SAVE_KEY = "pirata-save";
 const TILE_COLORS = [0x8a795d, 0x4d4338, 0x1d3f6e];
 
-export class WorldScene extends Phaser.Scene {
+export class WorldScene extends Scene {
   private map!: MapModel;
   private state!: GameState;
-  private playerSprite!: Phaser.GameObjects.Rectangle;
-  private keys!: ReadonlyArray<readonly [Direction, Phaser.Input.Keyboard.Key]>;
+  private playerSprite!: GameObjects.Rectangle;
+  private keys!: ReadonlyArray<readonly [Direction, Input.Keyboard.Key]>;
   private lastMoveAt = 0;
 
   constructor() {
@@ -1821,14 +1825,14 @@ export class WorldScene extends Phaser.Scene {
       throw new Error("keyboard input is unavailable");
     }
     this.keys = [
-      ["north", keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)],
-      ["north", keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W)],
-      ["south", keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN)],
-      ["south", keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)],
-      ["west", keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)],
-      ["west", keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)],
-      ["east", keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)],
-      ["east", keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)],
+      ["north", keyboard.addKey(Input.Keyboard.KeyCodes.UP)],
+      ["north", keyboard.addKey(Input.Keyboard.KeyCodes.W)],
+      ["south", keyboard.addKey(Input.Keyboard.KeyCodes.DOWN)],
+      ["south", keyboard.addKey(Input.Keyboard.KeyCodes.S)],
+      ["west", keyboard.addKey(Input.Keyboard.KeyCodes.LEFT)],
+      ["west", keyboard.addKey(Input.Keyboard.KeyCodes.A)],
+      ["east", keyboard.addKey(Input.Keyboard.KeyCodes.RIGHT)],
+      ["east", keyboard.addKey(Input.Keyboard.KeyCodes.D)],
     ];
   }
 
@@ -1852,17 +1856,17 @@ export class WorldScene extends Phaser.Scene {
 - [ ] **Step 3: Replace `packages/client/src/main.ts`**
 
 ```ts
-import Phaser from "phaser";
+import { AUTO, Game, Scale } from "phaser";
 import { WorldScene } from "./world-scene.ts";
 
-export const game = new Phaser.Game({
-  type: Phaser.AUTO,
+export const game = new Game({
+  type: AUTO,
   parent: "game",
   width: 768,
   height: 512,
   backgroundColor: "#101418",
   pixelArt: true,
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+  scale: { mode: Scale.FIT, autoCenter: Scale.CENTER_BOTH },
   scene: [WorldScene],
 });
 ```
