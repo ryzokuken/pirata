@@ -765,8 +765,26 @@ describe("seeded rng", () => {
       state = r.state;
     }
   });
+
+  it("matches the mulberry32 golden sequence for seed 1234", () => {
+    // Pins the algorithm constants and state advancement. If this test
+    // fails, the change breaks deterministic replay and save compatibility.
+    const expected = [
+      0.07329497812315822, 0.7034119898453355, 0.9028560190927237, 0.9705493662040681,
+      0.04096397617831826,
+    ];
+    let state = seedRng(1234);
+    for (const value of expected) {
+      const r = nextFloat(state);
+      expect(r.value).toBe(value);
+      state = r.state;
+    }
+  });
 });
 ```
+
+(The golden values pin the exact algorithm: the range/determinism tests alone
+stay green under constant drift, which would silently corrupt saves.)
 
 - [ ] **Step 2: Run to verify it fails**
 
