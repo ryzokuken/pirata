@@ -18,6 +18,20 @@ describe("seeded rng", () => {
     expect(nextFloat(seedRng(1)).value).not.toBe(nextFloat(seedRng(2)).value);
   });
 
+  it("matches the mulberry32 golden sequence for seed 1234", () => {
+    let state = seedRng(1234);
+    const values: number[] = [];
+    for (let i = 0; i < 5; i += 1) {
+      const r = nextFloat(state);
+      values.push(r.value);
+      state = r.state;
+    }
+    expect(values).toEqual([
+      0.07329497812315822, 0.7034119898453355, 0.9028560190927237, 0.9705493662040681,
+      0.04096397617831826,
+    ]);
+  });
+
   it("keeps floats in [0, 1)", () => {
     let state = seedRng(99);
     for (let i = 0; i < 1000; i += 1) {
