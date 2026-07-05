@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm install --frozen-lockfile)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm format)",
+      "Bash(pnpm format:check)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test:e2e)",
+      "Bash(pnpm build)",
+      "Bash(pnpm build:maps)",
+      "Bash(pnpm validate:content)",
+      "Bash(pnpm check:attribution)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm dev *)",
+      "Bash(pnpm exec vitest run *)",
+      "Bash(pnpm exec playwright test *)",
+      "Bash(pnpm exec playwright install chromium)",
+      "Bash(actionlint *)",
+      "Bash(prek run *)",
+      "Bash(prek install)",
+      "Bash(zizmor *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git branch --show-current)"
+    ]
+  }
+}
