@@ -1117,7 +1117,7 @@ git add -A && git commit -m "Parse Tiled maps into an engine-neutral MapModel"
 - [ ] **Step 1: Write the failing tests** — `packages/core/src/advance.test.ts`
 
 ```ts
-import fc from "fast-check";
+import { array, assert, constantFrom, property } from "fast-check";
 import { describe, expect, it } from "vitest";
 import { advance } from "./advance.ts";
 import type { Direction } from "./intent.ts";
@@ -1175,8 +1175,8 @@ const directions: readonly Direction[] = ["north", "south", "east", "west"];
 
 describe("advance: properties", () => {
   it("is deterministic for any intent sequence", () => {
-    fc.assert(
-      fc.property(fc.array(fc.constantFrom(...directions), { maxLength: 200 }), (moves) => {
+    assert(
+      property(array(constantFrom(...directions), { maxLength: 200 }), (moves) => {
         const run = (): string => {
           let state = freshState();
           for (const direction of moves) {
@@ -1190,8 +1190,8 @@ describe("advance: properties", () => {
   });
 
   it("never places the player on a blocked tile", () => {
-    fc.assert(
-      fc.property(fc.array(fc.constantFrom(...directions), { maxLength: 200 }), (moves) => {
+    assert(
+      property(array(constantFrom(...directions), { maxLength: 200 }), (moves) => {
         let state = freshState();
         for (const direction of moves) {
           state = advance(state, { type: "move", direction }, map).state;
