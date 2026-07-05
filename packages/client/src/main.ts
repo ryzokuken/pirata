@@ -1,14 +1,5 @@
-import { AUTO, Game, Scale, Scene } from "phaser";
-
-class BootScene extends Scene {
-  constructor() {
-    super("boot");
-  }
-
-  create(): void {
-    this.add.text(384, 256, "Pirata — M0", { color: "#d9a441", fontSize: "32px" }).setOrigin(0.5);
-  }
-}
+import { AUTO, Game, Scale } from "phaser";
+import { WorldScene } from "./world-scene.ts";
 
 export const game = new Game({
   type: AUTO,
@@ -18,5 +9,5 @@ export const game = new Game({
   backgroundColor: "#101418",
   pixelArt: true,
   scale: { mode: Scale.FIT, autoCenter: Scale.CENTER_BOTH },
-  scene: [BootScene],
+  scene: [WorldScene],
 });
