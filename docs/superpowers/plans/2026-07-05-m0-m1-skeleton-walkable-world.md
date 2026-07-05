@@ -424,6 +424,7 @@ git add -A && git commit -m "Add core, content, and client package skeletons"
 **Files:**
 
 - Create: `packages/client/vite.config.ts`, `packages/client/index.html`, `packages/client/src/main.ts`
+- Modify: `packages/client/tsconfig.json`
 
 - [ ] **Step 1: Install phaser and vite**
 
@@ -433,6 +434,8 @@ pnpm --filter @pirata/client add -DE vite
 ```
 
 If pnpm reports blocked build scripts (pnpm 10 blocks postinstall by default), run `pnpm approve-builds` and approve **esbuild** only.
+
+Now that vite is installed, restore the Vite ambient types that Task 3's fallback dropped: in `packages/client/tsconfig.json`, change `"types": ["node"]` back to `"types": ["vite/client", "node"]`.
 
 - [ ] **Step 2: Write `packages/client/vite.config.ts`**
 
