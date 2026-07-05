@@ -1,0 +1,13 @@
+repos:
+  - repo: local
+    hooks:
+      - id: oxlint
+        name: oxlint
+        entry: pnpm exec oxlint --deny-warnings
+        language: system
+        pass_filenames: false
+      - id: oxfmt
+        name: oxfmt check
+        entry: pnpm exec oxfmt --check .
+        language: system
+        pass_filenames: false
