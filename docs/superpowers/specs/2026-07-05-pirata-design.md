@@ -14,6 +14,14 @@ and per NPC, crimes have witnesses and consequences that spread by gossip, and
 the world opens up through rumors — bought, overheard, or coerced — rather than
 quest markers.
 
+The tone is realistic and gritty. The golden age of piracy was desperate, and
+the game should feel it: supplies spoil, wounds fester, morale frays, and the
+sea is dangerous. The default playstyle is the curious survivor — explore,
+listen, sneak, scheme, and avoid open conflict. Getting into combat usually
+means your plan already failed. Violence remains a real choice (factions and
+players can embrace it), but the game's depth budget favors stealth, guile,
+and survival over fighting.
+
 The game is as much a community project as a game. Hacking on it is a virtue:
 all content is data-driven and contributable without writing code, the source
 is copyleft so forks stay in the commons, and every merge deploys a playable
@@ -30,6 +38,8 @@ Cataclysm: DDA (systemic depth, data-driven content), Sid Meier's Pirates!
 | Decision | Choice |
 |---|---|
 | Game shape | Exploration-freedom RPG: factions, per-faction/per-NPC reputation, stealth, crime, rumor-driven exploration. Other systems start simple, iterate. |
+| Default playstyle | Curiosity and conflict avoidance. Combat is a failure mode by default; violence stays available as a deliberate faction/player choice. |
+| Tone | Realistic and gritty: spoiling supplies, festering wounds, fraying morale, survival pressure on voyages. |
 | Combat v1 | Simple turn-based party combat. Iterated on later like any other module — no special abstraction ceremony. |
 | Multiplayer | None. Community lives in modding, forks, shared stories. |
 | Platform | Browser-first via web-native stack; desktop/mobile follow from PWA and wrappers. |
@@ -115,10 +125,16 @@ realistically and evadably — silence the witness, bribe them, or leave before
 word spreads. Deed types, standing effects, and propagation rules are content
 data.
 
-**Stealth and crime.** A visibility/awareness model (line of sight, light,
-noise) plus data-defined crimes (theft, assault, smuggling, mutiny) with
-witnesses, severity, and interested factions. Coercion — intimidation,
-bribery, blackmail — operates on the same NPC-knowledge substrate.
+**Stealth and crime.** The primary verb set of the game, since the default
+playstyle avoids violence. A visibility/awareness model (line of sight, light,
+noise) underpins a growing vocabulary of actions: sneaking, eavesdropping,
+pickpocketing, lockpicking, deception (lies, disguises, false flags), theft,
+smuggling, sabotage, and more as the game grows. Crimes are data-defined
+(act, witnesses, severity, which factions care), and coercion — intimidation,
+bribery, blackmail — operates on the same NPC-knowledge substrate. Failure
+states cascade before they explode: a botched pickpocket raises suspicion
+before it draws steel, so recovery through talk, flight, or bribery is usually
+possible — combat is what happens when every other option has been burned.
 
 **Rumors and leads.** The quest system, inverted: no quest log, no markers.
 Rumors are pieces of world knowledge (a wreck's location, a fat convoy, a
@@ -131,11 +147,29 @@ toward chasing them. Rumor templates are content data.
 utility decisions, not scripted paths. Dialogue is data-driven trees whose
 nodes carry conditions and effects hooking into reputation, rumors, and crime.
 
+**Survival and hardship.** The gritty substrate that makes desperation real.
+Player health is more than hit points: hunger, thirst, disease (scurvy on long
+voyages), and untreated wounds degrade over time. Supplies have quality and
+age — food spoils, water fouls, and provisioning decisions before a voyage
+matter as much as anything during it. In v0 this appears as hunger and coin
+pressure in the port; the full system arrives with sailing, where long or
+difficult voyages become survival challenges in themselves. All thresholds,
+afflictions, and spoilage rates are content data (tunable, moddable).
+
+**Crew and morale (post-v0, designed for now).** Crew members are ordinary
+NPCs — same needs, fears, and reputation model — on the player's side. Morale
+is genuinely hard to manage: pay, food quality, danger, idle time, and the
+captain's reputation all feed it, and low morale escalates from grumbling to
+desertion to mutiny (a crime, on the same substrate, that NPCs can commit
+too). Crew management thus emerges from existing systems rather than a bespoke
+minigame.
+
 **Combat (v1).** Simple turn-based party combat, resolved in its own module:
-encounters produce casualties, loot, reputation deltas, captives. Crew members
-are ordinary NPCs (same needs/reputation model) on the player's side, so crew
-management emerges from existing systems. Combat is iterated on later like any
-other module.
+encounters produce casualties, loot, reputation deltas, captives. By design
+combat is the failure mode of stealth and diplomacy, not the reward loop —
+it should be survivable but costly (wounds that fester, reputations that
+sour), so avoiding it feels like winning. Combat is iterated on later like
+any other module.
 
 ### 4.4 Content (`@pirata/content`)
 
@@ -247,15 +281,19 @@ Each milestone ends playable and deployed.
   with collision; core/client boundary functioning; save/load.
 - **M2 — A social world.** NPCs with schedules; data-driven dialogue;
   per-NPC/faction reputation ledger visibly reacting to the player.
-- **M3 — A lawless world.** Stealth/awareness, theft with witnesses, gossip
+- **M3 — A lawless world.** Stealth/awareness, a first verb set (sneaking,
+  eavesdropping, pickpocketing, lockpicking, theft) with witnesses, gossip
   propagation, consequences (prices, guards, dialogue). The crime loop closes.
 - **M4 — A storied world (v0 complete).** Rumors extractable from NPCs; one
-  rumor leads out of town to a payoff; one simple turn-based fight on the way;
-  desperation pressure (hunger, coin). **Success criterion: a stranger
-  arrives, learns, schemes, transgresses, and profits — in one port town.**
+  rumor leads out of town to a payoff guarded by an encounter that stealth or
+  guile can bypass entirely — and a simple turn-based fight resolves it when
+  the plan fails; desperation pressure (hunger, coin). **Success criterion: a
+  stranger arrives, learns, schemes, transgresses, and profits — in one port
+  town, ideally without drawing a blade.**
 - **Beyond v0 (direction, not commitment):** sailing and an archipelago
-  overworld, crew as NPCs-on-your-side, economy and trade, richer combat —
-  each built as the simplest fun version first, then iterated.
+  overworld, voyage survival (provisioning, spoilage, disease), crew and
+  morale management, economy and trade, richer combat — each built as the
+  simplest fun version first, then iterated.
 
 ## 8. Licensing
 
