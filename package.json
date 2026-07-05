@@ -15,6 +15,7 @@
     "check:attribution": "node scripts/check-attribution.ts"
   },
   "devDependencies": {
+    "@pirata/core": "workspace:*",
     "@playwright/test": "1.61.1",
     "@types/node": "24.13.2",
     "fast-check": "4.8.0",
