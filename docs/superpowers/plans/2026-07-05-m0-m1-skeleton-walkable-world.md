@@ -396,11 +396,13 @@ export const CONTENT_VERSION = "0.0.0";
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
-    "types": ["vite/client", "node"]
+    "types": ["node"]
   },
   "include": ["src", "vite.config.ts"]
 }
 ```
+
+(`"types"` gains `"vite/client"` in Task 4, once vite is actually installed — listing it now would fail typecheck.)
 
 ```bash
 pnpm --filter @pirata/client add -E @pirata/core@workspace:* @pirata/content@workspace:*
@@ -2061,6 +2063,8 @@ Pirata is built to be hacked on. Pick your on-ramp:
 - `pnpm install && pnpm --filter @pirata/client dev` gets you a running game.
 - Before a PR: `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
 && pnpm validate:content && pnpm check:attribution`.
+- Formatting is enforced by oxfmt for code **and** markdown — if
+  `format:check` complains, `pnpm format` fixes everything automatically.
 - Code is GPLv3; original art contributions are CC-BY-SA 4.0 (CC0 welcome).
   Every asset needs an `ATTRIBUTION.md` row.
 ```
