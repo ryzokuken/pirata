@@ -2163,3 +2163,6 @@ Report completion and give the user this checklist (pushing requires their YubiK
 - Multi-pack loading with dependency order and extends/replaces semantics (one pack exists)
 - NPCs, dialogue, reputation (M2); stealth/crime (M3); rumors, combat, desperation (M4)
 - PWA/offline install, touch input, docs site
+- Screen-reader fallback content inside the Phaser canvas region (review note, Task 4)
+- Pixel-art crispness: integer scaling/zoom instead of bare `Scale.FIT` (review note, Task 4)
+- Code-split the ~1.3 MB Phaser chunk if initial load matters (review note, Task 4)
