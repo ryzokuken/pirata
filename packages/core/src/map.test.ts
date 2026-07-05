@@ -59,4 +59,13 @@ describe("parseTiledMap", () => {
     if (spawns !== undefined) spawns.objects = [];
     expect(() => parseTiledMap("nospawn", fixture)).toThrow(/player/);
   });
+
+  it("rejects a player spawn outside the map bounds", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as { name: string; objects?: { x: number; y: number }[] }[];
+    const spawns = layers.find((l) => l.name === "spawns");
+    const player = spawns?.objects?.[0];
+    if (player !== undefined) player.x = 32 * 10;
+    expect(() => parseTiledMap("oob-spawn", fixture)).toThrow(/outside the map/);
+  });
 });

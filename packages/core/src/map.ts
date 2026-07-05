@@ -60,15 +60,27 @@ export function parseTiledMap(id: string, raw: unknown): MapModel {
     );
   }
 
+  const playerSpawn = {
+    x: Math.floor(player.x / map.tilewidth),
+    y: Math.floor(player.y / map.tileheight),
+  };
+  if (
+    playerSpawn.x < 0 ||
+    playerSpawn.y < 0 ||
+    playerSpawn.x >= map.width ||
+    playerSpawn.y >= map.height
+  ) {
+    throw new MapParseError(
+      `map "${id}": player spawn at (${playerSpawn.x},${playerSpawn.y}) is outside the map (${map.width}x${map.height})`,
+    );
+  }
+
   return {
     id,
     width: map.width,
     height: map.height,
     blocked: walls.data.map((gid) => gid !== 0),
-    playerSpawn: {
-      x: Math.floor(player.x / map.tilewidth),
-      y: Math.floor(player.y / map.tileheight),
-    },
+    playerSpawn,
   };
 }
 
