@@ -14,7 +14,7 @@ Pirata is built to be hacked on. Pick your on-ramp:
 
 - Design doc: `docs/superpowers/specs/2026-07-05-pirata-design.md`; decisions
   live in `docs/adr/`.
-- `pnpm install && pnpm --filter @pirata/client dev` gets you a running game.
+- `pnpm install && pnpm dev` gets you a running game with hot reload.
 - Before a PR: `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
 && pnpm validate:content && pnpm check:attribution`.
 - Formatting is enforced by oxfmt for code **and** markdown — if

@@ -10,4 +10,6 @@ when your plan fails.
 ## Develop
 
     pnpm install
-    pnpm --filter @pirata/client dev
+    pnpm dev
+
+The dev server hot-reloads on changes to client, core, and content files.
