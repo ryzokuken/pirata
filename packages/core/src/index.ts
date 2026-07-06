@@ -5,3 +5,12 @@ export type { GameEvent, MovementBlockedEvent, PlayerMovedEvent } from "./event.
 export { isBlocked, MapParseError, parseTiledMap, type MapModel } from "./map.ts";
 export { advance, type AdvanceResult } from "./advance.ts";
 export { deserialize, SaveError, serialize, SAVE_VERSION } from "./save.ts";
+export {
+  clockOf,
+  hourOf,
+  HOURS_PER_DAY,
+  START_HOUR,
+  TICKS_PER_DAY,
+  TICKS_PER_HOUR,
+  type Clock,
+} from "./time.ts";

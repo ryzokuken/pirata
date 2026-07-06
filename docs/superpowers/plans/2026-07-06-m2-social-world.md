@@ -101,7 +101,7 @@ Boundaries unchanged: `core` imports nothing and has no DOM; `content` imports `
 - Test: `packages/core/src/time.test.ts`
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/src/time.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/src/time.test.ts`
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -137,12 +137,12 @@ describe("game clock", () => {
 (Golden values pin the constants: range-style assertions alone would stay green if
 `TICKS_PER_HOUR` drifted, silently breaking every schedule in every content pack.)
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `pnpm test`
 Expected: FAIL — cannot resolve `./time.ts`.
 
-- [ ] **Step 3: Write `packages/core/src/time.ts`**
+- [x] **Step 3: Write `packages/core/src/time.ts`**
 
 ```ts
 export const TICKS_PER_HOUR = 10;
@@ -170,9 +170,9 @@ export function hourOf(tick: number): number {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes** (`pnpm test` — PASS)
+- [x] **Step 4: Run to verify it passes** (`pnpm test` — PASS)
 
-- [ ] **Step 5: Export from `packages/core/src/index.ts`** (append)
+- [x] **Step 5: Export from `packages/core/src/index.ts`** (append)
 
 ```ts
 export {
@@ -186,7 +186,7 @@ export {
 } from "./time.ts";
 ```
 
-- [ ] **Step 6: Full gate and commit**
+- [x] **Step 6: Full gate and commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
