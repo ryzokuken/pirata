@@ -25,6 +25,13 @@ const FACTION_COLORS: Readonly<Record<string, number>> = {
   "base:dockworkers": 0x5b8dbe,
 };
 const CHOICE_KEYS = ["ONE", "TWO", "THREE", "FOUR", "FIVE"] as const;
+const DPR = window.devicePixelRatio || 1;
+const LABEL_STYLE = {
+  fontFamily: "system-ui, sans-serif",
+  fontSize: "11px",
+  color: "#e8e0c9",
+  resolution: DPR,
+} as const;
 
 function move(direction: Direction): Intent {
   return { type: "move", direction };
@@ -49,6 +56,14 @@ export class WorldScene extends Scene {
   create(): void {
     this.world = loadBaseWorld();
     this.state = this.loadOrCreateState();
+
+    // Match the device-resolution canvas set up in main.ts: world coordinates
+    // stay 768x512, the camera renders them at native pixel density.
+    this.cameras.main.setZoom(DPR);
+    this.cameras.main.centerOn(
+      (this.world.map.width * TILE) / 2,
+      (this.world.map.height * TILE) / 2,
+    );
 
     this.createPlaceholderTileset();
     const tilemap = this.make.tilemap({ key: "port_town" });
@@ -157,8 +172,9 @@ export class WorldScene extends Scene {
         this.playerSprite.x,
         this.playerSprite.y - 20,
         `${gain ? "+" : ""}${String(deed.standingDelta)} ${npc.name}`,
-        { fontSize: "12px", color: gain ? "#9fdf7f" : "#e07a5f" },
+        { ...LABEL_STYLE, fontSize: "12px", color: gain ? "#9fdf7f" : "#e07a5f" },
       )
+      .setStroke("#101418", 3)
       .setOrigin(0.5, 1);
     this.tweens.add({
       targets: label,
@@ -185,7 +201,8 @@ export class WorldScene extends Scene {
         FACTION_COLORS[def.factionId] ?? 0xcccccc,
       );
       const label = this.add
-        .text(0, -TILE / 2, def.name, { fontSize: "10px", color: "#e8e0c9" })
+        .text(0, -TILE / 2, def.name, LABEL_STYLE)
+        .setStroke("#101418", 3)
         .setOrigin(0.5, 1);
       const container = this.add.container(
         npc.pos.x * TILE + TILE / 2,
