@@ -10,6 +10,7 @@ import {
   type GameState,
   type Intent,
   type MapModel,
+  type WorldDef,
 } from "@pirata/core";
 import { GameObjects, Input, Scene } from "phaser";
 
@@ -20,6 +21,7 @@ const TILE_COLORS = [0x8a795d, 0x4d4338, 0x1d3f6e];
 
 export class WorldScene extends Scene {
   private map!: MapModel;
+  private tempWorld!: WorldDef;
   private state!: GameState;
   private playerSprite!: GameObjects.Rectangle;
   private keys!: ReadonlyArray<readonly [Direction, Input.Keyboard.Key]>;
@@ -35,6 +37,8 @@ export class WorldScene extends Scene {
 
   create(): void {
     this.map = parseTiledMap("port_town", townJson);
+    // Temporary M2 scaffolding: an empty world until Task 15 loads the base pack.
+    this.tempWorld = { map: this.map, factions: {}, npcs: {}, dialogues: {}, deeds: {} };
     this.state = this.loadOrCreateState();
 
     this.createPlaceholderTileset();
@@ -111,11 +115,7 @@ export class WorldScene extends Scene {
         }
       }
     }
-    return createGameState({
-      seed: Date.now() >>> 0,
-      mapId: this.map.id,
-      playerSpawn: this.map.playerSpawn,
-    });
+    return createGameState({ seed: Date.now() >>> 0, world: this.tempWorld });
   }
 
   private setUpKeys(): void {

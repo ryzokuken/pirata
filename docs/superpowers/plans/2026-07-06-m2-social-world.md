@@ -681,7 +681,7 @@ git add -A && git commit -m "Resolve NPC schedule targets by hour with midnight 
 - Modify: `packages/core/src/state.ts`, `packages/core/src/save.ts`, `packages/core/src/world.fixture.ts`, `packages/core/src/index.ts`
 - Test: `packages/core/src/state.test.ts` (new), `packages/core/src/save.test.ts`
 
-- [ ] **Step 1: Extend the fixture** — append to `packages/core/src/world.fixture.ts`
+- [x] **Step 1: Extend the fixture** — append to `packages/core/src/world.fixture.ts`
 
 The fixture town used by every core test from here on. `t` is a dead-end nook (the keeper never blocks a corridor); `a`→`b` is the walker's commute.
 
@@ -771,7 +771,7 @@ Geometry facts the tests rely on: player spawns at (1,1); keeper's post `t` is (
 reachable only through (4,3); walker starts at `a` (6,1) and commutes to `b` (1,3) at
 hour 9 — a 7-step route down the east corridor and along the south street.
 
-- [ ] **Step 2: Write the failing tests** — `packages/core/src/state.test.ts`
+- [x] **Step 2: Write the failing tests** — `packages/core/src/state.test.ts`
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -856,9 +856,9 @@ describe("save round-trip", () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify failure** (`pnpm test` — FAIL: `createGameState` signature, missing state fields, save version)
+- [x] **Step 3: Run to verify failure** (`pnpm test` — FAIL: `createGameState` signature, missing state fields, save version)
 
-- [ ] **Step 4: Rewrite `packages/core/src/state.ts`**
+- [x] **Step 4: Rewrite `packages/core/src/state.ts`**
 
 ```ts
 import type { WorldDef } from "./defs.ts";
@@ -939,7 +939,7 @@ export function createGameState(options: { seed: number; world: WorldDef }): Gam
 }
 ```
 
-- [ ] **Step 5: Bump `packages/core/src/save.ts`**
+- [x] **Step 5: Bump `packages/core/src/save.ts`**
 
 Change one line:
 
@@ -947,7 +947,7 @@ Change one line:
 export const SAVE_VERSION = 2;
 ```
 
-- [ ] **Step 6: Update exports and fix call-site fallout**
+- [x] **Step 6: Update exports and fix call-site fallout**
 
 `packages/core/src/index.ts` — replace the state export line with:
 
@@ -1002,7 +1002,7 @@ return createGameState({ seed: Date.now() >>> 0, world: this.tempWorld });
 
 (Task 15 replaces this whole file with the real world-loading version.)
 
-- [ ] **Step 7: Verify pass, full gate, commit**
+- [x] **Step 7: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

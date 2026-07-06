@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "./advance.ts";
 import type { Direction } from "./intent.ts";
 import { isBlocked, type MapModel } from "./map.ts";
-import { createGameState } from "./state.ts";
+import type { GameState } from "./state.ts";
 
 function mapFromAscii(rows: readonly string[]): MapModel {
   const height = rows.length;
@@ -21,8 +21,16 @@ function mapFromAscii(rows: readonly string[]): MapModel {
 
 const map = mapFromAscii(["#####", "#P..#", "#.#.#", "#####"]);
 
-function freshState() {
-  return createGameState({ seed: 42, mapId: map.id, playerSpawn: map.playerSpawn });
+function freshState(): GameState {
+  return {
+    tick: 0,
+    rng: 42,
+    mapId: map.id,
+    player: { pos: map.playerSpawn },
+    npcs: [],
+    dialogue: null,
+    deeds: [],
+  };
 }
 
 describe("advance: move", () => {
