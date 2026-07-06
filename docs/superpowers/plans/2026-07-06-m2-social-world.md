@@ -589,7 +589,7 @@ git add -A && git commit -m "Add deterministic BFS pathfinding for NPC movement"
 - Test: `packages/core/src/npc.test.ts`
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Write the failing tests** — `packages/core/src/npc.test.ts`
+- [x] **Step 1: Write the failing tests** — `packages/core/src/npc.test.ts`
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -633,9 +633,9 @@ describe("scheduleTarget", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./npc.ts`)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./npc.ts`)
 
-- [ ] **Step 3: Write `packages/core/src/npc.ts`** (just `scheduleTarget`; `advanceNpcs` arrives in Task 9)
+- [x] **Step 3: Write `packages/core/src/npc.ts`** (just `scheduleTarget`; `advanceNpcs` arrives in Task 9)
 
 ```ts
 import type { NpcDef } from "./defs.ts";
@@ -661,7 +661,7 @@ export function scheduleTarget(npc: NpcDef, hour: number): string | undefined {
 }
 ```
 
-- [ ] **Step 4: Verify pass, export, full gate, commit**
+- [x] **Step 4: Verify pass, export, full gate, commit**
 
 Append to `packages/core/src/index.ts`:
 

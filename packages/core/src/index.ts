@@ -27,3 +27,4 @@ export type {
   WorldDef,
 } from "./defs.ts";
 export { nextStep } from "./path.ts";
+export { scheduleTarget } from "./npc.ts";
