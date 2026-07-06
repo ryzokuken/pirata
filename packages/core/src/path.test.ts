@@ -1,0 +1,36 @@
+import { describe, expect, it } from "vitest";
+import { nextStep } from "./path.ts";
+import { mapFromAscii } from "./world.fixture.ts";
+
+const open = mapFromAscii(["#####", "#...#", "#.#.#", "#...#", "#####"]);
+
+describe("nextStep", () => {
+  it("steps directly toward an adjacent target", () => {
+    expect(nextStep(open, { x: 1, y: 1 }, { x: 1, y: 2 })).toEqual({ x: 1, y: 2 });
+  });
+
+  it("routes around walls (golden first step)", () => {
+    // Both routes around the center wall are 4 steps; the fixed neighbor
+    // order (N,E,S,W) must deterministically pick east.
+    expect(nextStep(open, { x: 1, y: 1 }, { x: 3, y: 3 })).toEqual({ x: 2, y: 1 });
+  });
+
+  it("returns undefined when already at the target", () => {
+    expect(nextStep(open, { x: 1, y: 1 }, { x: 1, y: 1 })).toBeUndefined();
+  });
+
+  it("returns undefined for a blocked target", () => {
+    expect(nextStep(open, { x: 1, y: 1 }, { x: 2, y: 2 })).toBeUndefined();
+  });
+
+  it("returns undefined when the target is unreachable", () => {
+    const sealed = mapFromAscii(["#####", "#.#.#", "#####"]);
+    expect(nextStep(sealed, { x: 1, y: 1 }, { x: 3, y: 1 })).toBeUndefined();
+  });
+
+  it("is deterministic", () => {
+    const a = nextStep(open, { x: 1, y: 1 }, { x: 3, y: 3 });
+    const b = nextStep(open, { x: 1, y: 1 }, { x: 3, y: 3 });
+    expect(a).toEqual(b);
+  });
+});

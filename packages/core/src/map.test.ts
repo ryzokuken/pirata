@@ -15,6 +15,11 @@ function tiledFixture(): Record<string, unknown> {
         type: "objectgroup",
         objects: [{ name: "player", x: 32, y: 0 }],
       },
+      {
+        name: "locations",
+        type: "objectgroup",
+        objects: [{ name: "market", x: 32, y: 32 }],
+      },
     ],
   };
 }
@@ -67,5 +72,63 @@ describe("parseTiledMap", () => {
     const player = spawns?.objects?.[0];
     if (player !== undefined) player.x = 32 * 10;
     expect(() => parseTiledMap("oob-spawn", fixture)).toThrow(/outside the map/);
+  });
+});
+
+describe("parseTiledMap locations", () => {
+  it("reads named locations in tile coordinates", () => {
+    const map = parseTiledMap("test", tiledFixture());
+    expect(map.locations).toEqual({ market: { x: 1, y: 1 } });
+  });
+
+  it("defaults to no locations when the layer is absent", () => {
+    const fixture = tiledFixture();
+    fixture["layers"] = (fixture["layers"] as { name: string }[]).filter(
+      (layer) => layer.name !== "locations",
+    );
+    expect(parseTiledMap("test", fixture).locations).toEqual({});
+  });
+
+  it("rejects duplicate location names", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as { name: string; objects?: object[] }[];
+    const locations = layers.find((layer) => layer.name === "locations");
+    locations?.objects?.push({ name: "market", x: 64, y: 32 });
+    expect(() => parseTiledMap("dupe", fixture)).toThrow(/duplicate location "market"/);
+  });
+
+  it("rejects a location on a blocked tile", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as {
+      name: string;
+      objects?: { name: string; x: number; y: number }[];
+    }[];
+    const locations = layers.find((layer) => layer.name === "locations");
+    locations?.objects?.push({ name: "bad", x: 0, y: 0 });
+    expect(() => parseTiledMap("blocked", fixture)).toThrow(/"bad".*not on walkable ground/);
+  });
+
+  it("rejects a location outside the map", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as {
+      name: string;
+      objects?: { name: string; x: number; y: number }[];
+    }[];
+    const locations = layers.find((layer) => layer.name === "locations");
+    locations?.objects?.push({ name: "far", x: 32 * 10, y: 0 });
+    expect(() => parseTiledMap("oob", fixture)).toThrow(/"far".*outside the map/);
+  });
+
+  it("accepts a location named after an Object.prototype property", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as {
+      name: string;
+      objects?: { name: string; x: number; y: number }[];
+    }[];
+    const locations = layers.find((layer) => layer.name === "locations");
+    locations?.objects?.splice(0, 1, { name: "hasOwnProperty", x: 32, y: 32 });
+    expect(parseTiledMap("proto", fixture).locations).toEqual({
+      hasOwnProperty: { x: 1, y: 1 },
+    });
   });
 });

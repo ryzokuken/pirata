@@ -1,6 +1,6 @@
 import type { GameState } from "./state.ts";
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export class SaveError extends Error {}
 

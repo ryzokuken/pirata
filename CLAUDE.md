@@ -55,6 +55,11 @@ Live build: <https://www.ryzokuken.dev/pirata/> (deployed from `main` via Pages)
 - Zero warnings from every tool. If a lint rule fights a deliberate design
   (e.g. `window.__pirata` vs `no-underscore-dangle`), use the narrowest scoped
   disable with a justification comment — never a project-wide rule change.
+- Content JSON is imported with `with { type: "json" }` attributes so the same
+  modules load under Node, Vite, and vitest; content ships as data files in
+  `packages/content/packs/base/` validated by `pnpm validate:content` (schema +
+  link pass + spawn smoke).
 - Commits: imperative, ≤72-char subject, one logical change, trailer
-  `Co-Authored-By: Claude <noreply@anthropic.com>`. Never push (YubiKey) —
-  the user pushes. Never commit to `main`; feature branches + PRs.
+  `Co-Authored-By: Claude <noreply@anthropic.com>`. Push feature branches and
+  open PRs (no YubiKey needed for this repo — standing exception). Never push
+  or commit to `main`.

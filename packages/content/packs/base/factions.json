@@ -1,0 +1,4 @@
+[
+  { "type": "faction", "id": "base:merchants_guild", "name": "The Merchants' Guild" },
+  { "type": "faction", "id": "base:dockworkers", "name": "The Dockworkers' Fellowship" }
+]

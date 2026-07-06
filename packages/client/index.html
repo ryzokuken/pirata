@@ -5,18 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pirata</title>
     <style>
+      :root {
+        color-scheme: dark;
+        --panel: #1b2129;
+        --border: #3a4453;
+        --ink: #e8e0c9;
+        --accent: #d9a441;
+      }
       html,
       body {
         margin: 0;
-        height: 100%;
+        min-height: 100%;
         background: #101418;
+        color: var(--ink);
+        font-family: system-ui, sans-serif;
+      }
+      #app {
         display: grid;
-        place-items: center;
+        gap: 8px;
+        padding: 8px;
+        justify-content: center;
+      }
+      #hud {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 14px;
+      }
+      #hint {
+        color: #8a93a3;
+      }
+      #stage {
+        display: grid;
+        grid-template-columns: auto 200px;
+        gap: 8px;
+        align-items: start;
+      }
+      #reputation {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 10px;
+        font-size: 13px;
+      }
+      #reputation h2 {
+        margin: 0 0 6px;
+        font-size: 13px;
+        color: var(--accent);
+      }
+      #reputation ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 4px;
+      }
+      #dialogue {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px 14px;
+        max-width: 640px;
+      }
+      #dialogue h2 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        color: var(--accent);
+      }
+      #dialogue p {
+        margin: 0 0 8px;
+      }
+      #dialogue ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 4px;
+        counter-reset: choice;
+      }
+      #dialogue button {
+        width: 100%;
+        text-align: left;
+        background: #232b36;
+        color: var(--ink);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 6px 10px;
+        font: inherit;
+        cursor: pointer;
+      }
+      #dialogue button::before {
+        counter-increment: choice;
+        content: counter(choice) ". ";
+        color: var(--accent);
+      }
+      #dialogue button:hover,
+      #dialogue button:focus-visible {
+        border-color: var(--accent);
+      }
+      #toast {
+        position: fixed;
+        inset-inline: 0;
+        bottom: 12px;
+        margin: auto;
+        width: fit-content;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 13px;
       }
     </style>
   </head>
   <body>
-    <main id="game" aria-label="Pirata game canvas"></main>
+    <div id="app">
+      <header id="hud">
+        <span id="clock" data-testid="clock"></span>
+        <span id="hint">Arrows/WASD move · E talk · Space wait · 1-5 choose</span>
+      </header>
+      <div id="stage">
+        <main id="game" aria-label="Pirata game canvas"></main>
+        <aside id="reputation" aria-label="Reputation">
+          <h2>Reputation</h2>
+          <ul id="reputation-list"></ul>
+        </aside>
+      </div>
+      <section id="dialogue" role="dialog" aria-label="Conversation" hidden>
+        <h2 id="dialogue-name"></h2>
+        <p id="dialogue-text" data-testid="dialogue-text"></p>
+        <ol id="dialogue-choices"></ol>
+      </section>
+    </div>
+    <div id="toast" role="status" hidden></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

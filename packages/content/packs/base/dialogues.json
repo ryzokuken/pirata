@@ -1,0 +1,139 @@
+[
+  {
+    "type": "dialogue",
+    "id": "base:tavernkeeper_talk",
+    "start": "greeting",
+    "nodes": {
+      "greeting": {
+        "text": "What'll it be, stranger?",
+        "choices": [
+          {
+            "text": "A round for the house, on me.",
+            "effects": [{ "type": "deed", "deed": "base:stood_a_round" }],
+            "next": "cheers"
+          },
+          {
+            "text": "Any word around town, friend?",
+            "condition": { "type": "faction-standing-at-least", "value": 25 },
+            "next": "gossip"
+          },
+          {
+            "text": "About earlier — no offense meant.",
+            "condition": { "type": "npc-standing-below", "value": 0 },
+            "effects": [{ "type": "deed", "deed": "base:kind_word" }],
+            "next": "cold"
+          },
+          { "text": "Nothing for now." },
+          {
+            "text": "This place smells of bilgewater.",
+            "effects": [{ "type": "deed", "deed": "base:insult" }]
+          }
+        ]
+      },
+      "cheers": {
+        "text": "The room cheers your name. Marisol almost smiles.",
+        "choices": [{ "text": "Until next time." }]
+      },
+      "gossip": {
+        "text": "Between us — the harbormaster pays double for hands that keep quiet.",
+        "choices": [{ "text": "Good to know." }]
+      },
+      "cold": {
+        "text": "Marisol wipes a mug and says nothing.",
+        "choices": [{ "text": "Right." }]
+      }
+    }
+  },
+  {
+    "type": "dialogue",
+    "id": "base:merchant_talk",
+    "start": "greeting",
+    "nodes": {
+      "greeting": {
+        "text": "Fine goods, fair prices. Looking or buying?",
+        "choices": [
+          {
+            "text": "Finest stall on the island, señora.",
+            "effects": [{ "type": "deed", "deed": "base:kind_word" }],
+            "next": "flattered"
+          },
+          {
+            "text": "What do you hear on the docks?",
+            "condition": { "type": "npc-standing-at-least", "value": 15 },
+            "next": "confide"
+          },
+          { "text": "Just looking." },
+          {
+            "text": "Fair prices? Robbery, more like.",
+            "effects": [{ "type": "deed", "deed": "base:insult" }]
+          }
+        ]
+      },
+      "flattered": {
+        "text": "Beatriz laughs. 'Flattery is free — today.'",
+        "choices": [{ "text": "Good day." }]
+      },
+      "confide": {
+        "text": "'The guild inspects the warehouse on firstday. Make of that what you will.'",
+        "choices": [{ "text": "Noted." }]
+      }
+    }
+  },
+  {
+    "type": "dialogue",
+    "id": "base:harbormaster_talk",
+    "start": "greeting",
+    "nodes": {
+      "greeting": {
+        "text": "State your business on my dock.",
+        "choices": [
+          {
+            "text": "Lend a hand with the cargo.",
+            "effects": [{ "type": "deed", "deed": "base:lent_a_hand" }],
+            "next": "thanks"
+          },
+          {
+            "text": "Anything moving tonight?",
+            "condition": { "type": "faction-standing-at-least", "value": 20 },
+            "next": "hint"
+          },
+          { "text": "Nothing. Just passing through." },
+          {
+            "text": "Out of my way, old man.",
+            "effects": [{ "type": "deed", "deed": "base:insult" }]
+          }
+        ]
+      },
+      "thanks": {
+        "text": "Duarte grunts what might be approval.",
+        "choices": [{ "text": "Anytime." }]
+      },
+      "hint": {
+        "text": "Keep clear of the north pier after dark. That's all I'll say.",
+        "choices": [{ "text": "Understood." }]
+      }
+    }
+  },
+  {
+    "type": "dialogue",
+    "id": "base:stevedore_talk",
+    "start": "greeting",
+    "nodes": {
+      "greeting": {
+        "text": "Long days, short pay. You need something?",
+        "choices": [
+          {
+            "text": "Here's to honest work.",
+            "effects": [{ "type": "deed", "deed": "base:kind_word" }],
+            "next": "nod"
+          },
+          { "text": "No. Carry on." }
+        ]
+      },
+      "nod": {
+        "text": "Jorge nods, a little less tired.",
+        "choices": [{ "text": "Take care." }]
+      }
+    }
+  }
+]
