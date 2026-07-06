@@ -8,8 +8,27 @@ export {
   type PlayerState,
   type Vec2,
 } from "./state.ts";
-export { DIRECTION_DELTAS, type Direction, type Intent, type MoveIntent } from "./intent.ts";
-export type { GameEvent, MovementBlockedEvent, PlayerMovedEvent } from "./event.ts";
+export {
+  DIRECTION_DELTAS,
+  type ChooseIntent,
+  type Direction,
+  type Intent,
+  type MoveIntent,
+  type TalkIntent,
+  type WaitIntent,
+} from "./intent.ts";
+export type {
+  DeedRecordedEvent,
+  DialogueAdvancedEvent,
+  DialogueEndedEvent,
+  DialogueStartedEvent,
+  GameEvent,
+  IntentRejectedEvent,
+  MovementBlockedEvent,
+  NpcMovedEvent,
+  PlayerMovedEvent,
+  ReputationChangedEvent,
+} from "./event.ts";
 export { isBlocked, MapParseError, parseTiledMap, type MapModel } from "./map.ts";
 export { advance, type AdvanceResult } from "./advance.ts";
 export { deserialize, SaveError, serialize, SAVE_VERSION } from "./save.ts";

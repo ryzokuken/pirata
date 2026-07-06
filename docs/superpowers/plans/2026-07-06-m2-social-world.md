@@ -1401,7 +1401,7 @@ git add -A && git commit -m "Move NPCs one BFS step per tick toward schedule tar
 - Modify: `packages/core/src/intent.ts`, `packages/core/src/event.ts`, `packages/core/src/advance.ts`, `packages/core/src/index.ts`
 - Test: `packages/core/src/advance.test.ts` (full rewrite)
 
-- [ ] **Step 1: Extend intents** — `packages/core/src/intent.ts` (append; keep existing content)
+- [x] **Step 1: Extend intents** — `packages/core/src/intent.ts` (append; keep existing content)
 
 ```ts
 export interface WaitIntent {
@@ -1424,7 +1424,7 @@ and replace the union:
 export type Intent = MoveIntent | WaitIntent | TalkIntent | ChooseIntent;
 ```
 
-- [ ] **Step 2: Extend events** — `packages/core/src/event.ts` (append)
+- [x] **Step 2: Extend events** — `packages/core/src/event.ts` (append)
 
 ```ts
 export interface DialogueStartedEvent {
@@ -1479,7 +1479,7 @@ export type GameEvent =
   | IntentRejectedEvent;
 ```
 
-- [ ] **Step 3: Write the failing tests** — replace `packages/core/src/advance.test.ts` entirely
+- [x] **Step 3: Write the failing tests** — replace `packages/core/src/advance.test.ts` entirely
 
 ```ts
 import { array, assert, constantFrom, property } from "fast-check";
@@ -1670,9 +1670,9 @@ describe("advance: properties", () => {
 });
 ```
 
-- [ ] **Step 4: Run to verify failure** (`pnpm test` — FAIL: advance signature/behavior)
+- [x] **Step 4: Run to verify failure** (`pnpm test` — FAIL: advance signature/behavior)
 
-- [ ] **Step 5: Rewrite `packages/core/src/advance.ts`**
+- [x] **Step 5: Rewrite `packages/core/src/advance.ts`**
 
 ```ts
 import type { WorldDef } from "./defs.ts";
@@ -1806,7 +1806,7 @@ function applyChoose(state: GameState, intent: ChooseIntent, world: WorldDef): A
 }
 ```
 
-- [ ] **Step 6: Update index exports**
+- [x] **Step 6: Update index exports**
 
 In `packages/core/src/index.ts`, replace the intent and event export lines with:
 
@@ -1834,7 +1834,7 @@ export type {
 } from "./event.ts";
 ```
 
-- [ ] **Step 7: Update the temporary client patch**
+- [x] **Step 7: Update the temporary client patch**
 
 `advance` now takes a `WorldDef`, so in `packages/client/src/world-scene.ts`
 (`apply()`), change
@@ -1851,7 +1851,7 @@ const result = advance(this.state, intent, this.tempWorld);
 
 (`this.tempWorld` was added by Task 6's patch; Task 15 replaces the file.)
 
-- [ ] **Step 8: Verify pass, full gate, commit**
+- [x] **Step 8: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

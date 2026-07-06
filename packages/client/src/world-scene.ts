@@ -78,7 +78,7 @@ export class WorldScene extends Scene {
   }
 
   private apply(intent: Intent): void {
-    const result = advance(this.state, intent, this.map);
+    const result = advance(this.state, intent, this.tempWorld);
     this.state = result.state;
     for (const event of result.events) {
       if (event.type === "player-moved") {

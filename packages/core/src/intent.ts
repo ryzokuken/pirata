@@ -5,7 +5,20 @@ export interface MoveIntent {
   readonly direction: Direction;
 }
 
-export type Intent = MoveIntent;
+export interface WaitIntent {
+  readonly type: "wait";
+}
+
+export interface TalkIntent {
+  readonly type: "talk";
+}
+
+export interface ChooseIntent {
+  readonly type: "choose";
+  readonly index: number;
+}
+
+export type Intent = MoveIntent | WaitIntent | TalkIntent | ChooseIntent;
 
 export const DIRECTION_DELTAS: Record<Direction, { readonly dx: number; readonly dy: number }> = {
   north: { dx: 0, dy: -1 },
