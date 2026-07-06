@@ -2204,7 +2204,7 @@ git add -A && git commit -m "Add Zod schemas for faction, deed, NPC, and dialogu
 - Test: `packages/content/src/finalize.test.ts`
 - Modify: `packages/content/src/index.ts`
 
-- [ ] **Step 1: Write the failing tests** — `packages/content/src/finalize.test.ts`
+- [x] **Step 1: Write the failing tests** — `packages/content/src/finalize.test.ts`
 
 ```ts
 import type { MapModel } from "@pirata/core";
@@ -2368,9 +2368,9 @@ describe("finalizeWorld", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./finalize.ts`)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./finalize.ts`)
 
-- [ ] **Step 3: Write `packages/content/src/finalize.ts`**
+- [x] **Step 3: Write `packages/content/src/finalize.ts`**
 
 ```ts
 import type {
@@ -2518,7 +2518,7 @@ function toDialogueDef(object: DialogueObject): DialogueDef {
 (The conditional spreads exist because `exactOptionalPropertyTypes` forbids assigning
 `undefined` to optional properties.)
 
-- [ ] **Step 4: Verify pass, export, full gate, commit**
+- [x] **Step 4: Verify pass, export, full gate, commit**
 
 Append to `packages/content/src/index.ts`:
 

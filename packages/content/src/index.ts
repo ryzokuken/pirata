@@ -1,3 +1,4 @@
+export { finalizeWorld } from "./finalize.ts";
 export { ContentError, parsePackManifest, parsePackObjects } from "./loader.ts";
 export {
   packManifestSchema,
