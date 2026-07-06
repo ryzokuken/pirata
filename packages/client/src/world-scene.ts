@@ -1,30 +1,41 @@
+import { loadBaseWorld } from "@pirata/content";
 import townJson from "@pirata/content/packs/base/maps/port_town.map.json";
 import {
   advance,
   createGameState,
   deserialize,
-  parseTiledMap,
   SaveError,
   serialize,
+  type DeedRecordedEvent,
   type Direction,
+  type GameEvent,
   type GameState,
   type Intent,
-  type MapModel,
   type WorldDef,
 } from "@pirata/core";
 import { GameObjects, Input, Scene } from "phaser";
+import { renderClock, renderDialogue, renderReputation, showToast } from "./ui.ts";
 
 const TILE = 32;
 const MOVE_COOLDOWN_MS = 140;
 const SAVE_KEY = "pirata-save";
 const TILE_COLORS = [0x8a795d, 0x4d4338, 0x1d3f6e];
+const FACTION_COLORS: Readonly<Record<string, number>> = {
+  "base:merchants_guild": 0x7fb069,
+  "base:dockworkers": 0x5b8dbe,
+};
+const CHOICE_KEYS = ["ONE", "TWO", "THREE", "FOUR", "FIVE"] as const;
+
+function move(direction: Direction): Intent {
+  return { type: "move", direction };
+}
 
 export class WorldScene extends Scene {
-  private map!: MapModel;
-  private tempWorld!: WorldDef;
+  private world!: WorldDef;
   private state!: GameState;
   private playerSprite!: GameObjects.Rectangle;
-  private keys!: ReadonlyArray<readonly [Direction, Input.Keyboard.Key]>;
+  private npcSprites = new Map<string, GameObjects.Container>();
+  private polledKeys!: ReadonlyArray<readonly [Intent, Input.Keyboard.Key]>;
   private lastMoveAt = 0;
 
   constructor() {
@@ -36,9 +47,7 @@ export class WorldScene extends Scene {
   }
 
   create(): void {
-    this.map = parseTiledMap("port_town", townJson);
-    // Temporary M2 scaffolding: an empty world until Task 15 loads the base pack.
-    this.tempWorld = { map: this.map, factions: {}, npcs: {}, dialogues: {}, deeds: {} };
+    this.world = loadBaseWorld();
     this.state = this.loadOrCreateState();
 
     this.createPlaceholderTileset();
@@ -58,19 +67,24 @@ export class WorldScene extends Scene {
       TILE - 4,
       0xd9a441,
     );
+    this.createNpcSprites();
 
     this.setUpKeys();
     this.setUpPersistence();
     this.exposeDebugHook();
+    this.renderUi();
   }
 
   override update(time: number): void {
+    if (this.state.dialogue !== null) {
+      return;
+    }
     if (time - this.lastMoveAt < MOVE_COOLDOWN_MS) {
       return;
     }
-    for (const [direction, key] of this.keys) {
+    for (const [intent, key] of this.polledKeys) {
       if (key.isDown) {
-        this.apply({ type: "move", direction });
+        this.apply(intent);
         this.lastMoveAt = time;
         return;
       }
@@ -78,17 +92,107 @@ export class WorldScene extends Scene {
   }
 
   private apply(intent: Intent): void {
-    const result = advance(this.state, intent, this.tempWorld);
+    const result = advance(this.state, intent, this.world);
     this.state = result.state;
     for (const event of result.events) {
-      if (event.type === "player-moved") {
+      this.renderEvent(event);
+    }
+    this.renderUi();
+  }
+
+  private renderEvent(event: GameEvent): void {
+    switch (event.type) {
+      case "player-moved":
         this.tweens.add({
           targets: this.playerSprite,
           x: event.to.x * TILE + TILE / 2,
           y: event.to.y * TILE + TILE / 2,
           duration: 110,
         });
+        break;
+      case "npc-moved": {
+        const sprite = this.npcSprites.get(event.npcId);
+        if (sprite !== undefined) {
+          this.tweens.add({
+            targets: sprite,
+            x: event.to.x * TILE + TILE / 2,
+            y: event.to.y * TILE + TILE / 2,
+            duration: 110,
+          });
+        }
+        break;
       }
+      case "deed-recorded":
+        this.floatDeedText(event);
+        break;
+      case "intent-rejected":
+        showToast(event.reason);
+        break;
+      case "movement-blocked":
+      case "dialogue-started":
+      case "dialogue-advanced":
+      case "dialogue-ended":
+      case "reputation-changed":
+        break; // reflected by renderUi()
+    }
+  }
+
+  private renderUi(): void {
+    renderClock(this.state);
+    renderReputation(this.state, this.world);
+    renderDialogue(this.state, this.world, (index) => {
+      this.apply({ type: "choose", index });
+    });
+  }
+
+  private floatDeedText(event: DeedRecordedEvent): void {
+    const deed = this.world.deeds[event.deedId];
+    const npc = this.world.npcs[event.npcId];
+    if (deed === undefined || npc === undefined) {
+      return;
+    }
+    const gain = deed.standingDelta >= 0;
+    const label = this.add
+      .text(
+        this.playerSprite.x,
+        this.playerSprite.y - 20,
+        `${gain ? "+" : ""}${String(deed.standingDelta)} ${npc.name}`,
+        { fontSize: "12px", color: gain ? "#9fdf7f" : "#e07a5f" },
+      )
+      .setOrigin(0.5, 1);
+    this.tweens.add({
+      targets: label,
+      y: label.y - 18,
+      alpha: 0,
+      duration: 900,
+      onComplete: () => {
+        label.destroy();
+      },
+    });
+  }
+
+  private createNpcSprites(): void {
+    for (const npc of this.state.npcs) {
+      const def = this.world.npcs[npc.id];
+      if (def === undefined) {
+        continue;
+      }
+      const body = this.add.rectangle(
+        0,
+        0,
+        TILE - 10,
+        TILE - 6,
+        FACTION_COLORS[def.factionId] ?? 0xcccccc,
+      );
+      const label = this.add
+        .text(0, -TILE / 2, def.name, { fontSize: "10px", color: "#e8e0c9" })
+        .setOrigin(0.5, 1);
+      const container = this.add.container(
+        npc.pos.x * TILE + TILE / 2,
+        npc.pos.y * TILE + TILE / 2,
+        [body, label],
+      );
+      this.npcSprites.set(npc.id, container);
     }
   }
 
@@ -115,7 +219,7 @@ export class WorldScene extends Scene {
         }
       }
     }
-    return createGameState({ seed: Date.now() >>> 0, world: this.tempWorld });
+    return createGameState({ seed: Date.now() >>> 0, world: this.world });
   }
 
   private setUpKeys(): void {
@@ -123,16 +227,27 @@ export class WorldScene extends Scene {
     if (keyboard === null) {
       throw new Error("keyboard input is unavailable");
     }
-    this.keys = [
-      ["north", keyboard.addKey(Input.Keyboard.KeyCodes.UP)],
-      ["north", keyboard.addKey(Input.Keyboard.KeyCodes.W)],
-      ["south", keyboard.addKey(Input.Keyboard.KeyCodes.DOWN)],
-      ["south", keyboard.addKey(Input.Keyboard.KeyCodes.S)],
-      ["west", keyboard.addKey(Input.Keyboard.KeyCodes.LEFT)],
-      ["west", keyboard.addKey(Input.Keyboard.KeyCodes.A)],
-      ["east", keyboard.addKey(Input.Keyboard.KeyCodes.RIGHT)],
-      ["east", keyboard.addKey(Input.Keyboard.KeyCodes.D)],
+    this.polledKeys = [
+      [move("north"), keyboard.addKey(Input.Keyboard.KeyCodes.UP)],
+      [move("north"), keyboard.addKey(Input.Keyboard.KeyCodes.W)],
+      [move("south"), keyboard.addKey(Input.Keyboard.KeyCodes.DOWN)],
+      [move("south"), keyboard.addKey(Input.Keyboard.KeyCodes.S)],
+      [move("west"), keyboard.addKey(Input.Keyboard.KeyCodes.LEFT)],
+      [move("west"), keyboard.addKey(Input.Keyboard.KeyCodes.A)],
+      [move("east"), keyboard.addKey(Input.Keyboard.KeyCodes.RIGHT)],
+      [move("east"), keyboard.addKey(Input.Keyboard.KeyCodes.D)],
+      [{ type: "wait" }, keyboard.addKey(Input.Keyboard.KeyCodes.SPACE)],
     ];
+    keyboard.on("keydown-E", () => {
+      this.apply({ type: "talk" });
+    });
+    CHOICE_KEYS.forEach((name, index) => {
+      keyboard.on(`keydown-${name}`, () => {
+        if (this.state.dialogue !== null) {
+          this.apply({ type: "choose", index });
+        }
+      });
+    });
   }
 
   private setUpPersistence(): void {

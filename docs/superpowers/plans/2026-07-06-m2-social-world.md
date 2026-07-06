@@ -2996,7 +2996,7 @@ and surface as a toast).
 - Modify: `packages/client/index.html`, `packages/client/src/world-scene.ts`
 - Create: `packages/client/src/ui.ts`
 
-- [ ] **Step 1: Replace `packages/client/index.html`**
+- [x] **Step 1: Replace `packages/client/index.html`**
 
 ```html
 <!doctype html>
@@ -3143,7 +3143,7 @@ and surface as a toast).
 </html>
 ```
 
-- [ ] **Step 2: Write `packages/client/src/ui.ts`**
+- [x] **Step 2: Write `packages/client/src/ui.ts`**
 
 ```ts
 import {
@@ -3232,7 +3232,7 @@ export function showToast(message: string): void {
 }
 ```
 
-- [ ] **Step 3: Rewrite `packages/client/src/world-scene.ts`**
+- [x] **Step 3: Rewrite `packages/client/src/world-scene.ts`**
 
 ```ts
 import { loadBaseWorld } from "@pirata/content";
@@ -3492,7 +3492,7 @@ export class WorldScene extends Scene {
 }
 ```
 
-- [ ] **Step 4: Build and eyeball**
+- [x] **Step 4: Build and eyeball**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm --filter @pirata/client build
@@ -3502,7 +3502,7 @@ Expected: all green, client builds. Optionally `pnpm dev` and check: four named 
 stand at tavern/market/docks, E next to Duarte opens the dialogue, choices resolve,
 reputation panel and clock update, Space passes time.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A && git commit -m "Render NPCs and social UI: dialogue, reputation, clock"
