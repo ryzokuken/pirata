@@ -1868,7 +1868,7 @@ The spec's primary verification tool (§5): script intents against a fixture wor
 - Test: `packages/core/src/harness.test.ts`
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/src/harness.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/src/harness.test.ts`
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1929,9 +1929,9 @@ describe("scenario: flattery opens doors", () => {
 (Second scenario: at standing −10 the visible list is [Compliment, Insult, Bye], so
 index 2 is "Bye", which ends the dialogue — proving the gated line stayed hidden.)
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./harness.ts`)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./harness.ts`)
 
-- [ ] **Step 3: Write `packages/core/src/harness.ts`**
+- [x] **Step 3: Write `packages/core/src/harness.ts`**
 
 ```ts
 import { advance } from "./advance.ts";
@@ -1966,7 +1966,7 @@ export function runScenario(options: {
 }
 ```
 
-- [ ] **Step 4: Verify pass, export, full gate, commit**
+- [x] **Step 4: Verify pass, export, full gate, commit**
 
 Append to `packages/core/src/index.ts`:
 
