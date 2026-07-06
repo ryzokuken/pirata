@@ -2540,7 +2540,7 @@ git add -A && git commit -m "Add link pass resolving all content cross-reference
 - Regenerate: `packages/content/packs/base/maps/port_town.map.json`
 - Test: `packages/content/src/base.test.ts`
 
-- [ ] **Step 1: Rework the town** — in `scripts/build-town-map.ts`, replace `LAYOUT` and add the location legend
+- [x] **Step 1: Rework the town** — in `scripts/build-town-map.ts`, replace `LAYOUT` and add the location legend
 
 The town gains doors (buildings were sealed boxes in M1) and six named locations.
 Legend additions: uppercase letters are walkable ground carrying a named location.
@@ -2628,7 +2628,7 @@ In the `map` object literal, bump `nextlayerid` to `5`, set `nextobjectid` to
     },
 ```
 
-- [ ] **Step 2: Regenerate the map**
+- [x] **Step 2: Regenerate the map**
 
 ```bash
 pnpm build:maps
@@ -2641,7 +2641,7 @@ reading the layout, not the JSON: tavern interior tiles B(3,3), H(4,3), C(3,4) w
 door at (4,5); market M(9,3) inside the trading house, door at (10,4); docks
 N(17,10), S(17,11) beside the water; player spawn P(17,5).
 
-- [ ] **Step 3: Write the base pack social objects**
+- [x] **Step 3: Write the base pack social objects**
 
 `packages/content/packs/base/factions.json`:
 
@@ -2867,7 +2867,7 @@ behavior. At 08:00, everyone's posts are distinct, so spawning is conflict-free.
 
 Bump `packages/content/packs/base/pack.json` `"version"` to `"0.2.0"`.
 
-- [ ] **Step 4: Write the failing base-pack test** — `packages/content/src/base.test.ts`
+- [x] **Step 4: Write the failing base-pack test** — `packages/content/src/base.test.ts`
 
 ```ts
 import { createGameState } from "@pirata/core";
@@ -2888,9 +2888,9 @@ describe("base pack", () => {
 });
 ```
 
-- [ ] **Step 5: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./base.ts`)
+- [x] **Step 5: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./base.ts`)
 
-- [ ] **Step 6: Write `packages/content/src/base.ts`**
+- [x] **Step 6: Write `packages/content/src/base.ts`**
 
 ```ts
 import deedsJson from "@pirata/content/packs/base/deeds.json" with { type: "json" };
@@ -2921,7 +2921,7 @@ harmless to Vite. **Fallback if any of the three toolchains refuses these import
 switch to relative `../packs/base/*.json` specifiers with a justification comment
 (package self-reference unsupported), keeping everything else identical.
 
-- [ ] **Step 7: Update `validate.ts`** — replace `packages/content/src/validate.ts`
+- [x] **Step 7: Update `validate.ts`** — replace `packages/content/src/validate.ts`
 
 ```ts
 import { readdirSync, readFileSync } from "node:fs";
@@ -2964,7 +2964,7 @@ console.log(
 (`createGameState` doubles as the spawn-conflict check: two NPCs scheduled onto the
 same tile at 08:00 fail validation, not gameplay.)
 
-- [ ] **Step 8: Verify everything**
+- [x] **Step 8: Verify everything**
 
 ```bash
 pnpm validate:content && pnpm test
@@ -2978,7 +2978,7 @@ Append to `packages/content/src/index.ts`:
 export { loadBaseWorld } from "./base.ts";
 ```
 
-- [ ] **Step 9: Full gate and commit**
+- [x] **Step 9: Full gate and commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

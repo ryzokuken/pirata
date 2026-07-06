@@ -1,0 +1,11 @@
+[
+  { "type": "deed", "id": "base:kind_word", "name": "A kind word", "standingDelta": 5 },
+  { "type": "deed", "id": "base:lent_a_hand", "name": "Lent a hand", "standingDelta": 10 },
+  {
+    "type": "deed",
+    "id": "base:stood_a_round",
+    "name": "Stood a round of drinks",
+    "standingDelta": 15
+  },
+  { "type": "deed", "id": "base:insult", "name": "An insult", "standingDelta": -10 }
+]

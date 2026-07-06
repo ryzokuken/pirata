@@ -1,0 +1,44 @@
+[
+  {
+    "type": "npc",
+    "id": "base:tavernkeeper",
+    "name": "Marisol",
+    "faction": "base:merchants_guild",
+    "dialogue": "base:tavernkeeper_talk",
+    "schedule": [{ "hour": 0, "location": "tavern_bar" }]
+  },
+  {
+    "type": "npc",
+    "id": "base:merchant",
+    "name": "Beatriz",
+    "faction": "base:merchants_guild",
+    "dialogue": "base:merchant_talk",
+    "schedule": [
+      { "hour": 8, "location": "market" },
+      { "hour": 19, "location": "tavern_corner" }
+    ]
+  },
+  {
+    "type": "npc",
+    "id": "base:harbormaster",
+    "name": "Duarte",
+    "faction": "base:dockworkers",
+    "dialogue": "base:harbormaster_talk",
+    "schedule": [
+      { "hour": 6, "location": "dock_north" },
+      { "hour": 20, "location": "tavern_hearth" }
+    ]
+  },
+  {
+    "type": "npc",
+    "id": "base:stevedore",
+    "name": "Jorge",
+    "faction": "base:dockworkers",
+    "dialogue": "base:stevedore_talk",
+    "schedule": [
+      { "hour": 5, "location": "dock_south" },
+      { "hour": 12, "location": "market" },
+      { "hour": 17, "location": "dock_south" }
+    ]
+  }
+]

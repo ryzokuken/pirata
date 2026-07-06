@@ -4,20 +4,29 @@ const LAYOUT: readonly string[] = [
   "########################",
   "#................~~~~~~#",
   "#.####..####.....~~~~~~#",
-  "#.#..#..#..#.....~~~~~~#",
-  "#.#..#..####......~~~~~#",
-  "#.####...........P..~~~#",
+  "#.#BH#..#M.#.....~~~~~~#",
+  "#.#C.#..##.#......~~~~~#",
+  "#.##.#...........P..~~~#",
   "#.................~~~~~#",
   "#.####..####......~~~~~#",
   "#.#..#..#..#......~~~~~#",
-  "#.#..#..####......~~~~~#",
-  "#.####............~~~~~#",
-  "#.................~~~~~#",
+  "#.#..#..##.#......~~~~~#",
+  "#.##.#...........N~~~~~#",
+  "#................S~~~~~#",
   "#.......####.......~~~~#",
   "#.......#..#.......~~~~#",
-  "#.......####......~~~~~#",
+  "#.......##.#......~~~~~#",
   "########################",
 ];
+
+const LOCATION_LEGEND: Readonly<Record<string, string>> = {
+  B: "tavern_bar",
+  H: "tavern_hearth",
+  C: "tavern_corner",
+  M: "market",
+  N: "dock_north",
+  S: "dock_south",
+};
 
 const TILE = 32;
 const GID_GROUND = 1;
@@ -32,6 +41,7 @@ if (LAYOUT.some((row) => row.length !== width)) {
 
 const ground: number[] = [];
 const walls: number[] = [];
+const locations: { name: string; x: number; y: number }[] = [];
 let spawn: { x: number; y: number } | undefined;
 
 LAYOUT.forEach((row, y) => {
@@ -46,6 +56,10 @@ LAYOUT.forEach((row, y) => {
     }
     if (ch === "P") {
       spawn = { x, y };
+    }
+    const locationName = LOCATION_LEGEND[ch];
+    if (locationName !== undefined) {
+      locations.push({ name: locationName, x, y });
     }
   });
 });
@@ -64,8 +78,8 @@ const map = {
   height,
   tilewidth: TILE,
   tileheight: TILE,
-  nextlayerid: 4,
-  nextobjectid: 2,
+  nextlayerid: 5,
+  nextobjectid: 2 + locations.length,
   tilesets: [
     {
       firstgid: 1,
@@ -123,6 +137,26 @@ const map = {
           point: false,
         },
       ],
+      opacity: 1,
+      visible: true,
+      x: 0,
+      y: 0,
+    },
+    {
+      id: 4,
+      name: "locations",
+      type: "objectgroup",
+      objects: locations.map((location, index) => ({
+        id: 2 + index,
+        name: location.name,
+        x: location.x * TILE,
+        y: location.y * TILE,
+        width: TILE,
+        height: TILE,
+        rotation: 0,
+        visible: true,
+        point: false,
+      })),
       opacity: 1,
       visible: true,
       x: 0,
