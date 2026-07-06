@@ -202,7 +202,7 @@ Types only — the contract every later task builds against. No runtime code, so
 - Create: `packages/core/src/defs.ts`
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Write `packages/core/src/defs.ts`**
+- [x] **Step 1: Write `packages/core/src/defs.ts`**
 
 ```ts
 import type { MapModel } from "./map.ts";
@@ -271,7 +271,7 @@ export interface WorldDef {
 
 Conditions are always evaluated _relative to the NPC being talked to_ (their personal standing, their faction's standing) — that keeps the M2 vocabulary tiny; explicit faction targets can be added later if content demands them.
 
-- [ ] **Step 2: Export from `packages/core/src/index.ts`** (append)
+- [x] **Step 2: Export from `packages/core/src/index.ts`** (append)
 
 ```ts
 export type {
@@ -288,7 +288,7 @@ export type {
 } from "./defs.ts";
 ```
 
-- [ ] **Step 3: Full gate and commit**
+- [x] **Step 3: Full gate and commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

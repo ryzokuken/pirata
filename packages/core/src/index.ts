@@ -14,3 +14,15 @@ export {
   TICKS_PER_HOUR,
   type Clock,
 } from "./time.ts";
+export type {
+  DeedDef,
+  DialogueChoice,
+  DialogueCondition,
+  DialogueDef,
+  DialogueEffect,
+  DialogueNode,
+  FactionDef,
+  NpcDef,
+  ScheduleEntry,
+  WorldDef,
+} from "./defs.ts";
