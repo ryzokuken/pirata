@@ -12,4 +12,11 @@ export interface MovementBlockedEvent {
   readonly toward: Vec2;
 }
 
-export type GameEvent = PlayerMovedEvent | MovementBlockedEvent;
+export interface NpcMovedEvent {
+  readonly type: "npc-moved";
+  readonly npcId: string;
+  readonly from: Vec2;
+  readonly to: Vec2;
+}
+
+export type GameEvent = PlayerMovedEvent | MovementBlockedEvent | NpcMovedEvent;

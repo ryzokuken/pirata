@@ -1,4 +1,8 @@
-import type { NpcDef } from "./defs.ts";
+import type { NpcDef, WorldDef } from "./defs.ts";
+import type { GameEvent } from "./event.ts";
+import { nextStep } from "./path.ts";
+import type { NpcState, Vec2 } from "./state.ts";
+import { hourOf } from "./time.ts";
 
 /**
  * Where an NPC wants to be at the given hour: the latest schedule entry at
@@ -18,4 +22,44 @@ export function scheduleTarget(npc: NpcDef, hour: number): string | undefined {
     }
   }
   return target;
+}
+
+export function advanceNpcs(options: {
+  readonly npcs: readonly NpcState[];
+  readonly playerPos: Vec2;
+  readonly world: WorldDef;
+  readonly tick: number;
+}): { readonly npcs: readonly NpcState[]; readonly events: readonly GameEvent[] } {
+  const { world, tick } = options;
+  const hour = hourOf(tick);
+  const moved: NpcState[] = [...options.npcs];
+  const events: GameEvent[] = [];
+  const occupied = new Set<string>(moved.map((npc) => `${npc.pos.x},${npc.pos.y}`));
+  occupied.add(`${options.playerPos.x},${options.playerPos.y}`);
+
+  moved.forEach((npc, index) => {
+    const def = world.npcs[npc.id];
+    if (def === undefined) {
+      return;
+    }
+    const location = scheduleTarget(def, hour);
+    const target = location === undefined ? undefined : world.map.locations[location];
+    if (target === undefined) {
+      return;
+    }
+    const step = nextStep(world.map, npc.pos, target);
+    if (step === undefined) {
+      return;
+    }
+    const key = `${step.x},${step.y}`;
+    if (occupied.has(key)) {
+      return;
+    }
+    occupied.delete(`${npc.pos.x},${npc.pos.y}`);
+    occupied.add(key);
+    moved[index] = { id: npc.id, pos: step };
+    events.push({ type: "npc-moved", npcId: npc.id, from: npc.pos, to: step });
+  });
+
+  return { npcs: moved, events };
 }

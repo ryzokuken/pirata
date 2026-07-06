@@ -1253,7 +1253,7 @@ git add -A && git commit -m "Add dialogue node lookup with condition-filtered ch
 - Modify: `packages/core/src/npc.ts`, `packages/core/src/index.ts`
 - Test: `packages/core/src/npc.test.ts`
 
-- [ ] **Step 1: Add failing tests** — append to `packages/core/src/npc.test.ts`
+- [x] **Step 1: Add failing tests** — append to `packages/core/src/npc.test.ts`
 
 ```ts
 import { advanceNpcs } from "./npc.ts";
@@ -1307,9 +1307,9 @@ describe("advanceNpcs", () => {
 
 Merge the import lines with the existing ones at the top of the file (single import per module — oxlint enforces no duplicate imports).
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `advanceNpcs` not exported)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `advanceNpcs` not exported)
 
-- [ ] **Step 3: Implement `advanceNpcs`** — append to `packages/core/src/npc.ts`
+- [x] **Step 3: Implement `advanceNpcs`** — append to `packages/core/src/npc.ts`
 
 ```ts
 export function advanceNpcs(options: {
@@ -1381,7 +1381,7 @@ and extend the union:
 export type GameEvent = PlayerMovedEvent | MovementBlockedEvent | NpcMovedEvent;
 ```
 
-- [ ] **Step 4: Verify pass, export, full gate, commit**
+- [x] **Step 4: Verify pass, export, full gate, commit**
 
 In `packages/core/src/index.ts`, replace the npc export line with:
 
