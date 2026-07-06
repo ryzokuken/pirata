@@ -16,7 +16,7 @@ function mapFromAscii(rows: readonly string[]): MapModel {
       if (ch === "P") spawn = { x, y };
     });
   });
-  return { id: "fixture", width, height, blocked, playerSpawn: spawn };
+  return { id: "fixture", width, height, blocked, playerSpawn: spawn, locations: {} };
 }
 
 const map = mapFromAscii(["#####", "#P..#", "#.#.#", "#####"]);

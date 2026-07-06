@@ -6,6 +6,7 @@ export interface MapModel {
   readonly height: number;
   readonly blocked: readonly boolean[];
   readonly playerSpawn: Vec2;
+  readonly locations: Readonly<Record<string, Vec2>>;
 }
 
 interface TiledObject {
@@ -75,12 +76,36 @@ export function parseTiledMap(id: string, raw: unknown): MapModel {
     );
   }
 
+  const blocked = walls.data.map((gid) => gid !== 0);
+
+  const locations: Record<string, Vec2> = {};
+  const locationLayer = layers.find(
+    (layer) => layer.type === "objectgroup" && layer.name === "locations",
+  );
+  for (const object of locationLayer?.objects ?? []) {
+    const pos = {
+      x: Math.floor(object.x / map.tilewidth),
+      y: Math.floor(object.y / map.tileheight),
+    };
+    if (locations[object.name] !== undefined) {
+      throw new MapParseError(`map "${id}": duplicate location "${object.name}"`);
+    }
+    const outOfBounds = pos.x < 0 || pos.y < 0 || pos.x >= map.width || pos.y >= map.height;
+    if (outOfBounds || (blocked[pos.y * map.width + pos.x] ?? true)) {
+      throw new MapParseError(
+        `map "${id}": location "${object.name}" at (${pos.x},${pos.y}) is not on walkable ground`,
+      );
+    }
+    locations[object.name] = pos;
+  }
+
   return {
     id,
     width: map.width,
     height: map.height,
-    blocked: walls.data.map((gid) => gid !== 0),
+    blocked,
     playerSpawn,
+    locations,
   };
 }
 

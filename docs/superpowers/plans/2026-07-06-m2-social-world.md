@@ -302,7 +302,7 @@ git add -A && git commit -m "Add world definition types for factions, NPCs, dial
 - Modify: `packages/core/src/map.ts`
 - Test: `packages/core/src/map.test.ts`
 
-- [ ] **Step 1: Add failing tests** — append to `packages/core/src/map.test.ts` (and add a `locations` layer to the existing `tiledFixture()` so it exercises the new path)
+- [x] **Step 1: Add failing tests** — append to `packages/core/src/map.test.ts` (and add a `locations` layer to the existing `tiledFixture()` so it exercises the new path)
 
 In `tiledFixture()`, add one more layer to the `layers` array:
 
@@ -355,9 +355,9 @@ describe("parseTiledMap locations", () => {
 Note the existing fixture: 3×2 map, walls layer `[2, 0, 0, 0, 0, 2]`, so tile (0,0) is
 blocked and (1,1) is open.
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `map.locations` is undefined)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `map.locations` is undefined)
 
-- [ ] **Step 3: Implement in `packages/core/src/map.ts`**
+- [x] **Step 3: Implement in `packages/core/src/map.ts`**
 
 Add `locations` to the interface:
 
@@ -412,7 +412,7 @@ return {
 };
 ```
 
-- [ ] **Step 4: Verify pass, full gate, commit**
+- [x] **Step 4: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
