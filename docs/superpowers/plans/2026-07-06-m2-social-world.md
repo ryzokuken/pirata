@@ -3514,7 +3514,7 @@ git add -A && git commit -m "Render NPCs and social UI: dialogue, reputation, cl
 
 - Create: `e2e/social.spec.ts`
 
-- [ ] **Step 1: Write `e2e/social.spec.ts`**
+- [x] **Step 1: Write `e2e/social.spec.ts`**
 
 ```ts
 /* eslint-disable no-underscore-dangle -- __pirata is the documented Window debug-hook name (e2e/types.d.ts) */
@@ -3569,7 +3569,7 @@ test("time passes and NPCs follow their schedules", async ({ page }) => {
 dock_north (17,10). All NPCs are stationary at 08:00, so the walk is deterministic.
 Tick 110 is 19:00, when Beatriz leaves the market for the tavern.)
 
-- [ ] **Step 2: Run the e2e suite**
+- [x] **Step 2: Run the e2e suite**
 
 ```bash
 pnpm test:e2e
@@ -3578,7 +3578,7 @@ pnpm test:e2e
 Expected: 5 passed (2 existing smoke tests + 3 social tests). If the smoke tests
 fail, something regressed in the M1 loop — fix that, don't adjust the smoke tests.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add -A && git commit -m "Add Playwright coverage for schedules, dialogue, reputation"
