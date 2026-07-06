@@ -1,2 +1,11 @@
-export { ContentError, parsePackManifest } from "./loader.ts";
-export { packManifestSchema, type PackManifest } from "./schemas.ts";
+export { ContentError, parsePackManifest, parsePackObjects } from "./loader.ts";
+export {
+  packManifestSchema,
+  packObjectSchema,
+  type DeedObject,
+  type DialogueObject,
+  type FactionObject,
+  type NpcObject,
+  type PackManifest,
+  type PackObject,
+} from "./schemas.ts";

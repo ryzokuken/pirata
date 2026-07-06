@@ -1986,7 +1986,7 @@ git add -A && git commit -m "Add headless scenario harness for behavior-level te
 - Modify: `packages/content/src/schemas.ts`, `packages/content/src/loader.ts`, `packages/content/src/index.ts`
 - Test: `packages/content/src/loader.test.ts`
 
-- [ ] **Step 1: Add failing tests** — append to `packages/content/src/loader.test.ts`
+- [x] **Step 1: Add failing tests** — append to `packages/content/src/loader.test.ts`
 
 ```ts
 import { parsePackObjects } from "./loader.ts";
@@ -2055,9 +2055,9 @@ describe("parsePackObjects", () => {
 
 (Merge the `import` with the existing one at the top of the file.)
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `parsePackObjects` not exported)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `parsePackObjects` not exported)
 
-- [ ] **Step 3: Extend `packages/content/src/schemas.ts`** (append)
+- [x] **Step 3: Extend `packages/content/src/schemas.ts`** (append)
 
 ```ts
 const objectId = z
@@ -2142,7 +2142,7 @@ export type DialogueObject = z.infer<typeof dialogueSchema>;
 export type PackObject = z.infer<typeof packObjectSchema>;
 ```
 
-- [ ] **Step 4: Add `parsePackObjects`** — append to `packages/content/src/loader.ts`
+- [x] **Step 4: Add `parsePackObjects`** — append to `packages/content/src/loader.ts`
 
 ```ts
 export function parsePackObjects(raw: unknown, source: string): readonly PackObject[] {
@@ -2173,7 +2173,7 @@ import {
 } from "./schemas.ts";
 ```
 
-- [ ] **Step 5: Verify pass, export, full gate, commit**
+- [x] **Step 5: Verify pass, export, full gate, commit**
 
 Replace `packages/content/src/index.ts` with:
 
