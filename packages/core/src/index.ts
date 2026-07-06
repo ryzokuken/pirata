@@ -26,3 +26,4 @@ export type {
   ScheduleEntry,
   WorldDef,
 } from "./defs.ts";
+export { nextStep } from "./path.ts";

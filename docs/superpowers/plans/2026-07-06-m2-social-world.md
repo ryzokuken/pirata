@@ -427,7 +427,7 @@ git add -A && git commit -m "Parse named walkable locations from Tiled object la
 - Test: `packages/core/src/path.test.ts`
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Create the shared test fixture** — `packages/core/src/world.fixture.ts` (test-only helper: imported by `*.test.ts` files, never exported from `index.ts`; vitest only collects `*.test.ts`, so this file adds no empty test suite)
+- [x] **Step 1: Create the shared test fixture** — `packages/core/src/world.fixture.ts` (test-only helper: imported by `*.test.ts` files, never exported from `index.ts`; vitest only collects `*.test.ts`, so this file adds no empty test suite)
 
 ```ts
 import type { MapModel } from "./map.ts";
@@ -459,7 +459,7 @@ export function mapFromAscii(rows: readonly string[]): MapModel {
 }
 ```
 
-- [ ] **Step 2: Write the failing tests** — `packages/core/src/path.test.ts`
+- [x] **Step 2: Write the failing tests** — `packages/core/src/path.test.ts`
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -500,9 +500,9 @@ describe("nextStep", () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./path.ts`)
+- [x] **Step 3: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./path.ts`)
 
-- [ ] **Step 4: Write `packages/core/src/path.ts`**
+- [x] **Step 4: Write `packages/core/src/path.ts`**
 
 ```ts
 import { isBlocked, type MapModel } from "./map.ts";
@@ -568,7 +568,7 @@ export function nextStep(map: MapModel, from: Vec2, to: Vec2): Vec2 | undefined 
 }
 ```
 
-- [ ] **Step 5: Verify pass, export, full gate, commit**
+- [x] **Step 5: Verify pass, export, full gate, commit**
 
 Append to `packages/core/src/index.ts`:
 
