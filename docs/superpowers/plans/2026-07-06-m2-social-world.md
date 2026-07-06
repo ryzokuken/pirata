@@ -1125,7 +1125,7 @@ git add -A && git commit -m "Compute NPC and faction standing from the deed ledg
 - Test: `packages/core/src/dialogue.test.ts`
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Write the failing tests** — `packages/core/src/dialogue.test.ts`
+- [x] **Step 1: Write the failing tests** — `packages/core/src/dialogue.test.ts`
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1171,9 +1171,9 @@ describe("visibleChoices", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./dialogue.ts`)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./dialogue.ts`)
 
-- [ ] **Step 3: Write `packages/core/src/dialogue.ts`**
+- [x] **Step 3: Write `packages/core/src/dialogue.ts`**
 
 ```ts
 import type { DialogueChoice, DialogueCondition, DialogueNode, WorldDef } from "./defs.ts";
@@ -1233,7 +1233,7 @@ function conditionMet(
 }
 ```
 
-- [ ] **Step 4: Verify pass, export, full gate, commit**
+- [x] **Step 4: Verify pass, export, full gate, commit**
 
 Append to `packages/core/src/index.ts`:
 

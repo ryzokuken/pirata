@@ -37,3 +37,4 @@ export type {
 export { nextStep } from "./path.ts";
 export { scheduleTarget } from "./npc.ts";
 export { factionStanding, npcStanding } from "./reputation.ts";
+export { currentNode, visibleChoices } from "./dialogue.ts";
