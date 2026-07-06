@@ -87,11 +87,15 @@ export function parseTiledMap(id: string, raw: unknown): MapModel {
       x: Math.floor(object.x / map.tilewidth),
       y: Math.floor(object.y / map.tileheight),
     };
-    if (locations[object.name] !== undefined) {
+    if (Object.hasOwn(locations, object.name)) {
       throw new MapParseError(`map "${id}": duplicate location "${object.name}"`);
     }
-    const outOfBounds = pos.x < 0 || pos.y < 0 || pos.x >= map.width || pos.y >= map.height;
-    if (outOfBounds || (blocked[pos.y * map.width + pos.x] ?? true)) {
+    if (pos.x < 0 || pos.y < 0 || pos.x >= map.width || pos.y >= map.height) {
+      throw new MapParseError(
+        `map "${id}": location "${object.name}" at (${pos.x},${pos.y}) is outside the map (${map.width}x${map.height})`,
+      );
+    }
+    if (blocked[pos.y * map.width + pos.x] ?? true) {
       throw new MapParseError(
         `map "${id}": location "${object.name}" at (${pos.x},${pos.y}) is not on walkable ground`,
       );

@@ -107,4 +107,28 @@ describe("parseTiledMap locations", () => {
     locations?.objects?.push({ name: "bad", x: 0, y: 0 });
     expect(() => parseTiledMap("blocked", fixture)).toThrow(/"bad".*not on walkable ground/);
   });
+
+  it("rejects a location outside the map", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as {
+      name: string;
+      objects?: { name: string; x: number; y: number }[];
+    }[];
+    const locations = layers.find((layer) => layer.name === "locations");
+    locations?.objects?.push({ name: "far", x: 32 * 10, y: 0 });
+    expect(() => parseTiledMap("oob", fixture)).toThrow(/"far".*outside the map/);
+  });
+
+  it("accepts a location named after an Object.prototype property", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as {
+      name: string;
+      objects?: { name: string; x: number; y: number }[];
+    }[];
+    const locations = layers.find((layer) => layer.name === "locations");
+    locations?.objects?.splice(0, 1, { name: "hasOwnProperty", x: 32, y: 32 });
+    expect(parseTiledMap("proto", fixture).locations).toEqual({
+      hasOwnProperty: { x: 1, y: 1 },
+    });
+  });
 });
