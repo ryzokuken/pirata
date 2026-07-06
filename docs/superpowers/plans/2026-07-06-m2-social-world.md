@@ -3591,7 +3591,7 @@ git add -A && git commit -m "Add Playwright coverage for schedules, dialogue, re
 - Create: `docs/adr/0002-social-simulation-data-model.md`
 - Modify: `CLAUDE.md`, `docs/superpowers/plans/2026-07-06-m2-social-world.md` (this file)
 
-- [ ] **Step 1: Write the ADR** — `docs/adr/0002-social-simulation-data-model.md`
+- [x] **Step 1: Write the ADR** — `docs/adr/0002-social-simulation-data-model.md`
 
 ```markdown
 # ADR 0002: Social simulation data model
@@ -3636,7 +3636,7 @@ without building it now.
   are code contributions to core, not content hacks.
 ```
 
-- [ ] **Step 2: Sync `CLAUDE.md`**
+- [x] **Step 2: Sync `CLAUDE.md`**
 
 Two edits:
 
@@ -3651,13 +3651,13 @@ Two edits:
    `packages/content/packs/base/` validated by `pnpm validate:content` (schema +
    link pass + spawn smoke)."
 
-- [ ] **Step 3: Sync this plan**
+- [x] **Step 3: Sync this plan**
 
 Re-read the plan checkboxes against what actually happened; where execution deviated,
 edit the relevant task in place (this file is the record M3 builds on). Tick all
 completed checkboxes.
 
-- [ ] **Step 4: Full verification**
+- [x] **Step 4: Full verification**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
@@ -3669,7 +3669,7 @@ actionlint .github/workflows/ && zizmor .github/workflows/
 Expected: everything green. No workflow changes were made, so the last line is a
 regression guard only.
 
-- [ ] **Step 5: Commit, push, open a draft PR**
+- [x] **Step 5: Commit, push, open a draft PR**
 
 ```bash
 git add -A && git commit -m "Add ADR-0002 and sync docs for the M2 social world"
@@ -3701,3 +3701,23 @@ a pointer to ADR-0002 and this plan. Plain, factual language.
   plays the loop. ✓
 - **Not in scope, on purpose:** gossip propagation timing (M3), crimes/witnesses
   (M3), rumors (M4), typed id wrappers, pack overrides, touch input.
+
+## Execution deviations (recorded 2026-07-06)
+
+- **Task 3:** the pre-existing local map fixture in `advance.test.ts` needed
+  `locations: {}` to compile (stale call site the plan missed; superseded by the
+  Task 10 rewrite). Code review then hardened location parsing (commit `2a114b5`):
+  duplicate check uses `Object.hasOwn` (a location named `hasOwnProperty` no longer
+  false-positives), out-of-bounds locations get a distinct "outside the map"
+  message matching the spawn-check convention, plus tests for both.
+- **Task 4:** `Array.from({ length: n }, () => -1)` instead of
+  `new Array(n).fill(-1)` (oxlint `unicorn/no-new-array`).
+- **Task 6:** `Object.keys(...).toSorted()` instead of `.sort()` (oxlint
+  `unicorn/no-array-sort`); the temporary `freshState()` helper used an explicit
+  `: GameState` return type instead of `satisfies` (the narrow literal type broke
+  reassignment in property tests).
+- **Task 15:** the `move()` intent helper is hoisted to module scope (oxlint
+  `unicorn/consistent-function-scoping`).
+- **Process:** per-task subagent reviews ran for Tasks 1-3; the session's subagent
+  quota was then exhausted, so Tasks 4-17 were implemented inline by the
+  controller following the same TDD steps and gates.
