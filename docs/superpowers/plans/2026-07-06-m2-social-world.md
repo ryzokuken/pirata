@@ -1017,7 +1017,7 @@ git add -A && git commit -m "Extend GameState with NPCs, dialogue, and deed ledg
 - Test: `packages/core/src/reputation.test.ts`
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Write the failing tests** — `packages/core/src/reputation.test.ts`
+- [x] **Step 1: Write the failing tests** — `packages/core/src/reputation.test.ts`
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1069,9 +1069,9 @@ describe("standing", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./reputation.ts`)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./reputation.ts`)
 
-- [ ] **Step 3: Write `packages/core/src/reputation.ts`**
+- [x] **Step 3: Write `packages/core/src/reputation.ts`**
 
 ```ts
 import type { WorldDef } from "./defs.ts";
@@ -1104,7 +1104,7 @@ export function factionStanding(state: GameState, world: WorldDef, factionId: st
 }
 ```
 
-- [ ] **Step 4: Verify pass, export, full gate, commit**
+- [x] **Step 4: Verify pass, export, full gate, commit**
 
 Append to `packages/core/src/index.ts`:
 

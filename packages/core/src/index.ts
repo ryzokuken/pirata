@@ -36,3 +36,4 @@ export type {
 } from "./defs.ts";
 export { nextStep } from "./path.ts";
 export { scheduleTarget } from "./npc.ts";
+export { factionStanding, npcStanding } from "./reputation.ts";
