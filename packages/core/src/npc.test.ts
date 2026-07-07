@@ -56,7 +56,7 @@ describe("advanceNpcs", () => {
     // Tick 10 is 09:00 — the walker leaves a(6,1) for b(1,3); the fixed
     // neighbor order picks south into the east corridor.
     const result = advanceNpcs({ npcs: state.npcs, playerPos: state.player.pos, world, tick: 10 });
-    expect(result.npcs).toContainEqual({ id: "test:walker", pos: { x: 6, y: 2 } });
+    expect(result.npcs).toContainEqual({ id: "test:walker", pos: { x: 6, y: 2 }, pockets: [] });
     expect(result.events).toEqual([
       { type: "npc-moved", npcId: "test:walker", from: { x: 6, y: 1 }, to: { x: 6, y: 2 } },
     ]);
@@ -70,7 +70,7 @@ describe("advanceNpcs", () => {
       world,
       tick: 10,
     });
-    expect(result.npcs).toContainEqual({ id: "test:walker", pos: { x: 6, y: 1 } });
+    expect(result.npcs).toContainEqual({ id: "test:walker", pos: { x: 6, y: 1 }, pockets: [] });
     expect(result.events).toEqual([]);
   });
 
@@ -80,7 +80,11 @@ describe("advanceNpcs", () => {
     for (let tick = 10; tick < 20; tick += 1) {
       npcs = advanceNpcs({ npcs, playerPos: state.player.pos, world, tick }).npcs;
     }
-    expect(npcs).toContainEqual({ id: "test:walker", pos: { x: 1, y: 3 } });
-    expect(npcs).toContainEqual({ id: "test:keeper", pos: { x: 4, y: 4 } });
+    expect(npcs).toContainEqual({ id: "test:walker", pos: { x: 1, y: 3 }, pockets: [] });
+    expect(npcs).toContainEqual({
+      id: "test:keeper",
+      pos: { x: 4, y: 4 },
+      pockets: ["test:pearl"],
+    });
   });
 });

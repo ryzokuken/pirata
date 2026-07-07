@@ -348,7 +348,7 @@ git add -A && git commit -m "Add item, crime, shop, and confrontation definition
 - Modify: `packages/core/src/state.ts`, `packages/core/src/save.ts`, `packages/core/src/world.fixture.ts`, `packages/core/src/index.ts`, `packages/core/src/advance.ts`
 - Test: `packages/core/src/state.test.ts`, `packages/core/src/save.test.ts`
 
-- [ ] **Step 1: Rebuild the fixture town** — replace `FIXTURE_MAP` and `fixtureWorld()` in `packages/core/src/world.fixture.ts`:
+- [x] **Step 1: Rebuild the fixture town** — replace `FIXTURE_MAP` and `fixtureWorld()` in `packages/core/src/world.fixture.ts`:
 
 ```ts
 export const FIXTURE_MAP = mapFromAscii(
@@ -469,7 +469,7 @@ commutes `a` (6,1) → `b` (1,3) at hour 9, passing (4,3) — Chebyshev distance
 keeper's nook `t` (4,4); the trinket lies at (3,3), diagonal-adjacent to the keeper (who
 therefore witnesses theft there) and walled off from the guard (row 2 is solid).
 
-- [ ] **Step 2: Write the failing tests** — replace `packages/core/src/state.test.ts`:
+- [x] **Step 2: Write the failing tests** — replace `packages/core/src/state.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -565,9 +565,9 @@ describe("save round-trip", () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify failure** (`pnpm test` — FAIL: player shape, missing state fields, save version)
+- [x] **Step 3: Run to verify failure** (`pnpm test` — FAIL: player shape, missing state fields, save version)
 
-- [ ] **Step 4: Rewrite the state types in `packages/core/src/state.ts`**
+- [x] **Step 4: Rewrite the state types in `packages/core/src/state.ts`**
 
 ```ts
 export const PLAYER_START_COIN = 20;
@@ -631,9 +631,9 @@ return {
 };
 ```
 
-- [ ] **Step 5: Bump `packages/core/src/save.ts`** — `export const SAVE_VERSION = 3;`
+- [x] **Step 5: Bump `packages/core/src/save.ts`** — `export const SAVE_VERSION = 3;`
 
-- [ ] **Step 6: Fix compile fallout**
+- [x] **Step 6: Fix compile fallout**
 
 - `advance.ts` `applyChoose`: deed records now need `knownBy` (real semantics land in Task 4; make it compile correctly now):
 
@@ -647,7 +647,7 @@ and `applyTick`/`applyMove` build `player` from parts — replace every `player:
 - `index.ts`: export `PLAYER_START_COIN` and the types `TradeState`, `WorldItem` from `./state.ts`.
 - Client `world-scene.ts` compiles unchanged (it reads `player.pos`, `npcs[].pos/id`, `dialogue`).
 
-- [ ] **Step 7: Verify pass, full gate, commit**
+- [x] **Step 7: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

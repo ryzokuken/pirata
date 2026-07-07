@@ -57,7 +57,7 @@ export function advanceNpcs(options: {
     }
     occupied.delete(`${npc.pos.x},${npc.pos.y}`);
     occupied.add(key);
-    moved[index] = { id: npc.id, pos: step };
+    moved[index] = { ...npc, pos: step };
     events.push({ type: "npc-moved", npcId: npc.id, from: npc.pos, to: step });
   });
 

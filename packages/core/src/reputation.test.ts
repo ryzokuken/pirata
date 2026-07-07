@@ -18,30 +18,34 @@ describe("standing", () => {
 
   it("sums deltas of deeds the NPC witnessed", () => {
     const state = stateWithDeeds([
-      { deedId: "test:praise", npcId: "test:keeper", tick: 1 },
-      { deedId: "test:praise", npcId: "test:keeper", tick: 2 },
-      { deedId: "test:slight", npcId: "test:keeper", tick: 3 },
+      { deedId: "test:praise", npcId: "test:keeper", tick: 1, knownBy: ["test:keeper"] },
+      { deedId: "test:praise", npcId: "test:keeper", tick: 2, knownBy: ["test:keeper"] },
+      { deedId: "test:slight", npcId: "test:keeper", tick: 3, knownBy: ["test:keeper"] },
     ]);
     expect(npcStanding(state, world, "test:keeper")).toBe(10);
   });
 
   it("keeps ledgers per NPC", () => {
-    const state = stateWithDeeds([{ deedId: "test:slight", npcId: "test:walker", tick: 1 }]);
+    const state = stateWithDeeds([
+      { deedId: "test:slight", npcId: "test:walker", tick: 1, knownBy: ["test:walker"] },
+    ]);
     expect(npcStanding(state, world, "test:keeper")).toBe(0);
     expect(npcStanding(state, world, "test:walker")).toBe(-10);
   });
 
   it("aggregates faction standing across member witnesses only", () => {
     const state = stateWithDeeds([
-      { deedId: "test:praise", npcId: "test:keeper", tick: 1 },
-      { deedId: "test:slight", npcId: "test:walker", tick: 2 },
+      { deedId: "test:praise", npcId: "test:keeper", tick: 1, knownBy: ["test:keeper"] },
+      { deedId: "test:slight", npcId: "test:walker", tick: 2, knownBy: ["test:walker"] },
     ]);
     expect(factionStanding(state, world, "test:guild")).toBe(10);
     expect(factionStanding(state, world, "test:dockers")).toBe(-10);
   });
 
   it("ignores deeds whose definition is unknown", () => {
-    const state = stateWithDeeds([{ deedId: "test:ghost", npcId: "test:keeper", tick: 1 }]);
+    const state = stateWithDeeds([
+      { deedId: "test:ghost", npcId: "test:keeper", tick: 1, knownBy: ["test:keeper"] },
+    ]);
     expect(npcStanding(state, world, "test:keeper")).toBe(0);
   });
 });

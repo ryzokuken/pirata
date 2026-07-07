@@ -43,7 +43,7 @@ function applyTick(
   const tick = state.tick + 1;
   const npcResult = advanceNpcs({ npcs: state.npcs, playerPos, world, tick });
   return {
-    state: { ...state, tick, player: { pos: playerPos }, npcs: npcResult.npcs },
+    state: { ...state, tick, player: { ...state.player, pos: playerPos }, npcs: npcResult.npcs },
     events: [...events, ...npcResult.events],
   };
 }
@@ -107,7 +107,7 @@ function applyChoose(state: GameState, intent: ChooseIntent, world: WorldDef): A
   // once PlayerState carries coin (Task 3).
   for (const effect of choice.effects ?? []) {
     if (effect.type === "deed") {
-      deeds = [...deeds, { deedId: effect.deedId, npcId, tick: state.tick }];
+      deeds = [...deeds, { deedId: effect.deedId, npcId, tick: state.tick, knownBy: [npcId] }];
       events.push({ type: "deed-recorded", deedId: effect.deedId, npcId });
     }
   }

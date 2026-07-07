@@ -30,7 +30,9 @@ describe("visibleChoices", () => {
   });
 
   it("reveals choices once standing qualifies", () => {
-    const state = inDialogue([{ deedId: "test:praise", npcId: "test:keeper", tick: 1 }]);
+    const state = inDialogue([
+      { deedId: "test:praise", npcId: "test:keeper", tick: 1, knownBy: ["test:keeper"] },
+    ]);
     const texts = visibleChoices(state, world).map((choice) => choice.text);
     expect(texts).toEqual(["Compliment", "Insult", "Secret?", "Bye"]);
   });

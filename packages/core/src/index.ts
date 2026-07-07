@@ -1,12 +1,15 @@
 export { seedRng, nextFloat, nextInt, type RngState } from "./rng.ts";
 export {
   createGameState,
+  PLAYER_START_COIN,
   type DeedRecord,
   type DialogueState,
   type GameState,
   type NpcState,
   type PlayerState,
+  type TradeState,
   type Vec2,
+  type WorldItem,
 } from "./state.ts";
 export {
   DIRECTION_DELTAS,

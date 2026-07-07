@@ -101,7 +101,9 @@ describe("advance: talk & choose", () => {
   it("choosing an effectful choice records the deed and reports reputation", () => {
     const talking = advance(run(freshState(), WALK_TO_KEEPER), { type: "talk" }, world).state;
     const result = advance(talking, { type: "choose", index: 0 }, world);
-    expect(result.state.deeds).toEqual([{ deedId: "test:praise", npcId: "test:keeper", tick: 5 }]);
+    expect(result.state.deeds).toEqual([
+      { deedId: "test:praise", npcId: "test:keeper", tick: 5, knownBy: ["test:keeper"] },
+    ]);
     expect(result.state.dialogue).toEqual({ npcId: "test:keeper", nodeId: "smile" });
     expect(result.events).toEqual([
       { type: "deed-recorded", deedId: "test:praise", npcId: "test:keeper" },
