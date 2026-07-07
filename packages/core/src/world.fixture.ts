@@ -5,13 +5,18 @@ import type { Vec2 } from "./state.ts";
 /**
  * Builds a MapModel from ASCII art for tests.
  * Legend: '#' wall, '.' floor, 'P' player spawn, any lowercase letter a
- * walkable named location (the letter is the location name).
+ * walkable named location (the letter is the location name), digits '1'-'9'
+ * a walkable tile carrying an item named by `itemLegend`.
  */
-export function mapFromAscii(rows: readonly string[]): MapModel {
+export function mapFromAscii(
+  rows: readonly string[],
+  itemLegend: Readonly<Record<string, string>> = {},
+): MapModel {
   const height = rows.length;
   const width = rows[0]?.length ?? 0;
   const blocked: boolean[] = [];
   const locations: Record<string, Vec2> = {};
+  const items: { itemId: string; pos: Vec2 }[] = [];
   let spawn = { x: 1, y: 1 };
   rows.forEach((row, y) => {
     [...row].forEach((ch, x) => {
@@ -22,9 +27,13 @@ export function mapFromAscii(rows: readonly string[]): MapModel {
       if (ch >= "a" && ch <= "z") {
         locations[ch] = { x, y };
       }
+      const itemId = itemLegend[ch];
+      if (ch >= "1" && ch <= "9" && itemId !== undefined) {
+        items.push({ itemId, pos: { x, y } });
+      }
     });
   });
-  return { id: "fixture", width, height, blocked, playerSpawn: spawn, locations };
+  return { id: "fixture", width, height, blocked, playerSpawn: spawn, locations, items };
 }
 
 export const FIXTURE_MAP = mapFromAscii([

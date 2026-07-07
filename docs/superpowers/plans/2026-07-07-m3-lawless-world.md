@@ -115,7 +115,7 @@ Boundaries unchanged: `core` imports nothing; `content` produces `WorldDef`; `cl
 - Test: `packages/core/src/map.test.ts`
 - Modify: `packages/core/src/world.fixture.ts`
 
-- [ ] **Step 1: Add failing tests** — append to `packages/core/src/map.test.ts`, and add an `items` layer to the existing `tiledFixture()` `layers` array:
+- [x] **Step 1: Add failing tests** — append to `packages/core/src/map.test.ts`, and add an `items` layer to the existing `tiledFixture()` `layers` array:
 
 ```ts
       {
@@ -172,12 +172,12 @@ describe("parseTiledMap items", () => {
 
 (The existing fixture is 3×2 with walls `[2, 0, 0, 0, 0, 2]`: (0,0) blocked, (1,1) open.)
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm test`
 Expected: FAIL — `map.items` is undefined.
 
-- [ ] **Step 3: Implement in `packages/core/src/map.ts`**
+- [x] **Step 3: Implement in `packages/core/src/map.ts`**
 
 Add to the interface (below `locations`):
 
@@ -216,7 +216,7 @@ for (const object of itemLayer?.objects ?? []) {
 
 and include `items` in the returned object.
 
-- [ ] **Step 4: Extend `mapFromAscii`** — in `packages/core/src/world.fixture.ts`, digits `1`–`9` are walkable tiles carrying an item named by the legend:
+- [x] **Step 4: Extend `mapFromAscii`** — in `packages/core/src/world.fixture.ts`, digits `1`–`9` are walkable tiles carrying an item named by the legend:
 
 ```ts
 export function mapFromAscii(
@@ -250,9 +250,9 @@ export function mapFromAscii(
 
 (The `FIXTURE_MAP` call gains no items yet; `items: []` comes out of the default legend. Task 3 rebuilds the fixture town.)
 
-- [ ] **Step 5: Fix compile fallout** — `mapFromAscii`'s return now needs `items`; the local map fixture inside `advance.test.ts` (if it builds a `MapModel` literal) and any other `MapModel` literals need `items: []`. Search: `rg -l "playerSpawn" packages/core/src packages/client/src` and add `items: []` to every literal. The client parses maps via `parseTiledMap`, so it needs no change.
+- [x] **Step 5: Fix compile fallout** — `mapFromAscii`'s return now needs `items`; the local map fixture inside `advance.test.ts` (if it builds a `MapModel` literal) and any other `MapModel` literals need `items: []`. Search: `rg -l "playerSpawn" packages/core/src packages/client/src` and add `items: []` to every literal. The client parses maps via `parseTiledMap`, so it needs no change.
 
-- [ ] **Step 6: Verify pass, full gate, commit**
+- [x] **Step 6: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

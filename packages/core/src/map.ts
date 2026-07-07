@@ -1,5 +1,10 @@
 import type { Vec2 } from "./state.ts";
 
+export interface MapItem {
+  readonly itemId: string;
+  readonly pos: Vec2;
+}
+
 export interface MapModel {
   readonly id: string;
   readonly width: number;
@@ -7,6 +12,7 @@ export interface MapModel {
   readonly blocked: readonly boolean[];
   readonly playerSpawn: Vec2;
   readonly locations: Readonly<Record<string, Vec2>>;
+  readonly items: readonly MapItem[];
 }
 
 interface TiledObject {
@@ -103,6 +109,22 @@ export function parseTiledMap(id: string, raw: unknown): MapModel {
     locations[object.name] = pos;
   }
 
+  const items: MapItem[] = [];
+  const itemLayer = layers.find((layer) => layer.type === "objectgroup" && layer.name === "items");
+  for (const object of itemLayer?.objects ?? []) {
+    const pos = {
+      x: Math.floor(object.x / map.tilewidth),
+      y: Math.floor(object.y / map.tileheight),
+    };
+    const outOfBounds = pos.x < 0 || pos.y < 0 || pos.x >= map.width || pos.y >= map.height;
+    if (outOfBounds || (blocked[pos.y * map.width + pos.x] ?? true)) {
+      throw new MapParseError(
+        `map "${id}": item "${object.name}" at (${pos.x},${pos.y}) is not on walkable ground`,
+      );
+    }
+    items.push({ itemId: object.name, pos });
+  }
+
   return {
     id,
     width: map.width,
@@ -110,6 +132,7 @@ export function parseTiledMap(id: string, raw: unknown): MapModel {
     blocked,
     playerSpawn,
     locations,
+    items,
   };
 }
 

@@ -11,6 +11,7 @@ const map: MapModel = {
   blocked: [false, false, false],
   playerSpawn: { x: 0, y: 0 },
   locations: { market: { x: 1, y: 0 } },
+  items: [],
 };
 
 function objects(): PackObject[] {
