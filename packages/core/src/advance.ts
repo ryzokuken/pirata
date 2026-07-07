@@ -103,9 +103,13 @@ function applyChoose(state: GameState, intent: ChooseIntent, world: WorldDef): A
 
   const events: GameEvent[] = [];
   let deeds = state.deeds;
+  // Stub: only "deed" effects are handled here; Task 10 adds atomic "pay" handling
+  // once PlayerState carries coin (Task 3).
   for (const effect of choice.effects ?? []) {
-    deeds = [...deeds, { deedId: effect.deedId, npcId, tick: state.tick }];
-    events.push({ type: "deed-recorded", deedId: effect.deedId, npcId });
+    if (effect.type === "deed") {
+      deeds = [...deeds, { deedId: effect.deedId, npcId, tick: state.tick }];
+      events.push({ type: "deed-recorded", deedId: effect.deedId, npcId });
+    }
   }
 
   const withDeeds: GameState = { ...state, deeds };

@@ -267,7 +267,7 @@ Types only; the compiler is the test.
 
 - Modify: `packages/core/src/defs.ts`, `packages/core/src/index.ts`
 
-- [ ] **Step 1: Extend `packages/core/src/defs.ts`**
+- [x] **Step 1: Extend `packages/core/src/defs.ts`**
 
 Add:
 
@@ -319,7 +319,7 @@ Extend `WorldDef` with:
   readonly crimes: Readonly<Partial<Record<CrimeVerb, string>>>;
 ```
 
-- [ ] **Step 2: Fix compile fallout across core**
+- [x] **Step 2: Fix compile fallout across core**
 
 - `world.fixture.ts` `fixtureWorld()`: add `items: {}`, `crimes: {}` to the returned object and `pockets: []` to both NPCs (Task 3 replaces this with the real fixture).
 - `finalize.ts` (content) will fail to compile — `WorldDef` gained fields. Add to its return object:
@@ -332,9 +332,9 @@ and add `pockets: []` to the npc bucket entry (temporary; Task 12 finishes conte
 
 - The client's `renderEvent` needs nothing yet (no new events).
 
-- [ ] **Step 3: Export from `packages/core/src/index.ts`** — extend the defs type-export block with `ConfrontDef`, `CrimeVerb`, `ItemDef`, `ShopDef` (keep alphabetical order).
+- [x] **Step 3: Export from `packages/core/src/index.ts`** — extend the defs type-export block with `ConfrontDef`, `CrimeVerb`, `ItemDef`, `ShopDef` (keep alphabetical order).
 
-- [ ] **Step 4: Full gate and commit**
+- [x] **Step 4: Full gate and commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

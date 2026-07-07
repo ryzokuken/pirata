@@ -52,6 +52,8 @@ export function fixtureWorld(): WorldDef {
       "test:guild": { id: "test:guild", name: "The Guild" },
       "test:dockers": { id: "test:dockers", name: "The Dockers" },
     },
+    items: {},
+    crimes: {},
     deeds: {
       "test:praise": { id: "test:praise", name: "Praise", standingDelta: 10 },
       "test:slight": { id: "test:slight", name: "Slight", standingDelta: -10 },
@@ -63,6 +65,7 @@ export function fixtureWorld(): WorldDef {
         factionId: "test:guild",
         dialogueId: "test:keeper_talk",
         schedule: [{ hour: 0, location: "t" }],
+        pockets: [],
       },
       "test:walker": {
         id: "test:walker",
@@ -73,6 +76,7 @@ export function fixtureWorld(): WorldDef {
           { hour: 8, location: "a" },
           { hour: 9, location: "b" },
         ],
+        pockets: [],
       },
     },
     dialogues: {

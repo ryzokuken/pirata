@@ -50,6 +50,7 @@ export function finalizeWorld(options: {
           factionId: object.faction,
           dialogueId: object.dialogue,
           schedule: object.schedule,
+          pockets: [],
         };
         break;
     }
@@ -97,7 +98,7 @@ export function finalizeWorld(options: {
           );
         }
         for (const effect of choice.effects ?? []) {
-          if (deeds[effect.deedId] === undefined) {
+          if (effect.type === "deed" && deeds[effect.deedId] === undefined) {
             throw new ContentError(
               `dialogue "${dialogue.id}" node "${nodeId}": choice "${choice.text}" references unknown deed "${effect.deedId}"`,
             );
@@ -107,7 +108,7 @@ export function finalizeWorld(options: {
     }
   }
 
-  return { map: options.map, factions, npcs, dialogues, deeds };
+  return { map: options.map, factions, npcs, dialogues, deeds, items: {}, crimes: {} };
 }
 
 function assertNewId(bucket: Record<string, unknown>, id: string, kind: string): void {

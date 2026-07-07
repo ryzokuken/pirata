@@ -51,5 +51,8 @@ function conditionMet(
         ? standing >= condition.value
         : standing < condition.value;
     }
+    case "coin-at-least":
+      // Stub: PlayerState gains `coin` in Task 3; Task 10 wires the real check.
+      return false;
   }
 }

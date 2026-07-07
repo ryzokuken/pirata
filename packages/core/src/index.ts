@@ -42,6 +42,8 @@ export {
   type Clock,
 } from "./time.ts";
 export type {
+  ConfrontDef,
+  CrimeVerb,
   DeedDef,
   DialogueChoice,
   DialogueCondition,
@@ -49,8 +51,10 @@ export type {
   DialogueEffect,
   DialogueNode,
   FactionDef,
+  ItemDef,
   NpcDef,
   ScheduleEntry,
+  ShopDef,
   WorldDef,
 } from "./defs.ts";
 export { nextStep } from "./path.ts";

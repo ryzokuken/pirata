@@ -11,6 +11,7 @@ function npcWithSchedule(schedule: NpcDef["schedule"]): NpcDef {
     factionId: "test:guild",
     dialogueId: "test:talk",
     schedule,
+    pockets: [],
   };
 }
 
