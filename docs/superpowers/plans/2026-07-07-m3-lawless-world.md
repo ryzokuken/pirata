@@ -1232,7 +1232,7 @@ git add -A && git commit -m "Add take verb: theft with awareness-based witnesses
 - Modify: `packages/core/src/intent.ts`, `packages/core/src/event.ts`, `packages/core/src/advance.ts`, `packages/core/src/index.ts`, `packages/client/src/world-scene.ts`
 - Test: `packages/core/src/advance.test.ts`
 
-- [ ] **Step 1: Add failing tests** — append to `packages/core/src/advance.test.ts`.
+- [x] **Step 1: Add failing tests** — append to `packages/core/src/advance.test.ts`.
       `WALK_TO_KEEPER` already exists in this file from M2 (player (1,1) → (4,3), the tile
       above the keeper's nook) — reuse it, do not redeclare:
 
@@ -1303,9 +1303,9 @@ describe("advance: pickpocket", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `pickpocket` is not a valid intent)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `pickpocket` is not a valid intent)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `packages/core/src/intent.ts`:
 
@@ -1400,12 +1400,12 @@ function applyPickpocket(state: GameState, world: WorldDef): AdvanceResult {
 
 `packages/core/src/index.ts` — export the new intent/event types.
 
-- [ ] **Step 4: Extend the determinism property test** — in `advance.test.ts`, find the
+- [x] **Step 4: Extend the determinism property test** — in `advance.test.ts`, find the
       fast-check property that runs random intent sequences and add the new verbs to its
       `constantFrom(...)` pool: `{ type: "sneak" }, { type: "take" }, { type: "pickpocket" }`.
       Same seed + same intents must still produce identical states.
 
-- [ ] **Step 5: Verify pass, full gate, commit**
+- [x] **Step 5: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

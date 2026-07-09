@@ -26,7 +26,18 @@ export interface TakeIntent {
   readonly type: "take";
 }
 
-export type Intent = MoveIntent | WaitIntent | TalkIntent | ChooseIntent | SneakIntent | TakeIntent;
+export interface PickpocketIntent {
+  readonly type: "pickpocket";
+}
+
+export type Intent =
+  | MoveIntent
+  | WaitIntent
+  | TalkIntent
+  | ChooseIntent
+  | SneakIntent
+  | TakeIntent
+  | PickpocketIntent;
 
 export const DIRECTION_DELTAS: Record<Direction, { readonly dx: number; readonly dy: number }> = {
   north: { dx: 0, dy: -1 },

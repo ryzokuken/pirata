@@ -6,6 +6,7 @@ import { DIRECTION_DELTAS, type ChooseIntent, type Intent, type MoveIntent } fro
 import { isBlocked } from "./map.ts";
 import { advanceNpcs } from "./npc.ts";
 import { factionStanding, npcStanding } from "./reputation.ts";
+import { nextFloat } from "./rng.ts";
 import type { GameState, NpcState, Vec2 } from "./state.ts";
 
 export interface AdvanceResult {
@@ -34,6 +35,10 @@ export function advance(state: GameState, intent: Intent, world: WorldDef): Adva
     case "take":
       return state.dialogue === null && state.trade === null
         ? applyTake(state, world)
+        : rejected(state, "not while you're occupied");
+    case "pickpocket":
+      return state.dialogue === null && state.trade === null
+        ? applyPickpocket(state, world)
         : rejected(state, "not while you're occupied");
   }
 }
@@ -114,6 +119,54 @@ function applyTake(state: GameState, world: WorldDef): AdvanceResult {
     deeds: [...state.deeds, { deedId, tick: state.tick, knownBy }],
   };
   return applyTick(next, at, events, world);
+}
+
+const PICKPOCKET_CHANCE = 0.5;
+const PICKPOCKET_SNEAK_CHANCE = 0.8;
+
+function applyPickpocket(state: GameState, world: WorldDef): AdvanceResult {
+  const victim = adjacentNpc(state);
+  if (victim === undefined) {
+    return rejected(state, "no one within reach");
+  }
+  const deedId = world.crimes.pickpocket;
+  if (deedId === undefined) {
+    return rejected(state, "this world knows no law against light fingers");
+  }
+  const itemId = victim.pockets[0];
+  if (itemId === undefined) {
+    return rejected(state, "their pockets are empty");
+  }
+
+  const roll = nextFloat(state.rng);
+  const chance = state.player.sneaking ? PICKPOCKET_SNEAK_CHANCE : PICKPOCKET_CHANCE;
+  const bystanders = witnesses(state, world, state.player.pos);
+  const events: GameEvent[] = [];
+  let player = state.player;
+  let npcs = state.npcs;
+  let knownBy: readonly string[];
+  if (roll.value < chance) {
+    knownBy = bystanders.filter((id) => id !== victim.id);
+    player = { ...player, items: [...player.items, itemId] };
+    npcs = npcs.map((npc) =>
+      npc.id === victim.id ? { ...npc, pockets: npc.pockets.slice(1) } : npc,
+    );
+    events.push({ type: "pickpocket-succeeded", npcId: victim.id, itemId });
+  } else {
+    knownBy = [...new Set([...bystanders, victim.id])].toSorted();
+    events.push({ type: "pickpocket-failed", npcId: victim.id });
+  }
+  if (knownBy.length > 0) {
+    events.push({ type: "crime-witnessed", deedId, witnessIds: knownBy });
+  }
+  const next: GameState = {
+    ...state,
+    rng: roll.state,
+    player,
+    npcs,
+    deeds: [...state.deeds, { deedId, npcId: victim.id, tick: state.tick, knownBy }],
+  };
+  return applyTick(next, state.player.pos, events, world);
 }
 
 function applyTalk(state: GameState, world: WorldDef): AdvanceResult {

@@ -158,6 +158,9 @@ const arbitraryIntent = constantFrom<Intent>(
   { type: "talk" },
   { type: "choose", index: 0 },
   { type: "choose", index: 1 },
+  { type: "sneak" },
+  { type: "take" },
+  { type: "pickpocket" },
 );
 
 describe("advance: properties", () => {
@@ -269,5 +272,70 @@ describe("advance: take (theft)", () => {
     const result = advance(atTrinket, { type: "take" }, lawless);
     expect(result.events[0]?.type).toBe("intent-rejected");
     expect(result.state.worldItems).toHaveLength(1);
+  });
+});
+
+describe("advance: pickpocket", () => {
+  function attempt(seed: number) {
+    const atKeeper = run(createGameState({ seed, world }), WALK_TO_KEEPER);
+    return advance(atKeeper, { type: "pickpocket" }, world);
+  }
+
+  it("records the crime deed whatever the outcome, and time passes", () => {
+    const result = attempt(1);
+    expect(result.state.deeds).toHaveLength(1);
+    expect(result.state.deeds[0]?.deedId).toBe("test:pickpocketing");
+    expect(result.state.tick).toBe(6);
+    expect(result.state.rng).not.toBe(createGameState({ seed: 1, world }).rng);
+  });
+
+  it("on success the pearl moves and the victim does not know", () => {
+    for (let seed = 1; seed < 50; seed += 1) {
+      const result = attempt(seed);
+      if (result.state.player.items.includes("test:pearl")) {
+        expect(result.state.npcs.find((npc) => npc.id === "test:keeper")?.pockets).toEqual([]);
+        expect(result.state.deeds[0]?.knownBy).toEqual([]);
+        expect(result.events).toContainEqual({
+          type: "pickpocket-succeeded",
+          npcId: "test:keeper",
+          itemId: "test:pearl",
+        });
+        return;
+      }
+    }
+    expect.unreachable("no successful pickpocket in 50 seeds");
+  });
+
+  it("on failure the victim knows and keeps the pearl", () => {
+    for (let seed = 1; seed < 50; seed += 1) {
+      const result = attempt(seed);
+      if (!result.state.player.items.includes("test:pearl")) {
+        expect(result.state.npcs.find((npc) => npc.id === "test:keeper")?.pockets).toEqual([
+          "test:pearl",
+        ]);
+        expect(result.state.deeds[0]?.knownBy).toContain("test:keeper");
+        expect(result.events).toContainEqual({
+          type: "pickpocket-failed",
+          npcId: "test:keeper",
+        });
+        return;
+      }
+    }
+    expect.unreachable("no failed pickpocket in 50 seeds");
+  });
+
+  it("is deterministic for a given seed", () => {
+    expect(attempt(7).state).toEqual(attempt(7).state);
+  });
+
+  it("rejects empty pockets without spending time or rng", () => {
+    const state = run(freshState(), [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]); // (4,1) is the guard's tile; player ends at (3,1), guard adjacent east — pockets empty
+    const result = advance(state, { type: "pickpocket" }, world);
+    expect(result.events[0]?.type).toBe("intent-rejected");
+    expect(result.state.tick).toBe(state.tick);
   });
 });

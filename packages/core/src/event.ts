@@ -72,6 +72,17 @@ export interface CrimeWitnessedEvent {
   readonly witnessIds: readonly string[];
 }
 
+export interface PickpocketSucceededEvent {
+  readonly type: "pickpocket-succeeded";
+  readonly npcId: string;
+  readonly itemId: string;
+}
+
+export interface PickpocketFailedEvent {
+  readonly type: "pickpocket-failed";
+  readonly npcId: string;
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -84,4 +95,6 @@ export type GameEvent =
   | IntentRejectedEvent
   | SneakToggledEvent
   | ItemTakenEvent
-  | CrimeWitnessedEvent;
+  | CrimeWitnessedEvent
+  | PickpocketSucceededEvent
+  | PickpocketFailedEvent;
