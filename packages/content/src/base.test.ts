@@ -5,12 +5,40 @@ import { loadBaseWorld } from "./base.ts";
 describe("base pack", () => {
   it("loads, links, and boots a fresh game", () => {
     const world = loadBaseWorld();
-    expect(Object.keys(world.npcs)).toHaveLength(4);
-    expect(Object.keys(world.factions)).toHaveLength(2);
+    expect(Object.keys(world.npcs)).toHaveLength(5);
+    expect(Object.keys(world.factions)).toHaveLength(3);
     const state = createGameState({ seed: 1, world });
-    expect(state.npcs).toContainEqual({ id: "base:tavernkeeper", pos: { x: 3, y: 3 } });
-    expect(state.npcs).toContainEqual({ id: "base:merchant", pos: { x: 9, y: 3 } });
-    expect(state.npcs).toContainEqual({ id: "base:harbormaster", pos: { x: 17, y: 10 } });
-    expect(state.npcs).toContainEqual({ id: "base:stevedore", pos: { x: 17, y: 11 } });
+    expect(state.npcs).toContainEqual({
+      id: "base:tavernkeeper",
+      pos: { x: 3, y: 3 },
+      pockets: ["base:rum_bottle"],
+    });
+    expect(state.npcs).toContainEqual({
+      id: "base:merchant",
+      pos: { x: 9, y: 3 },
+      pockets: ["base:silver_ring"],
+    });
+    expect(state.npcs).toContainEqual({
+      id: "base:harbormaster",
+      pos: { x: 17, y: 10 },
+      pockets: ["base:tobacco_pouch"],
+    });
+    expect(state.npcs).toContainEqual({
+      id: "base:stevedore",
+      pos: { x: 17, y: 11 },
+      pockets: ["base:dried_fish"],
+    });
+  });
+
+  it("ships the watch, wares, and laws", () => {
+    const world = loadBaseWorld();
+    expect(world.factions["base:town_watch"]).toBeDefined();
+    expect(world.npcs["base:watchwoman"]?.confront).toEqual({
+      standingBelow: -10,
+      dialogueId: "base:watch_confront",
+    });
+    expect(world.crimes).toEqual({ pickpocket: "base:pickpocketing", theft: "base:theft" });
+    expect(world.npcs["base:merchant"]?.shop?.sells).toContain("base:rum_bottle");
+    expect(world.map.items.length).toBeGreaterThanOrEqual(3);
   });
 });

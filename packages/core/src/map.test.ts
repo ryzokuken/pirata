@@ -20,6 +20,11 @@ function tiledFixture(): Record<string, unknown> {
         type: "objectgroup",
         objects: [{ name: "market", x: 32, y: 32 }],
       },
+      {
+        name: "items",
+        type: "objectgroup",
+        objects: [{ name: "test:coin_pouch", x: 32, y: 32 }],
+      },
     ],
   };
 }
@@ -130,5 +135,46 @@ describe("parseTiledMap locations", () => {
     expect(parseTiledMap("proto", fixture).locations).toEqual({
       hasOwnProperty: { x: 1, y: 1 },
     });
+  });
+});
+
+describe("parseTiledMap items", () => {
+  it("reads placed items in tile coordinates", () => {
+    const map = parseTiledMap("test", tiledFixture());
+    expect(map.items).toEqual([{ itemId: "test:coin_pouch", pos: { x: 1, y: 1 } }]);
+  });
+
+  it("defaults to no items when the layer is absent", () => {
+    const fixture = tiledFixture();
+    fixture["layers"] = (fixture["layers"] as { name: string }[]).filter(
+      (layer) => layer.name !== "items",
+    );
+    expect(parseTiledMap("test", fixture).items).toEqual([]);
+  });
+
+  it("allows duplicate item placements", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as { name: string; objects?: object[] }[];
+    layers
+      .find((layer) => layer.name === "items")
+      ?.objects?.push({
+        name: "test:coin_pouch",
+        x: 64,
+        y: 0,
+      });
+    expect(parseTiledMap("test", fixture).items).toHaveLength(2);
+  });
+
+  it("rejects an item on a blocked tile", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as { name: string; objects?: object[] }[];
+    layers
+      .find((layer) => layer.name === "items")
+      ?.objects?.push({
+        name: "test:anchor",
+        x: 0,
+        y: 0,
+      });
+    expect(() => parseTiledMap("blocked", fixture)).toThrow(/"test:anchor".*not on walkable/);
   });
 });

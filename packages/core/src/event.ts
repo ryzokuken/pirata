@@ -55,6 +55,69 @@ export interface IntentRejectedEvent {
   readonly reason: string;
 }
 
+export interface SneakToggledEvent {
+  readonly type: "sneak-toggled";
+  readonly sneaking: boolean;
+}
+
+export interface ItemTakenEvent {
+  readonly type: "item-taken";
+  readonly itemId: string;
+  readonly at: Vec2;
+}
+
+export interface CrimeWitnessedEvent {
+  readonly type: "crime-witnessed";
+  readonly deedId: string;
+  readonly witnessIds: readonly string[];
+}
+
+export interface PickpocketSucceededEvent {
+  readonly type: "pickpocket-succeeded";
+  readonly npcId: string;
+  readonly itemId: string;
+}
+
+export interface PickpocketFailedEvent {
+  readonly type: "pickpocket-failed";
+  readonly npcId: string;
+}
+
+export interface GossipSharedEvent {
+  readonly type: "gossip-shared";
+  readonly fromNpcId: string;
+  readonly toNpcId: string;
+  readonly deedId: string;
+}
+
+export interface CoinPaidEvent {
+  readonly type: "coin-paid";
+  readonly amount: number;
+  readonly npcId: string;
+}
+
+export interface TradeStartedEvent {
+  readonly type: "trade-started";
+  readonly npcId: string;
+}
+
+export interface TradeEndedEvent {
+  readonly type: "trade-ended";
+  readonly npcId: string;
+}
+
+export interface ItemBoughtEvent {
+  readonly type: "item-bought";
+  readonly itemId: string;
+  readonly price: number;
+}
+
+export interface ItemSoldEvent {
+  readonly type: "item-sold";
+  readonly itemId: string;
+  readonly price: number;
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -64,4 +127,15 @@ export type GameEvent =
   | DialogueEndedEvent
   | DeedRecordedEvent
   | ReputationChangedEvent
-  | IntentRejectedEvent;
+  | IntentRejectedEvent
+  | SneakToggledEvent
+  | ItemTakenEvent
+  | CrimeWitnessedEvent
+  | PickpocketSucceededEvent
+  | PickpocketFailedEvent
+  | GossipSharedEvent
+  | CoinPaidEvent
+  | TradeStartedEvent
+  | TradeEndedEvent
+  | ItemBoughtEvent
+  | ItemSoldEvent;

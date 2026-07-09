@@ -10,7 +10,16 @@ export function currentNode(state: GameState, world: WorldDef): DialogueNode | u
   if (npc === undefined) {
     return undefined;
   }
-  return world.dialogues[npc.dialogueId]?.nodes[state.dialogue.nodeId];
+  const node = world.dialogues[npc.dialogueId]?.nodes[state.dialogue.nodeId];
+  if (node !== undefined) {
+    return node;
+  }
+  // Forced confrontation swaps in the npc's confront dialogue, which is not
+  // reachable through its regular dialogueId.
+  const confrontDialogueId = npc.confront?.dialogueId;
+  return confrontDialogueId === undefined
+    ? undefined
+    : world.dialogues[confrontDialogueId]?.nodes[state.dialogue.nodeId];
 }
 
 /**
@@ -51,5 +60,7 @@ function conditionMet(
         ? standing >= condition.value
         : standing < condition.value;
     }
+    case "coin-at-least":
+      return state.player.coin >= condition.value;
   }
 }

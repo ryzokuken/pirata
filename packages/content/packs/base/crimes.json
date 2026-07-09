@@ -1,0 +1,9 @@
+[
+  {
+    "type": "crime",
+    "id": "base:law_pickpocket",
+    "verb": "pickpocket",
+    "deed": "base:pickpocketing"
+  },
+  { "type": "crime", "id": "base:law_theft", "verb": "theft", "deed": "base:theft" }
+]

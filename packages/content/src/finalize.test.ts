@@ -11,6 +11,7 @@ const map: MapModel = {
   blocked: [false, false, false],
   playerSpawn: { x: 0, y: 0 },
   locations: { market: { x: 1, y: 0 } },
+  items: [],
 };
 
 function objects(): PackObject[] {
@@ -24,6 +25,7 @@ function objects(): PackObject[] {
       faction: "base:guild",
       dialogue: "base:merchant_talk",
       schedule: [{ hour: 8, location: "market" }],
+      pockets: [],
     },
     {
       type: "dialogue",
@@ -155,5 +157,81 @@ describe("finalizeWorld", () => {
     expect(() => finalizeWorld({ objects: [], map })).not.toThrow();
     const dupes = [...objects(), { type: "faction", id: "base:guild", name: "Again" } as const];
     expect(() => finalizeWorld({ objects: dupes, map })).toThrow(ContentError);
+  });
+});
+
+describe("finalize items and crimes", () => {
+  it("indexes items and crime verb mappings", () => {
+    const world = finalizeWorld({
+      objects: [
+        ...objects(),
+        { type: "item", id: "t:coin", name: "Coin", value: 1 },
+        { type: "deed", id: "t:deed", name: "Theft", standingDelta: -5 },
+        { type: "crime", id: "t:law", verb: "theft", deed: "t:deed" },
+      ],
+      map,
+    });
+    expect(world.items["t:coin"]?.value).toBe(1);
+    expect(world.crimes.theft).toBe("t:deed");
+  });
+
+  it("rejects two crimes for one verb", () => {
+    expect(() =>
+      finalizeWorld({
+        objects: [
+          ...objects(),
+          { type: "crime", id: "t:law", verb: "theft", deed: "t:deed" },
+          { type: "crime", id: "t:law2", verb: "theft", deed: "t:deed" },
+        ],
+        map,
+      }),
+    ).toThrow(/duplicate crime for verb "theft"/);
+  });
+
+  it("rejects a crime pointing at a missing deed", () => {
+    const broken = [
+      ...objects(),
+      { type: "crime" as const, id: "t:law", verb: "theft" as const, deed: "t:ghost" },
+    ];
+    expect(() => finalizeWorld({ objects: broken, map })).toThrow(/unknown deed "t:ghost"/);
+  });
+
+  it("rejects pocket items that do not exist", () => {
+    const broken = objects().map((object) =>
+      object.type === "npc" ? { ...object, pockets: ["t:ghost"] } : object,
+    );
+    expect(() => finalizeWorld({ objects: broken, map })).toThrow(
+      /npc "base:merchant": unknown item "t:ghost" in pockets/,
+    );
+  });
+
+  it("rejects shop wares that do not exist", () => {
+    const broken = objects().map((object) =>
+      object.type === "npc" ? { ...object, shop: { sells: ["t:ghost"] } } : object,
+    );
+    expect(() => finalizeWorld({ objects: broken, map })).toThrow(
+      /npc "base:merchant": unknown item "t:ghost" in shop/,
+    );
+  });
+
+  it("rejects a confront dialogue that does not exist", () => {
+    const broken = objects().map((object) =>
+      object.type === "npc"
+        ? { ...object, confront: { standingBelow: -10, dialogue: "base:ghost_talk" } }
+        : object,
+    );
+    expect(() => finalizeWorld({ objects: broken, map })).toThrow(
+      /npc "base:merchant": unknown dialogue "base:ghost_talk" in confront/,
+    );
+  });
+
+  it("rejects a map item that no pack defines", () => {
+    const brokenMap: MapModel = {
+      ...map,
+      items: [{ itemId: "t:ghost", pos: { x: 0, y: 0 } }],
+    };
+    expect(() => finalizeWorld({ objects: objects(), map: brokenMap })).toThrow(
+      /map "town": unknown item "t:ghost" placed at \(0,0\)/,
+    );
   });
 });

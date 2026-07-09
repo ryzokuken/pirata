@@ -8,7 +8,10 @@ describe("save round-trip", () => {
     const state = {
       ...createGameState({ seed: 7, world: fixtureWorld() }),
       dialogue: { npcId: "test:keeper", nodeId: "hello" },
-      deeds: [{ deedId: "test:praise", npcId: "test:keeper", tick: 3 }],
+      deeds: [
+        { deedId: "test:theft", tick: 3, knownBy: ["test:keeper"] },
+        { deedId: "test:praise", npcId: "test:keeper", tick: 5, knownBy: ["test:keeper"] },
+      ],
     };
     expect(deserialize(serialize(state))).toEqual(state);
   });
@@ -17,11 +20,11 @@ describe("save round-trip", () => {
     expect(() => deserialize("not json{")).toThrow(SaveError);
   });
 
-  it("rejects the M1 save version", () => {
-    expect(() => deserialize(JSON.stringify({ version: 1, state: {} }))).toThrow(/version 1/);
+  it("rejects the M2 save version", () => {
+    expect(() => deserialize(JSON.stringify({ version: 2, state: {} }))).toThrow(/version 2/);
   });
 
   it("rejects a payload without state", () => {
-    expect(() => deserialize(JSON.stringify({ version: 2 }))).toThrow(SaveError);
+    expect(() => deserialize(JSON.stringify({ version: 3 }))).toThrow(SaveError);
   });
 });

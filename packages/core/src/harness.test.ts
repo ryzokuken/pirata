@@ -48,6 +48,11 @@ describe("scenario: flattery opens doors", () => {
       ],
     });
     expect(state.dialogue).toBeNull();
-    expect(state.deeds).toContainEqual({ deedId: "test:slight", npcId: "test:keeper", tick: 5 });
+    expect(state.deeds).toContainEqual({
+      deedId: "test:slight",
+      npcId: "test:keeper",
+      tick: 5,
+      knownBy: ["test:keeper"],
+    });
   });
 });

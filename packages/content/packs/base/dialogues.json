@@ -135,5 +135,56 @@
         "choices": [{ "text": "Take care." }]
       }
     }
+  },
+  {
+    "type": "dialogue",
+    "id": "base:watchwoman_talk",
+    "start": "greeting",
+    "nodes": {
+      "greeting": {
+        "text": "Keep your hands where I can see them, stranger.",
+        "choices": [
+          {
+            "text": "Any trouble on the streets?",
+            "condition": { "type": "faction-standing-at-least", "value": 10 },
+            "next": "trouble"
+          },
+          { "text": "Just admiring the port." }
+        ]
+      },
+      "trouble": {
+        "text": "Nothing the watch can't handle. Stay honest and we'll get along.",
+        "choices": [{ "text": "Noted." }]
+      }
+    }
+  },
+  {
+    "type": "dialogue",
+    "id": "base:watch_confront",
+    "start": "halt",
+    "nodes": {
+      "halt": {
+        "text": "Rosa plants herself in your path. 'Word travels, thief. Twenty coin settles it — for now.'",
+        "choices": [
+          {
+            "text": "Pay the fine. (20 coin)",
+            "condition": { "type": "coin-at-least", "value": 20 },
+            "effects": [
+              { "type": "pay", "amount": 20 },
+              { "type": "deed", "deed": "base:paid_fine" }
+            ],
+            "next": "paid"
+          },
+          {
+            "text": "I owe the watch nothing.",
+            "effects": [{ "type": "deed", "deed": "base:defied_watch" }]
+          }
+        ]
+      },
+      "paid": {
+        "text": "'Smart. Don't make me come find you again.'",
+        "choices": [{ "text": "Understood." }]
+      }
+    }
   }
 ]

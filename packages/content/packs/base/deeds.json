@@ -7,5 +7,14 @@
     "name": "Stood a round of drinks",
     "standingDelta": 15
   },
-  { "type": "deed", "id": "base:insult", "name": "An insult", "standingDelta": -10 }
+  { "type": "deed", "id": "base:insult", "name": "An insult", "standingDelta": -10 },
+  {
+    "type": "deed",
+    "id": "base:pickpocketing",
+    "name": "Caught pickpocketing",
+    "standingDelta": -15
+  },
+  { "type": "deed", "id": "base:theft", "name": "Theft", "standingDelta": -20 },
+  { "type": "deed", "id": "base:paid_fine", "name": "Squared with the watch", "standingDelta": 25 },
+  { "type": "deed", "id": "base:defied_watch", "name": "Defied the watch", "standingDelta": -5 }
 ]

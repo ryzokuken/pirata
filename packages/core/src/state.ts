@@ -3,6 +3,8 @@ import { scheduleTarget } from "./npc.ts";
 import { seedRng, type RngState } from "./rng.ts";
 import { hourOf } from "./time.ts";
 
+export const PLAYER_START_COIN = 20;
+
 export interface Vec2 {
   readonly x: number;
   readonly y: number;
@@ -10,10 +12,19 @@ export interface Vec2 {
 
 export interface PlayerState {
   readonly pos: Vec2;
+  readonly coin: number;
+  readonly items: readonly string[];
+  readonly sneaking: boolean;
 }
 
 export interface NpcState {
   readonly id: string;
+  readonly pos: Vec2;
+  readonly pockets: readonly string[];
+}
+
+export interface WorldItem {
+  readonly itemId: string;
   readonly pos: Vec2;
 }
 
@@ -22,10 +33,15 @@ export interface DialogueState {
   readonly nodeId: string;
 }
 
+export interface TradeState {
+  readonly npcId: string;
+}
+
 export interface DeedRecord {
   readonly deedId: string;
-  readonly npcId: string;
   readonly tick: number;
+  readonly knownBy: readonly string[];
+  readonly npcId?: string;
 }
 
 export interface GameState {
@@ -34,7 +50,9 @@ export interface GameState {
   readonly mapId: string;
   readonly player: PlayerState;
   readonly npcs: readonly NpcState[];
+  readonly worldItems: readonly WorldItem[];
   readonly dialogue: DialogueState | null;
+  readonly trade: TradeState | null;
   readonly deeds: readonly DeedRecord[];
 }
 
@@ -62,15 +80,17 @@ export function createGameState(options: { seed: number; world: WorldDef }): Gam
       throw new Error(`npc "${npcId}" spawns on the same tile (${pos.x},${pos.y}) as ${holder}`);
     }
     occupied.set(key, `npc "${npcId}"`);
-    npcs.push({ id: npcId, pos });
+    npcs.push({ id: npcId, pos, pockets: def.pockets });
   }
   return {
     tick: 0,
     rng: seedRng(options.seed),
     mapId: world.map.id,
-    player: { pos: world.map.playerSpawn },
+    player: { pos: world.map.playerSpawn, coin: PLAYER_START_COIN, items: [], sneaking: false },
     npcs,
+    worldItems: world.map.items.map((item) => ({ itemId: item.itemId, pos: item.pos })),
     dialogue: null,
+    trade: null,
     deeds: [],
   };
 }

@@ -1,8 +1,10 @@
 import type {
+  CrimeVerb,
   DeedDef,
   DialogueDef,
   DialogueNode,
   FactionDef,
+  ItemDef,
   MapModel,
   NpcDef,
   WorldDef,
@@ -23,6 +25,8 @@ export function finalizeWorld(options: {
   const deeds: Record<string, DeedDef> = {};
   const dialogues: Record<string, DialogueDef> = {};
   const npcs: Record<string, NpcDef> = {};
+  const items: Record<string, ItemDef> = {};
+  const crimes: Partial<Record<CrimeVerb, string>> = {};
 
   for (const object of options.objects) {
     switch (object.type) {
@@ -50,7 +54,27 @@ export function finalizeWorld(options: {
           factionId: object.faction,
           dialogueId: object.dialogue,
           schedule: object.schedule,
+          pockets: object.pockets,
+          ...(object.shop !== undefined ? { shop: { sells: object.shop.sells } } : {}),
+          ...(object.confront !== undefined
+            ? {
+                confront: {
+                  standingBelow: object.confront.standingBelow,
+                  dialogueId: object.confront.dialogue,
+                },
+              }
+            : {}),
         };
+        break;
+      case "item":
+        assertNewId(items, object.id, "item");
+        items[object.id] = { id: object.id, name: object.name, value: object.value };
+        break;
+      case "crime":
+        if (crimes[object.verb] !== undefined) {
+          throw new ContentError(`duplicate crime for verb "${object.verb}"`);
+        }
+        crimes[object.verb] = object.deed;
         break;
     }
   }
@@ -76,6 +100,21 @@ export function finalizeWorld(options: {
         );
       }
     }
+    for (const itemId of npc.pockets) {
+      if (items[itemId] === undefined) {
+        throw new ContentError(`npc "${npc.id}": unknown item "${itemId}" in pockets`);
+      }
+    }
+    for (const itemId of npc.shop?.sells ?? []) {
+      if (items[itemId] === undefined) {
+        throw new ContentError(`npc "${npc.id}": unknown item "${itemId}" in shop`);
+      }
+    }
+    if (npc.confront !== undefined && dialogues[npc.confront.dialogueId] === undefined) {
+      throw new ContentError(
+        `npc "${npc.id}": unknown dialogue "${npc.confront.dialogueId}" in confront`,
+      );
+    }
   }
 
   for (const dialogue of Object.values(dialogues)) {
@@ -97,7 +136,7 @@ export function finalizeWorld(options: {
           );
         }
         for (const effect of choice.effects ?? []) {
-          if (deeds[effect.deedId] === undefined) {
+          if (effect.type === "deed" && deeds[effect.deedId] === undefined) {
             throw new ContentError(
               `dialogue "${dialogue.id}" node "${nodeId}": choice "${choice.text}" references unknown deed "${effect.deedId}"`,
             );
@@ -107,7 +146,20 @@ export function finalizeWorld(options: {
     }
   }
 
-  return { map: options.map, factions, npcs, dialogues, deeds };
+  for (const [verb, deedId] of Object.entries(crimes)) {
+    if (deeds[deedId] === undefined) {
+      throw new ContentError(`crime "${verb}": unknown deed "${deedId}"`);
+    }
+  }
+  for (const placed of options.map.items) {
+    if (items[placed.itemId] === undefined) {
+      throw new ContentError(
+        `map "${options.map.id}": unknown item "${placed.itemId}" placed at (${placed.pos.x},${placed.pos.y})`,
+      );
+    }
+  }
+
+  return { map: options.map, factions, npcs, dialogues, deeds, items, crimes };
 }
 
 function assertNewId(bucket: Record<string, unknown>, id: string, kind: string): void {
@@ -127,10 +179,11 @@ function toDialogueDef(object: DialogueObject): DialogueDef {
         ...(choice.condition !== undefined ? { condition: choice.condition } : {}),
         ...(choice.effects !== undefined
           ? {
-              effects: choice.effects.map((effect) => ({
-                type: "deed" as const,
-                deedId: effect.deed,
-              })),
+              effects: choice.effects.map((effect) =>
+                effect.type === "deed"
+                  ? { type: "deed" as const, deedId: effect.deed }
+                  : { type: "pay" as const, amount: effect.amount },
+              ),
             }
           : {}),
       })),

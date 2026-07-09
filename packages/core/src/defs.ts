@@ -10,24 +10,44 @@ export interface ScheduleEntry {
   readonly location: string;
 }
 
+export interface ItemDef {
+  readonly id: string;
+  readonly name: string;
+  readonly value: number;
+}
+
+export type CrimeVerb = "pickpocket" | "theft";
+
+export interface ShopDef {
+  readonly sells: readonly string[];
+}
+
+export interface ConfrontDef {
+  readonly standingBelow: number;
+  readonly dialogueId: string;
+}
+
 export interface NpcDef {
   readonly id: string;
   readonly name: string;
   readonly factionId: string;
   readonly dialogueId: string;
   readonly schedule: readonly ScheduleEntry[];
+  readonly pockets: readonly string[];
+  readonly shop?: ShopDef;
+  readonly confront?: ConfrontDef;
 }
 
 export type DialogueCondition =
   | { readonly type: "npc-standing-at-least"; readonly value: number }
   | { readonly type: "npc-standing-below"; readonly value: number }
   | { readonly type: "faction-standing-at-least"; readonly value: number }
-  | { readonly type: "faction-standing-below"; readonly value: number };
+  | { readonly type: "faction-standing-below"; readonly value: number }
+  | { readonly type: "coin-at-least"; readonly value: number };
 
-export interface DialogueEffect {
-  readonly type: "deed";
-  readonly deedId: string;
-}
+export type DialogueEffect =
+  | { readonly type: "deed"; readonly deedId: string }
+  | { readonly type: "pay"; readonly amount: number };
 
 export interface DialogueChoice {
   readonly text: string;
@@ -59,4 +79,6 @@ export interface WorldDef {
   readonly npcs: Readonly<Record<string, NpcDef>>;
   readonly dialogues: Readonly<Record<string, DialogueDef>>;
   readonly deeds: Readonly<Record<string, DeedDef>>;
+  readonly items: Readonly<Record<string, ItemDef>>;
+  readonly crimes: Readonly<Partial<Record<CrimeVerb, string>>>;
 }

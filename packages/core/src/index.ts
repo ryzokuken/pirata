@@ -1,33 +1,54 @@
 export { seedRng, nextFloat, nextInt, type RngState } from "./rng.ts";
 export {
   createGameState,
+  PLAYER_START_COIN,
   type DeedRecord,
   type DialogueState,
   type GameState,
   type NpcState,
   type PlayerState,
+  type TradeState,
   type Vec2,
+  type WorldItem,
 } from "./state.ts";
 export {
   DIRECTION_DELTAS,
+  type BuyIntent,
   type ChooseIntent,
+  type CloseTradeIntent,
   type Direction,
   type Intent,
   type MoveIntent,
+  type PickpocketIntent,
+  type SellIntent,
+  type SneakIntent,
+  type TakeIntent,
   type TalkIntent,
+  type TradeIntent,
   type WaitIntent,
 } from "./intent.ts";
 export type {
+  CoinPaidEvent,
+  CrimeWitnessedEvent,
   DeedRecordedEvent,
   DialogueAdvancedEvent,
   DialogueEndedEvent,
   DialogueStartedEvent,
   GameEvent,
+  GossipSharedEvent,
   IntentRejectedEvent,
+  ItemBoughtEvent,
+  ItemSoldEvent,
+  ItemTakenEvent,
   MovementBlockedEvent,
   NpcMovedEvent,
+  PickpocketFailedEvent,
+  PickpocketSucceededEvent,
   PlayerMovedEvent,
   ReputationChangedEvent,
+  SneakToggledEvent,
+  TradeEndedEvent,
+  TradeStartedEvent,
 } from "./event.ts";
 export { isBlocked, MapParseError, parseTiledMap, type MapModel } from "./map.ts";
 export { advance, type AdvanceResult } from "./advance.ts";
@@ -42,6 +63,8 @@ export {
   type Clock,
 } from "./time.ts";
 export type {
+  ConfrontDef,
+  CrimeVerb,
   DeedDef,
   DialogueChoice,
   DialogueCondition,
@@ -49,8 +72,10 @@ export type {
   DialogueEffect,
   DialogueNode,
   FactionDef,
+  ItemDef,
   NpcDef,
   ScheduleEntry,
+  ShopDef,
   WorldDef,
 } from "./defs.ts";
 export { nextStep } from "./path.ts";
@@ -58,3 +83,14 @@ export { advanceNpcs, scheduleTarget } from "./npc.ts";
 export { factionStanding, npcStanding } from "./reputation.ts";
 export { currentNode, visibleChoices } from "./dialogue.ts";
 export { runScenario, type ScenarioResult } from "./harness.ts";
+export {
+  BASE_PERCEPTION,
+  lineOfSight,
+  NIGHT_ENDS,
+  NIGHT_PERCEPTION,
+  NIGHT_STARTS,
+  perceptionRadius,
+  witnesses,
+} from "./awareness.ts";
+export { GOSSIP_RANGE, spreadGossip } from "./gossip.ts";
+export { buyPrice, sellPrice, TRADE_FRIENDLY_AT, TRADE_REFUSE_AT, tradeRefused } from "./trade.ts";
