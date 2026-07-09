@@ -15,17 +15,17 @@ describe("base pack", () => {
     });
     expect(state.npcs).toContainEqual({
       id: "base:merchant",
-      pos: { x: 9, y: 3 },
+      pos: { x: 12, y: 3 },
       pockets: ["base:silver_ring"],
     });
     expect(state.npcs).toContainEqual({
       id: "base:harbormaster",
-      pos: { x: 17, y: 10 },
+      pos: { x: 32, y: 17 },
       pockets: ["base:tobacco_pouch"],
     });
     expect(state.npcs).toContainEqual({
       id: "base:stevedore",
-      pos: { x: 17, y: 11 },
+      pos: { x: 31, y: 20 },
       pockets: ["base:dried_fish"],
     });
   });

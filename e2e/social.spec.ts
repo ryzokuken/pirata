@@ -15,26 +15,24 @@ test("NPCs stand at their scheduled morning posts", async ({ page }) => {
   });
   expect(npcs).toContainEqual({
     id: "base:merchant",
-    pos: { x: 9, y: 3 },
+    pos: { x: 12, y: 3 },
     pockets: ["base:silver_ring"],
   });
   expect(npcs).toContainEqual({
     id: "base:harbormaster",
-    pos: { x: 17, y: 10 },
+    pos: { x: 32, y: 17 },
     pockets: ["base:tobacco_pouch"],
   });
   expect(npcs).toContainEqual({
     id: "base:stevedore",
-    pos: { x: 17, y: 11 },
+    pos: { x: 31, y: 20 },
     pockets: ["base:dried_fish"],
   });
 });
 
 test("talking to the harbormaster runs a dialogue and moves reputation", async ({ page }) => {
   await page.evaluate(() => {
-    for (let i = 0; i < 4; i += 1) {
-      window.__pirata?.dispatch({ type: "move", direction: "south" });
-    }
+    window.__pirata?.dispatch({ type: "move", direction: "east" });
     window.__pirata?.dispatch({ type: "talk" });
   });
   await expect(page.getByTestId("dialogue-text")).toContainText("State your business");
@@ -45,7 +43,7 @@ test("talking to the harbormaster runs a dialogue and moves reputation", async (
     {
       deedId: "base:lent_a_hand",
       npcId: "base:harbormaster",
-      tick: 4,
+      tick: 1,
       knownBy: ["base:harbormaster"],
     },
   ]);
@@ -65,5 +63,5 @@ test("time passes and NPCs follow their schedules", async ({ page }) => {
   const merchant = await page.evaluate(
     () => window.__pirata?.getState().npcs.find((npc) => npc.id === "base:merchant")?.pos,
   );
-  expect(merchant).not.toEqual({ x: 9, y: 3 });
+  expect(merchant).not.toEqual({ x: 12, y: 3 });
 });
