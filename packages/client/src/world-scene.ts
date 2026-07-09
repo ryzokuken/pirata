@@ -153,6 +153,7 @@ export class WorldScene extends Scene {
       case "crime-witnessed":
       case "pickpocket-succeeded":
       case "pickpocket-failed":
+      case "gossip-shared":
         break; // reflected by renderUi()
     }
   }

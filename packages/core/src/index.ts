@@ -30,6 +30,7 @@ export type {
   DialogueEndedEvent,
   DialogueStartedEvent,
   GameEvent,
+  GossipSharedEvent,
   IntentRejectedEvent,
   ItemTakenEvent,
   MovementBlockedEvent,
@@ -82,3 +83,4 @@ export {
   perceptionRadius,
   witnesses,
 } from "./awareness.ts";
+export { GOSSIP_RANGE, spreadGossip } from "./gossip.ts";

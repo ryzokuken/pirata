@@ -1,6 +1,7 @@
 import { array, assert, constantFrom, property } from "fast-check";
 import { describe, expect, it } from "vitest";
 import { advance } from "./advance.ts";
+import { runScenario } from "./harness.ts";
 import type { Intent } from "./intent.ts";
 import { isBlocked } from "./map.ts";
 import { factionStanding, npcStanding } from "./reputation.ts";
@@ -337,5 +338,23 @@ describe("advance: pickpocket", () => {
     const result = advance(state, { type: "pickpocket" }, world);
     expect(result.events[0]?.type).toBe("intent-rejected");
     expect(result.state.tick).toBe(state.tick);
+  });
+});
+
+describe("gossip carries consequences across factions", () => {
+  it("the walker learns of the theft while passing the keeper", () => {
+    const intents: Intent[] = [
+      ...WALK_TO_TRINKET,
+      { type: "take" },
+      { type: "move", direction: "west" },
+      { type: "move", direction: "west" },
+      { type: "move", direction: "north" },
+      { type: "move", direction: "north" },
+      ...Array.from({ length: 15 }, (): Intent => ({ type: "wait" })),
+    ];
+    const { state } = runScenario({ world, seed: 3, intents });
+    const theft = state.deeds.find((deed) => deed.deedId === "test:theft");
+    expect(theft?.knownBy).toContain("test:walker");
+    expect(factionStanding(state, world, "test:dockers")).toBe(-20);
   });
 });

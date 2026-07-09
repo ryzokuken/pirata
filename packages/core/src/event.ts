@@ -83,6 +83,13 @@ export interface PickpocketFailedEvent {
   readonly npcId: string;
 }
 
+export interface GossipSharedEvent {
+  readonly type: "gossip-shared";
+  readonly fromNpcId: string;
+  readonly toNpcId: string;
+  readonly deedId: string;
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -97,4 +104,5 @@ export type GameEvent =
   | ItemTakenEvent
   | CrimeWitnessedEvent
   | PickpocketSucceededEvent
-  | PickpocketFailedEvent;
+  | PickpocketFailedEvent
+  | GossipSharedEvent;

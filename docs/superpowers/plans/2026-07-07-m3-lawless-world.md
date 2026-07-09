@@ -1421,7 +1421,7 @@ git add -A && git commit -m "Add pickpocket verb: rng roll, victims, bystander w
 - Modify: `packages/core/src/event.ts`, `packages/core/src/advance.ts`, `packages/core/src/index.ts`, `packages/client/src/world-scene.ts`
 - Test: `packages/core/src/advance.test.ts`
 
-- [ ] **Step 1: Write the failing tests** — `packages/core/src/gossip.test.ts`:
+- [x] **Step 1: Write the failing tests** — `packages/core/src/gossip.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1504,9 +1504,9 @@ tick 4; at hour 9 — tick 10 — the walker commutes from `a` (6,1) to `b` (1,3
 east corridor and row 3, passing (4,3), one tile from the keeper (4,4): gossip fires.
 The player has returned to (1,1), clear of the walker's destination.)
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./gossip.ts`)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./gossip.ts`)
 
-- [ ] **Step 3: Write `packages/core/src/gossip.ts`**
+- [x] **Step 3: Write `packages/core/src/gossip.ts`**
 
 ```ts
 import { lineOfSight } from "./awareness.ts";
@@ -1594,7 +1594,7 @@ export interface GossipSharedEvent {
 
 Add to the `GameEvent` union.
 
-- [ ] **Step 4: Wire into `applyTick`** — in `packages/core/src/advance.ts`, inside the
+- [x] **Step 4: Wire into `applyTick`** — in `packages/core/src/advance.ts`, inside the
       per-tick loop after NPC movement:
 
 ```ts
@@ -1622,7 +1622,7 @@ export { GOSSIP_RANGE, spreadGossip } from "./gossip.ts";
 
 and add `GossipSharedEvent` to the event type exports.
 
-- [ ] **Step 5: Verify pass, full gate, commit**
+- [x] **Step 5: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

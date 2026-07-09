@@ -2,6 +2,7 @@ import { witnesses } from "./awareness.ts";
 import type { WorldDef } from "./defs.ts";
 import { visibleChoices } from "./dialogue.ts";
 import type { GameEvent } from "./event.ts";
+import { spreadGossip } from "./gossip.ts";
 import { DIRECTION_DELTAS, type ChooseIntent, type Intent, type MoveIntent } from "./intent.ts";
 import { isBlocked } from "./map.ts";
 import { advanceNpcs } from "./npc.ts";
@@ -57,15 +58,19 @@ function applyTick(
 ): AdvanceResult {
   let tick = state.tick;
   let npcs = state.npcs;
+  let deeds = state.deeds;
   const collected: GameEvent[] = [...events];
   for (let step = 0; step < ticks; step += 1) {
     tick += 1;
     const npcResult = advanceNpcs({ npcs, playerPos, world, tick });
     npcs = npcResult.npcs;
     collected.push(...npcResult.events);
+    const gossip = spreadGossip({ deeds, npcs, map: world.map });
+    deeds = gossip.deeds;
+    collected.push(...gossip.events);
   }
   return {
-    state: { ...state, tick, player: { ...state.player, pos: playerPos }, npcs },
+    state: { ...state, tick, player: { ...state.player, pos: playerPos }, npcs, deeds },
     events: collected,
   };
 }
