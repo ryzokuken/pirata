@@ -5,7 +5,8 @@
     "name": "Marisol",
     "faction": "base:merchants_guild",
     "dialogue": "base:tavernkeeper_talk",
-    "schedule": [{ "hour": 0, "location": "tavern_bar" }]
+    "schedule": [{ "hour": 0, "location": "tavern_bar" }],
+    "pockets": ["base:rum_bottle"]
   },
   {
     "type": "npc",
@@ -16,7 +17,9 @@
     "schedule": [
       { "hour": 8, "location": "market" },
       { "hour": 19, "location": "tavern_corner" }
-    ]
+    ],
+    "pockets": ["base:silver_ring"],
+    "shop": { "sells": ["base:rum_bottle", "base:dried_fish", "base:silk_bolt"] }
   },
   {
     "type": "npc",
@@ -27,7 +30,8 @@
     "schedule": [
       { "hour": 6, "location": "dock_north" },
       { "hour": 20, "location": "tavern_hearth" }
-    ]
+    ],
+    "pockets": ["base:tobacco_pouch"]
   },
   {
     "type": "npc",
@@ -39,6 +43,21 @@
       { "hour": 5, "location": "dock_south" },
       { "hour": 12, "location": "market" },
       { "hour": 17, "location": "dock_south" }
-    ]
+    ],
+    "pockets": ["base:dried_fish"]
+  },
+  {
+    "type": "npc",
+    "id": "base:watchwoman",
+    "name": "Rosa",
+    "faction": "base:town_watch",
+    "dialogue": "base:watchwoman_talk",
+    "schedule": [
+      { "hour": 6, "location": "watch_post" },
+      { "hour": 12, "location": "dock_watch" },
+      { "hour": 20, "location": "tavern_door" }
+    ],
+    "pockets": [],
+    "confront": { "standingBelow": -10, "dialogue": "base:watch_confront" }
   }
 ]

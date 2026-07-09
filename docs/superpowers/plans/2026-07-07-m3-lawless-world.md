@@ -2563,7 +2563,7 @@ git add -A && git commit -m "Validate and link items, crimes, shops, and confron
 - Regenerate: `packages/content/packs/base/maps/port_town.map.json` (`pnpm build:maps`)
 - Test: `packages/content/src/base.test.ts` (existing suite must keep passing; add assertions)
 
-- [ ] **Step 1: Add failing base-world assertions** — append to `packages/content/src/base.test.ts`:
+- [x] **Step 1: Add failing base-world assertions** — append to `packages/content/src/base.test.ts`:
 
 ```ts
 it("ships the watch, wares, and laws", () => {
@@ -2579,7 +2579,7 @@ it("ships the watch, wares, and laws", () => {
 });
 ```
 
-- [ ] **Step 2: Write the content**
+- [x] **Step 2: Write the content**
 
 `packages/content/packs/base/items.json` (new):
 
@@ -2715,7 +2715,7 @@ import itemsJson from "@pirata/content/packs/base/items.json" with { type: "json
 
 and add both `parsePackObjects(...)` lines to the `objects` array.
 
-- [ ] **Step 3: Extend the map** — in `scripts/build-town-map.ts`:
+- [x] **Step 3: Extend the map** — in `scripts/build-town-map.ts`:
 
 Six character edits to the existing `LAYOUT`, nothing else moves: row 3 col 10 `.`→`1`
 (silk at the market stall, beside the merchant); row 5 col 4 `.`→`T` (tavern doorway);
@@ -2806,7 +2806,7 @@ sequential after the location objects):
 
 Run: `pnpm build:maps` — regenerates `port_town.map.json`. Never hand-edit it.
 
-- [ ] **Step 4: Verify the world boots and validates**
+- [x] **Step 4: Verify the world boots and validates**
 
 ```bash
 pnpm validate:content
@@ -2818,7 +2818,7 @@ Fiction check the guard's story: Rosa learns of a market theft only when gossip 
 her — the merchant heads to `tavern_corner` (3,4) at 19:00, Rosa reaches `tavern_door`
 (4,5) after 20:00, Chebyshev distance 1: the tavern is where word reaches the watch.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
