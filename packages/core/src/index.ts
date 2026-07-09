@@ -78,7 +78,7 @@ export type {
   ShopDef,
   WorldDef,
 } from "./defs.ts";
-export { nextStep } from "./path.ts";
+export { nextStep, reachableFrom } from "./path.ts";
 export { advanceNpcs, scheduleTarget } from "./npc.ts";
 export { factionStanding, npcStanding } from "./reputation.ts";
 export { currentNode, visibleChoices } from "./dialogue.ts";
