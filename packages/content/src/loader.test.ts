@@ -93,3 +93,100 @@ describe("parsePackObjects", () => {
     expect(() => parsePackObjects([late], "n.json")).toThrow(/hour/);
   });
 });
+
+describe("item and crime objects", () => {
+  it("parses an item", () => {
+    const objects = parsePackObjects(
+      [{ type: "item", id: "base:cutlass", name: "Cutlass", value: 30 }],
+      "items.json",
+    );
+    expect(objects[0]).toMatchObject({ type: "item", value: 30 });
+  });
+
+  it("rejects a negative value", () => {
+    expect(() =>
+      parsePackObjects([{ type: "item", id: "base:iou", name: "IOU", value: -1 }], "items.json"),
+    ).toThrow(ContentError);
+  });
+
+  it("parses a crime", () => {
+    const objects = parsePackObjects(
+      [{ type: "crime", id: "base:theft_law", verb: "theft", deed: "base:theft" }],
+      "crimes.json",
+    );
+    expect(objects[0]).toMatchObject({ type: "crime", verb: "theft" });
+  });
+
+  it("rejects an unknown crime verb", () => {
+    expect(() =>
+      parsePackObjects(
+        [{ type: "crime", id: "base:arson_law", verb: "arson", deed: "base:arson" }],
+        "crimes.json",
+      ),
+    ).toThrow(ContentError);
+  });
+
+  it("parses npc pockets, shop, and confront", () => {
+    const objects = parsePackObjects(
+      [
+        {
+          type: "npc",
+          id: "base:fence",
+          name: "Fence",
+          faction: "base:merchants_guild",
+          dialogue: "base:fence_talk",
+          schedule: [{ hour: 0, location: "den" }],
+          pockets: ["base:cutlass"],
+          shop: { sells: ["base:cutlass"] },
+          confront: { standingBelow: -10, dialogue: "base:fence_confront" },
+        },
+      ],
+      "npcs.json",
+    );
+    expect(objects[0]).toMatchObject({ pockets: ["base:cutlass"] });
+  });
+
+  it("defaults pockets to empty", () => {
+    const objects = parsePackObjects(
+      [
+        {
+          type: "npc",
+          id: "base:monk",
+          name: "Monk",
+          faction: "base:merchants_guild",
+          dialogue: "base:monk_talk",
+          schedule: [{ hour: 0, location: "chapel" }],
+        },
+      ],
+      "npcs.json",
+    );
+    expect(objects[0]).toMatchObject({ pockets: [] });
+  });
+
+  it("parses pay effects and coin conditions in dialogue", () => {
+    const objects = parsePackObjects(
+      [
+        {
+          type: "dialogue",
+          id: "base:toll",
+          start: "pay",
+          nodes: {
+            pay: {
+              text: "Toll.",
+              choices: [
+                {
+                  text: "Pay 5",
+                  condition: { type: "coin-at-least", value: 5 },
+                  effects: [{ type: "pay", amount: 5 }],
+                },
+                { text: "Walk away" },
+              ],
+            },
+          },
+        },
+      ],
+      "dialogues.json",
+    );
+    expect(objects[0]?.type).toBe("dialogue");
+  });
+});

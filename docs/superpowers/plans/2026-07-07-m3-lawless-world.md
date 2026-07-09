@@ -2226,7 +2226,7 @@ git add -A && git commit -m "Add buy/sell trade with standing-driven price bands
 - Modify: `packages/content/src/schemas.ts`, `packages/content/src/finalize.ts`
 - Test: `packages/content/src/loader.test.ts`, `packages/content/src/finalize.test.ts`
 
-- [ ] **Step 1: Add failing schema tests** — append to `packages/content/src/loader.test.ts`:
+- [x] **Step 1: Add failing schema tests** — append to `packages/content/src/loader.test.ts`:
 
 ```ts
 describe("item and crime objects", () => {
@@ -2329,7 +2329,9 @@ describe("item and crime objects", () => {
 
 (Match the file's existing import style; add `ContentError` if not imported.)
 
-- [ ] **Step 2: Run to verify failure**, then extend `packages/content/src/schemas.ts`
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: unrecognized `item`/`crime` types
+      and `pockets`/`shop`/`confront`/`coin-at-least`/`pay` fields), then extend
+      `packages/content/src/schemas.ts`
 
 ```ts
 export const itemSchema = z.strictObject({
@@ -2370,20 +2372,22 @@ const effectSchema = z.discriminatedUnion("type", [
 Add `itemSchema` and `crimeSchema` to `packObjectSchema`'s union and export
 `ItemObject`/`CrimeObject` inferred types alongside the others.
 
-- [ ] **Step 3: Add failing link-pass tests** — append to
-      `packages/content/src/finalize.test.ts` (use the file's existing helpers for a valid
-      base object set; the cases below state what must throw and the message shape):
+- [x] **Step 3: Add failing link-pass tests** — appended to `packages/content/src/finalize.test.ts`,
+      using the file's existing `objects()`/`map` helpers (the npc entry in `objects()` needed an
+      explicit `pockets: []` added, since these fixtures build `PackObject`s directly rather than
+      through the zod default):
 
 ```ts
 describe("finalize items and crimes", () => {
   it("indexes items and crime verb mappings", () => {
     const world = finalizeWorld({
       objects: [
-        ...validObjects(),
+        ...objects(),
         { type: "item", id: "t:coin", name: "Coin", value: 1 },
+        { type: "deed", id: "t:deed", name: "Theft", standingDelta: -5 },
         { type: "crime", id: "t:law", verb: "theft", deed: "t:deed" },
       ],
-      map: validMap(),
+      map,
     });
     expect(world.items["t:coin"]?.value).toBe(1);
     expect(world.crimes.theft).toBe("t:deed");
@@ -2393,39 +2397,65 @@ describe("finalize items and crimes", () => {
     expect(() =>
       finalizeWorld({
         objects: [
-          ...validObjects(),
+          ...objects(),
           { type: "crime", id: "t:law", verb: "theft", deed: "t:deed" },
           { type: "crime", id: "t:law2", verb: "theft", deed: "t:deed" },
         ],
-        map: validMap(),
+        map,
       }),
     ).toThrow(/duplicate crime for verb "theft"/);
   });
 
   it("rejects a crime pointing at a missing deed", () => {
-    /* …unknown deed "t:ghost"… */
+    const broken = [
+      ...objects(),
+      { type: "crime" as const, id: "t:law", verb: "theft" as const, deed: "t:ghost" },
+    ];
+    expect(() => finalizeWorld({ objects: broken, map })).toThrow(/unknown deed "t:ghost"/);
   });
+
   it("rejects pocket items that do not exist", () => {
-    /* npc "…": unknown item "…" in pockets */
+    const broken = objects().map((object) =>
+      object.type === "npc" ? { ...object, pockets: ["t:ghost"] } : object,
+    );
+    expect(() => finalizeWorld({ objects: broken, map })).toThrow(
+      /npc "base:merchant": unknown item "t:ghost" in pockets/,
+    );
   });
+
   it("rejects shop wares that do not exist", () => {
-    /* npc "…": unknown item "…" in shop */
+    const broken = objects().map((object) =>
+      object.type === "npc" ? { ...object, shop: { sells: ["t:ghost"] } } : object,
+    );
+    expect(() => finalizeWorld({ objects: broken, map })).toThrow(
+      /npc "base:merchant": unknown item "t:ghost" in shop/,
+    );
   });
+
   it("rejects a confront dialogue that does not exist", () => {
-    /* npc "…": unknown dialogue "…" */
+    const broken = objects().map((object) =>
+      object.type === "npc"
+        ? { ...object, confront: { standingBelow: -10, dialogue: "base:ghost_talk" } }
+        : object,
+    );
+    expect(() => finalizeWorld({ objects: broken, map })).toThrow(
+      /npc "base:merchant": unknown dialogue "base:ghost_talk" in confront/,
+    );
   });
+
   it("rejects a map item that no pack defines", () => {
-    /* map "…": unknown item "…" placed at (x,y) */
+    const brokenMap: MapModel = {
+      ...map,
+      items: [{ itemId: "t:ghost", pos: { x: 0, y: 0 } }],
+    };
+    expect(() => finalizeWorld({ objects: objects(), map: brokenMap })).toThrow(
+      /map "town": unknown item "t:ghost" placed at \(0,0\)/,
+    );
   });
-  it("rejects a pay amount… nothing to link — no test needed", () => {});
 });
 ```
 
-Write these tests fully against the real helper names in `finalize.test.ts` (read the
-file first); each asserts `ContentError` with the quoted message fragment. Delete the
-placeholder final case.
-
-- [ ] **Step 4: Implement in `packages/content/src/finalize.ts`**
+- [x] **Step 4: Implement in `packages/content/src/finalize.ts`**
 
 - New buckets:
 
@@ -2509,11 +2539,15 @@ for (const placed of options.map.items) {
 }
 ```
 
-- The dialogue effects link loop must now skip `pay` effects (only `deed` effects
-  reference ids): guard with `if (effect.type !== "deed") continue;`.
-- Return `items` and `crimes` in the `WorldDef` (replacing Task 2's empty stubs).
+- The dialogue effects link loop already skipped `pay` effects since Task 2 (it narrows
+  with `effect.type === "deed" && deeds[effect.deedId] === undefined`); confirmed this still
+  matches the plan's intent, so no change was needed there. `toDialogueDef`'s effect mapping
+  did need a fix, though: it previously assumed every effect was a `deed` effect
+  (`{ type: "deed" as const, deedId: effect.deed }` unconditionally), which no longer compiles
+  now that `effect` can be a `pay` effect without a `.deed` property. Changed it to map each
+  effect by its own `type`.
 
-- [ ] **Step 5: Verify pass, full gate, commit**
+- [x] **Step 5: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

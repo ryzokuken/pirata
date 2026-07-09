@@ -38,6 +38,20 @@ const scheduleEntrySchema = z.strictObject({
   location: z.string().min(1),
 });
 
+export const itemSchema = z.strictObject({
+  type: z.literal("item"),
+  id: objectId,
+  name: z.string().min(1),
+  value: z.number().int().min(0),
+});
+
+export const crimeSchema = z.strictObject({
+  type: z.literal("crime"),
+  id: objectId,
+  verb: z.enum(["pickpocket", "theft"]),
+  deed: objectId,
+});
+
 export const npcSchema = z.strictObject({
   type: z.literal("npc"),
   id: objectId,
@@ -45,6 +59,9 @@ export const npcSchema = z.strictObject({
   faction: objectId,
   dialogue: objectId,
   schedule: z.array(scheduleEntrySchema).min(1),
+  pockets: z.array(objectId).default([]),
+  shop: z.strictObject({ sells: z.array(objectId).min(1) }).optional(),
+  confront: z.strictObject({ standingBelow: z.number().int(), dialogue: objectId }).optional(),
 });
 
 const conditionSchema = z.strictObject({
@@ -53,14 +70,15 @@ const conditionSchema = z.strictObject({
     "npc-standing-below",
     "faction-standing-at-least",
     "faction-standing-below",
+    "coin-at-least",
   ]),
   value: z.number().int(),
 });
 
-const effectSchema = z.strictObject({
-  type: z.literal("deed"),
-  deed: objectId,
-});
+const effectSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("deed"), deed: objectId }),
+  z.strictObject({ type: z.literal("pay"), amount: z.number().int().min(1) }),
+]);
 
 const choiceSchema = z.strictObject({
   text: z.string().min(1),
@@ -86,10 +104,14 @@ export const packObjectSchema = z.discriminatedUnion("type", [
   deedSchema,
   npcSchema,
   dialogueSchema,
+  itemSchema,
+  crimeSchema,
 ]);
 
 export type FactionObject = z.infer<typeof factionSchema>;
 export type DeedObject = z.infer<typeof deedSchema>;
 export type NpcObject = z.infer<typeof npcSchema>;
 export type DialogueObject = z.infer<typeof dialogueSchema>;
+export type ItemObject = z.infer<typeof itemSchema>;
+export type CrimeObject = z.infer<typeof crimeSchema>;
 export type PackObject = z.infer<typeof packObjectSchema>;
