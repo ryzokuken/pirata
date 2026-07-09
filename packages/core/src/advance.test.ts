@@ -186,3 +186,32 @@ describe("advance: properties", () => {
     );
   });
 });
+
+describe("advance: sneak", () => {
+  it("toggles sneaking without spending time", () => {
+    const result = advance(freshState(), { type: "sneak" }, world);
+    expect(result.state.player.sneaking).toBe(true);
+    expect(result.state.tick).toBe(0);
+    expect(result.events).toEqual([{ type: "sneak-toggled", sneaking: true }]);
+  });
+
+  it("toggles back off", () => {
+    const sneaking = advance(freshState(), { type: "sneak" }, world).state;
+    const result = advance(sneaking, { type: "sneak" }, world);
+    expect(result.state.player.sneaking).toBe(false);
+  });
+
+  it("makes movement cost two ticks", () => {
+    const sneaking = advance(freshState(), { type: "sneak" }, world).state;
+    const result = advance(sneaking, { type: "move", direction: "south" }, world);
+    expect(result.state.tick).toBe(2);
+    expect(result.state.player.pos).toEqual({ x: 1, y: 2 });
+  });
+
+  it("is rejected mid-conversation", () => {
+    const inDialogue = { ...freshState(), dialogue: { npcId: "test:keeper", nodeId: "hello" } };
+    const result = advance(inDialogue, { type: "sneak" }, world);
+    expect(result.state.player.sneaking).toBe(false);
+    expect(result.events[0]?.type).toBe("intent-rejected");
+  });
+});

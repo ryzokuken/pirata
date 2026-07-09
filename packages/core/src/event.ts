@@ -55,6 +55,11 @@ export interface IntentRejectedEvent {
   readonly reason: string;
 }
 
+export interface SneakToggledEvent {
+  readonly type: "sneak-toggled";
+  readonly sneaking: boolean;
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -64,4 +69,5 @@ export type GameEvent =
   | DialogueEndedEvent
   | DeedRecordedEvent
   | ReputationChangedEvent
-  | IntentRejectedEvent;
+  | IntentRejectedEvent
+  | SneakToggledEvent;

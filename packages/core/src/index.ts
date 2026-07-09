@@ -17,6 +17,7 @@ export {
   type Direction,
   type Intent,
   type MoveIntent,
+  type SneakIntent,
   type TalkIntent,
   type WaitIntent,
 } from "./intent.ts";
@@ -31,6 +32,7 @@ export type {
   NpcMovedEvent,
   PlayerMovedEvent,
   ReputationChangedEvent,
+  SneakToggledEvent,
 } from "./event.ts";
 export { isBlocked, MapParseError, parseTiledMap, type MapModel } from "./map.ts";
 export { advance, type AdvanceResult } from "./advance.ts";

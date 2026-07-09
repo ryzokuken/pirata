@@ -15,17 +15,21 @@ export interface AdvanceResult {
 export function advance(state: GameState, intent: Intent, world: WorldDef): AdvanceResult {
   switch (intent.type) {
     case "move":
-      return state.dialogue === null
+      return state.dialogue === null && state.trade === null
         ? applyMove(state, intent, world)
-        : rejected(state, "finish the conversation first");
+        : rejected(state, "finish what you're doing first");
     case "wait":
-      return state.dialogue === null
+      return state.dialogue === null && state.trade === null
         ? applyTick(state, state.player.pos, [], world)
-        : rejected(state, "finish the conversation first");
+        : rejected(state, "finish what you're doing first");
     case "talk":
       return applyTalk(state, world);
     case "choose":
       return applyChoose(state, intent, world);
+    case "sneak":
+      return state.dialogue === null && state.trade === null
+        ? applySneak(state)
+        : rejected(state, "not while you're occupied");
   }
 }
 
@@ -39,12 +43,20 @@ function applyTick(
   playerPos: Vec2,
   events: readonly GameEvent[],
   world: WorldDef,
+  ticks = 1,
 ): AdvanceResult {
-  const tick = state.tick + 1;
-  const npcResult = advanceNpcs({ npcs: state.npcs, playerPos, world, tick });
+  let tick = state.tick;
+  let npcs = state.npcs;
+  const collected: GameEvent[] = [...events];
+  for (let step = 0; step < ticks; step += 1) {
+    tick += 1;
+    const npcResult = advanceNpcs({ npcs, playerPos, world, tick });
+    npcs = npcResult.npcs;
+    collected.push(...npcResult.events);
+  }
   return {
-    state: { ...state, tick, player: { ...state.player, pos: playerPos }, npcs: npcResult.npcs },
-    events: [...events, ...npcResult.events],
+    state: { ...state, tick, player: { ...state.player, pos: playerPos }, npcs },
+    events: collected,
   };
 }
 
@@ -53,10 +65,25 @@ function applyMove(state: GameState, intent: MoveIntent, world: WorldDef): Advan
   const from = state.player.pos;
   const to = { x: from.x + delta.dx, y: from.y + delta.dy };
   const occupiedByNpc = state.npcs.some((npc) => npc.pos.x === to.x && npc.pos.y === to.y);
+  const ticks = state.player.sneaking ? 2 : 1;
   if (isBlocked(world.map, to.x, to.y) || occupiedByNpc) {
-    return applyTick(state, from, [{ type: "movement-blocked", at: from, toward: to }], world);
+    return applyTick(
+      state,
+      from,
+      [{ type: "movement-blocked", at: from, toward: to }],
+      world,
+      ticks,
+    );
   }
-  return applyTick(state, to, [{ type: "player-moved", from, to }], world);
+  return applyTick(state, to, [{ type: "player-moved", from, to }], world, ticks);
+}
+
+function applySneak(state: GameState): AdvanceResult {
+  const sneaking = !state.player.sneaking;
+  return {
+    state: { ...state, player: { ...state.player, sneaking } },
+    events: [{ type: "sneak-toggled", sneaking }],
+  };
 }
 
 function applyTalk(state: GameState, world: WorldDef): AdvanceResult {

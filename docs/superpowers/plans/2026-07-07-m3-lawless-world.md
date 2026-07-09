@@ -948,7 +948,7 @@ git add -A && git commit -m "Add awareness model: line of sight and perception r
 - Modify: `packages/core/src/intent.ts`, `packages/core/src/event.ts`, `packages/core/src/advance.ts`, `packages/core/src/index.ts`, `packages/client/src/world-scene.ts`
 - Test: `packages/core/src/advance.test.ts`
 
-- [ ] **Step 1: Add failing tests** — append to `packages/core/src/advance.test.ts`:
+- [x] **Step 1: Add failing tests** — append to `packages/core/src/advance.test.ts`:
 
 ```ts
 describe("advance: sneak", () => {
@@ -981,9 +981,9 @@ describe("advance: sneak", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `sneak` is not a valid intent)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `sneak` is not a valid intent)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `packages/core/src/intent.ts` — append and extend the union:
 
@@ -1067,7 +1067,7 @@ function applySneak(state: GameState): AdvanceResult {
 `packages/core/src/index.ts` — add `SneakIntent` to the intent type exports and
 `SneakToggledEvent` to the event type exports.
 
-- [ ] **Step 4: Verify pass, full gate, commit**
+- [x] **Step 4: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

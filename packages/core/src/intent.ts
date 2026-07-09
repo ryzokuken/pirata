@@ -18,7 +18,11 @@ export interface ChooseIntent {
   readonly index: number;
 }
 
-export type Intent = MoveIntent | WaitIntent | TalkIntent | ChooseIntent;
+export interface SneakIntent {
+  readonly type: "sneak";
+}
+
+export type Intent = MoveIntent | WaitIntent | TalkIntent | ChooseIntent | SneakIntent;
 
 export const DIRECTION_DELTAS: Record<Direction, { readonly dx: number; readonly dy: number }> = {
   north: { dx: 0, dy: -1 },
