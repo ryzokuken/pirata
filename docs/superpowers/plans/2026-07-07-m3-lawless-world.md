@@ -1852,7 +1852,7 @@ git add -A && git commit -m "Add fines: coin condition, pay effect, guard confro
 - Modify: `packages/core/src/intent.ts`, `packages/core/src/event.ts`, `packages/core/src/advance.ts`, `packages/core/src/index.ts`, `packages/client/src/world-scene.ts`
 - Test: `packages/core/src/advance.test.ts`
 
-- [ ] **Step 1: Write the failing price tests** — `packages/core/src/trade.test.ts`:
+- [x] **Step 1: Write the failing price tests** — `packages/core/src/trade.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1913,9 +1913,9 @@ describe("trade prices track faction standing (golden values)", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./trade.ts`)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./trade.ts`)
 
-- [ ] **Step 3: Write `packages/core/src/trade.ts`**
+- [x] **Step 3: Write `packages/core/src/trade.ts`**
 
 ```ts
 import type { WorldDef } from "./defs.ts";
@@ -1976,9 +1976,9 @@ export function sellPrice(
 }
 ```
 
-- [ ] **Step 4: Verify the price tests pass** (`pnpm test`)
+- [x] **Step 4: Verify the price tests pass** (`pnpm test`)
 
-- [ ] **Step 5: Add failing intent tests** — append to `packages/core/src/advance.test.ts`:
+- [x] **Step 5: Add failing intent tests** — append to `packages/core/src/advance.test.ts`:
 
 ```ts
 describe("advance: trade", () => {
@@ -2057,7 +2057,7 @@ describe("advance: trade", () => {
 });
 ```
 
-- [ ] **Step 6: Run to verify failure**, then implement
+- [x] **Step 6: Run to verify failure**, then implement
 
 `packages/core/src/intent.ts`:
 
@@ -2212,7 +2212,7 @@ export { buyPrice, sellPrice, TRADE_FRIENDLY_AT, TRADE_REFUSE_AT, tradeRefused }
 
 plus the new intent/event types in their blocks.
 
-- [ ] **Step 7: Verify pass, full gate, commit**
+- [x] **Step 7: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

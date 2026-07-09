@@ -3,12 +3,20 @@ import type { WorldDef } from "./defs.ts";
 import { visibleChoices } from "./dialogue.ts";
 import type { GameEvent } from "./event.ts";
 import { spreadGossip } from "./gossip.ts";
-import { DIRECTION_DELTAS, type ChooseIntent, type Intent, type MoveIntent } from "./intent.ts";
+import {
+  DIRECTION_DELTAS,
+  type BuyIntent,
+  type ChooseIntent,
+  type Intent,
+  type MoveIntent,
+  type SellIntent,
+} from "./intent.ts";
 import { isBlocked } from "./map.ts";
 import { advanceNpcs } from "./npc.ts";
 import { factionStanding, npcStanding } from "./reputation.ts";
 import { nextFloat } from "./rng.ts";
 import type { GameState, NpcState, Vec2 } from "./state.ts";
+import { buyPrice, sellPrice, tradeRefused } from "./trade.ts";
 
 export interface AdvanceResult {
   readonly state: GameState;
@@ -41,6 +49,21 @@ export function advance(state: GameState, intent: Intent, world: WorldDef): Adva
       return state.dialogue === null && state.trade === null
         ? applyPickpocket(state, world)
         : rejected(state, "not while you're occupied");
+    case "trade":
+      return state.dialogue === null && state.trade === null
+        ? applyTradeOpen(state, world)
+        : rejected(state, "not while you're occupied");
+    case "buy":
+      return applyBuy(state, intent, world);
+    case "sell":
+      return applySell(state, intent, world);
+    case "close-trade":
+      return state.trade === null
+        ? rejected(state, "you are not trading")
+        : {
+            state: { ...state, trade: null },
+            events: [{ type: "trade-ended", npcId: state.trade.npcId }],
+          };
   }
 }
 
@@ -212,9 +235,76 @@ function applyPickpocket(state: GameState, world: WorldDef): AdvanceResult {
   return applyTick(next, state.player.pos, events, world);
 }
 
+function applyTradeOpen(state: GameState, world: WorldDef): AdvanceResult {
+  const npc = adjacentNpc(state);
+  const def = npc === undefined ? undefined : world.npcs[npc.id];
+  if (npc === undefined || def?.shop === undefined) {
+    return rejected(state, "no one within reach keeps a shop");
+  }
+  if (tradeRefused(state, world, npc.id)) {
+    return rejected(state, `${def.name} wants nothing to do with you`);
+  }
+  return {
+    state: { ...state, trade: { npcId: npc.id } },
+    events: [{ type: "trade-started", npcId: npc.id }],
+  };
+}
+
+function applyBuy(state: GameState, intent: BuyIntent, world: WorldDef): AdvanceResult {
+  if (state.trade === null) {
+    return rejected(state, "you are not trading");
+  }
+  const npcId = state.trade.npcId;
+  const itemId = world.npcs[npcId]?.shop?.sells[intent.index];
+  const price = itemId === undefined ? undefined : buyPrice(state, world, npcId, itemId);
+  if (itemId === undefined || price === undefined) {
+    return rejected(state, `there is no ware ${intent.index}`);
+  }
+  if (price > state.player.coin) {
+    return rejected(state, "you cannot afford that");
+  }
+  return {
+    state: {
+      ...state,
+      player: {
+        ...state.player,
+        coin: state.player.coin - price,
+        items: [...state.player.items, itemId],
+      },
+    },
+    events: [{ type: "item-bought", itemId, price }],
+  };
+}
+
+function applySell(state: GameState, intent: SellIntent, world: WorldDef): AdvanceResult {
+  if (state.trade === null) {
+    return rejected(state, "you are not trading");
+  }
+  const itemId = state.player.items[intent.index];
+  const price =
+    itemId === undefined ? undefined : sellPrice(state, world, state.trade.npcId, itemId);
+  if (itemId === undefined || price === undefined) {
+    return rejected(state, `you carry no item ${intent.index}`);
+  }
+  return {
+    state: {
+      ...state,
+      player: {
+        ...state.player,
+        coin: state.player.coin + price,
+        items: state.player.items.filter((_, i) => i !== intent.index),
+      },
+    },
+    events: [{ type: "item-sold", itemId, price }],
+  };
+}
+
 function applyTalk(state: GameState, world: WorldDef): AdvanceResult {
   if (state.dialogue !== null) {
     return rejected(state, "already in a conversation");
+  }
+  if (state.trade !== null) {
+    return rejected(state, "not while you're occupied");
   }
   const npc = adjacentNpc(state);
   if (npc === undefined) {

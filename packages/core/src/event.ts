@@ -96,6 +96,28 @@ export interface CoinPaidEvent {
   readonly npcId: string;
 }
 
+export interface TradeStartedEvent {
+  readonly type: "trade-started";
+  readonly npcId: string;
+}
+
+export interface TradeEndedEvent {
+  readonly type: "trade-ended";
+  readonly npcId: string;
+}
+
+export interface ItemBoughtEvent {
+  readonly type: "item-bought";
+  readonly itemId: string;
+  readonly price: number;
+}
+
+export interface ItemSoldEvent {
+  readonly type: "item-sold";
+  readonly itemId: string;
+  readonly price: number;
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -112,4 +134,8 @@ export type GameEvent =
   | PickpocketSucceededEvent
   | PickpocketFailedEvent
   | GossipSharedEvent
-  | CoinPaidEvent;
+  | CoinPaidEvent
+  | TradeStartedEvent
+  | TradeEndedEvent
+  | ItemBoughtEvent
+  | ItemSoldEvent;

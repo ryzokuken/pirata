@@ -421,3 +421,78 @@ describe("guard confrontation and fines", () => {
     expect(result.state.deeds.some((deed) => deed.deedId === "test:defied")).toBe(true);
   });
 });
+
+describe("advance: trade", () => {
+  // (4,3) is adjacent to the keeper, who runs the fixture shop.
+  function trading(): GameState {
+    const atKeeper = run(freshState(), WALK_TO_KEEPER);
+    return advance(atKeeper, { type: "trade" }, world).state;
+  }
+
+  it("opens and closes trade with the adjacent shopkeeper, costing no time", () => {
+    const atKeeper = run(freshState(), WALK_TO_KEEPER);
+    const opened = advance(atKeeper, { type: "trade" }, world);
+    expect(opened.state.trade).toEqual({ npcId: "test:keeper" });
+    expect(opened.state.tick).toBe(atKeeper.tick);
+    expect(opened.events).toEqual([{ type: "trade-started", npcId: "test:keeper" }]);
+    const closed = advance(opened.state, { type: "close-trade" }, world);
+    expect(closed.state.trade).toBeNull();
+    expect(closed.events).toEqual([{ type: "trade-ended", npcId: "test:keeper" }]);
+  });
+
+  it("buys from stock: coin down, item gained", () => {
+    const result = advance(trading(), { type: "buy", index: 0 }, world);
+    expect(result.state.player.coin).toBe(10);
+    expect(result.state.player.items).toEqual(["test:trinket"]);
+    expect(result.events).toContainEqual({
+      type: "item-bought",
+      itemId: "test:trinket",
+      price: 10,
+    });
+  });
+
+  it("sells from the bag: item gone, coin up", () => {
+    const bought = advance(trading(), { type: "buy", index: 0 }, world).state;
+    const result = advance(bought, { type: "sell", index: 0 }, world);
+    expect(result.state.player.items).toEqual([]);
+    expect(result.state.player.coin).toBe(15);
+    expect(result.events).toContainEqual({
+      type: "item-sold",
+      itemId: "test:trinket",
+      price: 5,
+    });
+  });
+
+  it("rejects buying beyond your purse", () => {
+    const broke = { ...trading(), player: { ...trading().player, coin: 3 } };
+    const result = advance(broke, { type: "buy", index: 0 }, world);
+    expect(result.events[0]?.type).toBe("intent-rejected");
+    expect(result.state.player.items).toEqual([]);
+  });
+
+  it("a hostile shopkeeper refuses to open trade at all", () => {
+    const atKeeper = run(freshState(), WALK_TO_KEEPER);
+    const hated = {
+      ...atKeeper,
+      deeds: [{ deedId: "test:theft", tick: 0, knownBy: ["test:keeper"] }],
+    };
+    const result = advance(hated, { type: "trade" }, world);
+    expect(result.state.trade).toBeNull();
+    expect(result.events[0]?.type).toBe("intent-rejected");
+  });
+
+  it("rejects trading with someone who keeps no shop", () => {
+    const atGuard = run(freshState(), [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]);
+    const result = advance(atGuard, { type: "trade" }, world);
+    expect(result.events[0]?.type).toBe("intent-rejected");
+  });
+
+  it("movement is rejected while trading", () => {
+    const result = advance(trading(), { type: "move", direction: "north" }, world);
+    expect(result.events[0]?.type).toBe("intent-rejected");
+    expect(result.state.tick).toBe(trading().tick);
+  });
+});

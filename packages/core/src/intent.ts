@@ -30,6 +30,24 @@ export interface PickpocketIntent {
   readonly type: "pickpocket";
 }
 
+export interface TradeIntent {
+  readonly type: "trade";
+}
+
+export interface BuyIntent {
+  readonly type: "buy";
+  readonly index: number;
+}
+
+export interface SellIntent {
+  readonly type: "sell";
+  readonly index: number;
+}
+
+export interface CloseTradeIntent {
+  readonly type: "close-trade";
+}
+
 export type Intent =
   | MoveIntent
   | WaitIntent
@@ -37,7 +55,11 @@ export type Intent =
   | ChooseIntent
   | SneakIntent
   | TakeIntent
-  | PickpocketIntent;
+  | PickpocketIntent
+  | TradeIntent
+  | BuyIntent
+  | SellIntent
+  | CloseTradeIntent;
 
 export const DIRECTION_DELTAS: Record<Direction, { readonly dx: number; readonly dy: number }> = {
   north: { dx: 0, dy: -1 },

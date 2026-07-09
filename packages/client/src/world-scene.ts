@@ -155,6 +155,10 @@ export class WorldScene extends Scene {
       case "pickpocket-failed":
       case "gossip-shared":
       case "coin-paid":
+      case "trade-started":
+      case "trade-ended":
+      case "item-bought":
+      case "item-sold":
         break; // reflected by renderUi()
     }
   }

@@ -13,14 +13,18 @@ export {
 } from "./state.ts";
 export {
   DIRECTION_DELTAS,
+  type BuyIntent,
   type ChooseIntent,
+  type CloseTradeIntent,
   type Direction,
   type Intent,
   type MoveIntent,
   type PickpocketIntent,
+  type SellIntent,
   type SneakIntent,
   type TakeIntent,
   type TalkIntent,
+  type TradeIntent,
   type WaitIntent,
 } from "./intent.ts";
 export type {
@@ -33,6 +37,8 @@ export type {
   GameEvent,
   GossipSharedEvent,
   IntentRejectedEvent,
+  ItemBoughtEvent,
+  ItemSoldEvent,
   ItemTakenEvent,
   MovementBlockedEvent,
   NpcMovedEvent,
@@ -41,6 +47,8 @@ export type {
   PlayerMovedEvent,
   ReputationChangedEvent,
   SneakToggledEvent,
+  TradeEndedEvent,
+  TradeStartedEvent,
 } from "./event.ts";
 export { isBlocked, MapParseError, parseTiledMap, type MapModel } from "./map.ts";
 export { advance, type AdvanceResult } from "./advance.ts";
@@ -85,3 +93,4 @@ export {
   witnesses,
 } from "./awareness.ts";
 export { GOSSIP_RANGE, spreadGossip } from "./gossip.ts";
+export { buyPrice, sellPrice, TRADE_FRIENDLY_AT, TRADE_REFUSE_AT, tradeRefused } from "./trade.ts";
