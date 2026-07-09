@@ -41,3 +41,21 @@ describe("visibleChoices", () => {
     expect(visibleChoices(createGameState({ seed: 1, world }), world)).toEqual([]);
   });
 });
+
+describe("coin-at-least condition", () => {
+  it("hides the fine choice until the player can pay", () => {
+    const broke = {
+      ...createGameState({ seed: 1, world }),
+      player: { ...createGameState({ seed: 1, world }).player, coin: 5 },
+      dialogue: { npcId: "test:guard", nodeId: "halt" },
+    };
+    expect(visibleChoices(broke, world).map((choice) => choice.text)).toEqual([
+      "I owe you nothing",
+    ]);
+    const solvent = { ...broke, player: { ...broke.player, coin: 20 } };
+    expect(visibleChoices(solvent, world).map((choice) => choice.text)).toEqual([
+      "Pay 20 coin",
+      "I owe you nothing",
+    ]);
+  });
+});

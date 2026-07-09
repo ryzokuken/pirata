@@ -69,10 +69,48 @@ function applyTick(
     deeds = gossip.deeds;
     collected.push(...gossip.events);
   }
-  return {
-    state: { ...state, tick, player: { ...state.player, pos: playerPos }, npcs, deeds },
-    events: collected,
+  const next: GameState = {
+    ...state,
+    tick,
+    player: { ...state.player, pos: playerPos },
+    npcs,
+    deeds,
   };
+  const confronter = findConfronter(next, world);
+  if (confronter !== undefined) {
+    const dialogue = world.dialogues[confronter.dialogueId];
+    if (dialogue !== undefined) {
+      collected.push({ type: "dialogue-started", npcId: confronter.npcId, nodeId: dialogue.start });
+      return {
+        state: { ...next, dialogue: { npcId: confronter.npcId, nodeId: dialogue.start } },
+        events: collected,
+      };
+    }
+  }
+  return { state: next, events: collected };
+}
+
+function findConfronter(
+  state: GameState,
+  world: WorldDef,
+): { npcId: string; dialogueId: string } | undefined {
+  for (const npc of state.npcs) {
+    const confront = world.npcs[npc.id]?.confront;
+    if (confront === undefined) {
+      continue;
+    }
+    const distance = Math.max(
+      Math.abs(npc.pos.x - state.player.pos.x),
+      Math.abs(npc.pos.y - state.player.pos.y),
+    );
+    if (distance > 1) {
+      continue;
+    }
+    if (npcStanding(state, world, npc.id) < confront.standingBelow) {
+      return { npcId: npc.id, dialogueId: confront.dialogueId };
+    }
+  }
+  return undefined;
 }
 
 function applyMove(state: GameState, intent: MoveIntent, world: WorldDef): AdvanceResult {
@@ -217,17 +255,27 @@ function applyChoose(state: GameState, intent: ChooseIntent, world: WorldDef): A
   }
 
   const events: GameEvent[] = [];
+  const effects = choice.effects ?? [];
+  const totalPay = effects.reduce(
+    (sum, effect) => (effect.type === "pay" ? sum + effect.amount : sum),
+    0,
+  );
+  if (totalPay > state.player.coin) {
+    return rejected(state, "you cannot pay that");
+  }
   let deeds = state.deeds;
-  // Stub: only "deed" effects are handled here; Task 10 adds atomic "pay" handling
-  // once PlayerState carries coin (Task 3).
-  for (const effect of choice.effects ?? []) {
+  for (const effect of effects) {
     if (effect.type === "deed") {
       deeds = [...deeds, { deedId: effect.deedId, npcId, tick: state.tick, knownBy: [npcId] }];
       events.push({ type: "deed-recorded", deedId: effect.deedId, npcId });
+    } else {
+      events.push({ type: "coin-paid", amount: effect.amount, npcId });
     }
   }
+  const player =
+    totalPay === 0 ? state.player : { ...state.player, coin: state.player.coin - totalPay };
 
-  const withDeeds: GameState = { ...state, deeds };
+  const withDeeds: GameState = { ...state, player, deeds };
   const factionId = world.npcs[npcId]?.factionId;
   if (deeds !== state.deeds && factionId !== undefined) {
     events.push({

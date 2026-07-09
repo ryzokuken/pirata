@@ -24,6 +24,7 @@ export {
   type WaitIntent,
 } from "./intent.ts";
 export type {
+  CoinPaidEvent,
   CrimeWitnessedEvent,
   DeedRecordedEvent,
   DialogueAdvancedEvent,

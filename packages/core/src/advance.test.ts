@@ -358,3 +358,66 @@ describe("gossip carries consequences across factions", () => {
     expect(factionStanding(state, world, "test:dockers")).toBe(-20);
   });
 });
+
+describe("guard confrontation and fines", () => {
+  function hostileToGuard(): GameState {
+    const fresh = freshState();
+    return {
+      ...fresh,
+      deeds: [{ deedId: "test:theft", tick: 0, knownBy: ["test:guard"] }],
+    };
+  }
+
+  it("the guard forces dialogue when adjacent and they know", () => {
+    // (3,1) is adjacent to the guard at (4,1).
+    const result = run(hostileToGuard(), [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]);
+    expect(result.dialogue).toEqual({ npcId: "test:guard", nodeId: "halt" });
+  });
+
+  it("does not confront when the guard knows nothing", () => {
+    const result = run(freshState(), [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]);
+    expect(result.dialogue).toBeNull();
+  });
+
+  it("paying the fine costs coin and squares you with the guard", () => {
+    const confronted = run(hostileToGuard(), [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]);
+    const result = advance(confronted, { type: "choose", index: 0 }, world);
+    expect(result.state.player.coin).toBe(0);
+    expect(result.state.dialogue).toBeNull();
+    expect(npcStanding(result.state, world, "test:guard")).toBe(5);
+    expect(result.events).toContainEqual({ type: "coin-paid", amount: 20, npcId: "test:guard" });
+  });
+
+  it("after paying, walking beside the guard is safe again", () => {
+    const confronted = run(hostileToGuard(), [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]);
+    const paid = advance(confronted, { type: "choose", index: 0 }, world).state;
+    const result = advance(paid, { type: "wait" }, world);
+    expect(result.state.dialogue).toBeNull();
+  });
+
+  it("a choice whose pay exceeds coin is rejected atomically", () => {
+    const confronted = run(hostileToGuard(), [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]);
+    const broke = { ...confronted, player: { ...confronted.player, coin: 20 } };
+    // Manufacture a state where the visible choice demands more than we have:
+    const poorer = { ...broke, player: { ...broke.player, coin: 0 } };
+    const result = advance(poorer, { type: "choose", index: 0 }, world);
+    // coin 0 hides "Pay 20 coin"; index 0 is now "I owe you nothing" — deed lands, no pay
+    expect(result.state.player.coin).toBe(0);
+    expect(result.state.deeds.some((deed) => deed.deedId === "test:defied")).toBe(true);
+  });
+});

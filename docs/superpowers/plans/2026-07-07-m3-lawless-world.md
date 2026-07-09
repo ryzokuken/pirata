@@ -1636,7 +1636,7 @@ git add -A && git commit -m "Spread deed knowledge between NPCs in conversation 
 - Modify: `packages/core/src/dialogue.ts`, `packages/core/src/advance.ts`, `packages/core/src/event.ts`, `packages/core/src/index.ts`, `packages/client/src/world-scene.ts`
 - Test: `packages/core/src/dialogue.test.ts`, `packages/core/src/advance.test.ts`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Append to `packages/core/src/dialogue.test.ts`:
 
@@ -1727,9 +1727,9 @@ describe("guard confrontation and fines", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `coin-at-least` unhandled in `conditionMet`, no confrontation, no pay effect)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `coin-at-least` unhandled in `conditionMet`, no confrontation, no pay effect)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `packages/core/src/dialogue.ts` — add to `conditionMet`'s switch:
 
@@ -1836,7 +1836,7 @@ function findConfronter(
 
 `packages/core/src/index.ts` — add `CoinPaidEvent` to the event type exports.
 
-- [ ] **Step 4: Verify pass, full gate, commit**
+- [x] **Step 4: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

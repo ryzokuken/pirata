@@ -90,6 +90,12 @@ export interface GossipSharedEvent {
   readonly deedId: string;
 }
 
+export interface CoinPaidEvent {
+  readonly type: "coin-paid";
+  readonly amount: number;
+  readonly npcId: string;
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -105,4 +111,5 @@ export type GameEvent =
   | CrimeWitnessedEvent
   | PickpocketSucceededEvent
   | PickpocketFailedEvent
-  | GossipSharedEvent;
+  | GossipSharedEvent
+  | CoinPaidEvent;
