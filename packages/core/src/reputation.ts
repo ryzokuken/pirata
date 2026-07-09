@@ -1,10 +1,11 @@
 import type { WorldDef } from "./defs.ts";
 import type { GameState } from "./state.ts";
 
+/** What this NPC thinks of the player: the sum of deeds they know about. */
 export function npcStanding(state: GameState, world: WorldDef, npcId: string): number {
   let standing = 0;
   for (const deed of state.deeds) {
-    if (deed.npcId !== npcId) {
+    if (!deed.knownBy.includes(npcId)) {
       continue;
     }
     standing += world.deeds[deed.deedId]?.standingDelta ?? 0;
@@ -13,13 +14,15 @@ export function npcStanding(state: GameState, world: WorldDef, npcId: string): n
 }
 
 /**
- * M2 rule: a witnessed deed is known to the witness's whole faction
- * immediately. M3 replaces this with gossip propagation over in-game time.
+ * What a faction thinks: deeds known by at least one member, counted once
+ * per deed. Knowledge reaches members by witnessing or gossip — this
+ * replaces M2's instant-faction rule.
  */
 export function factionStanding(state: GameState, world: WorldDef, factionId: string): number {
   let standing = 0;
   for (const deed of state.deeds) {
-    if (deed.npcId === undefined || world.npcs[deed.npcId]?.factionId !== factionId) {
+    const known = deed.knownBy.some((npcId) => world.npcs[npcId]?.factionId === factionId);
+    if (!known) {
       continue;
     }
     standing += world.deeds[deed.deedId]?.standingDelta ?? 0;

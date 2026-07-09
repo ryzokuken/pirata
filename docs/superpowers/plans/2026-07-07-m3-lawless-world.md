@@ -661,7 +661,7 @@ git add -A && git commit -m "Extend GameState with coin, items, pockets, trade (
 - Modify: `packages/core/src/reputation.ts`, `packages/core/src/advance.ts`
 - Test: `packages/core/src/reputation.test.ts` (rewrite), `packages/core/src/advance.test.ts`
 
-- [ ] **Step 1: Write the failing tests** — replace `packages/core/src/reputation.test.ts`:
+- [x] **Step 1: Write the failing tests** — replace `packages/core/src/reputation.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -714,9 +714,9 @@ describe("knowledge-based standing", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: old implementations filter on `deed.npcId`/faction membership of the target)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: old implementations filter on `deed.npcId`/faction membership of the target)
 
-- [ ] **Step 3: Rewrite `packages/core/src/reputation.ts`**
+- [x] **Step 3: Rewrite `packages/core/src/reputation.ts`**
 
 ```ts
 import type { WorldDef } from "./defs.ts";
@@ -752,9 +752,9 @@ export function factionStanding(state: GameState, world: WorldDef, factionId: st
 }
 ```
 
-- [ ] **Step 4: Reconcile dependent tests** — `advance.test.ts` and `dialogue.test.ts` scenarios that award dialogue deeds still pass (interlocutor is in `knownBy`, their faction has a knowing member). Any test asserting the M2 instant-faction rule by other means gets updated to the knowledge rule. Run `pnpm test` and fix expectations file by file — semantics, not shapes, are the only edits here.
+- [x] **Step 4: Reconcile dependent tests** — `advance.test.ts` and `dialogue.test.ts` scenarios that award dialogue deeds still pass (interlocutor is in `knownBy`, their faction has a knowing member). Any test asserting the M2 instant-faction rule by other means gets updated to the knowledge rule. Run `pnpm test` and fix expectations file by file — semantics, not shapes, are the only edits here.
 
-- [ ] **Step 5: Verify pass, full gate, commit**
+- [x] **Step 5: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
