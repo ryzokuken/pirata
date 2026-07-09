@@ -3211,7 +3211,7 @@ git add -A && git commit -m "Cover theft, refusal, trade, and sneak in e2e"
 - Create: `docs/adr/0003-crime-gossip-and-coin.md`
 - Modify: `CLAUDE.md` (only if a convention changed), this plan (record deviations)
 
-- [ ] **Step 1: Write the ADR** — `docs/adr/0003-crime-gossip-and-coin.md`, following
+- [x] **Step 1: Write the ADR** — `docs/adr/0003-crime-gossip-and-coin.md`, following
       0002's format (Status/Context/Decision/Consequences). Content — the decisions from the
       "Design decisions" section above, compressed:
 
@@ -3254,14 +3254,14 @@ travel — and be evadable. Theft needs something to steal, so items and coin ar
   goods tracking, per-pack tuning of perception/trade constants.
 ```
 
-- [ ] **Step 2: Sync docs**
+- [x] **Step 2: Sync docs**
 
 - Reread this plan top to bottom; record any execution deviations in an
   `## Execution deviations` section at the end (M2's plan shows the format).
 - `CLAUDE.md`: no changes expected — commands and layer rules are unchanged. Touch it
   only if a convention actually changed during execution.
 
-- [ ] **Step 3: Full gate, push, PR**
+- [x] **Step 3: Full gate, push, PR**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm validate:content && pnpm check:attribution
@@ -3305,3 +3305,36 @@ EOF
   `DeedRecord.knownBy` sorted everywhere it is built (Tasks 3, 7, 8, 9, 10);
   `applyTick(state, playerPos, events, world, ticks)` (Tasks 6, 9, 10); trade price
   functions take `(state, world, npcId, itemId)` (Tasks 11, 14).
+
+## Execution deviations (recorded 2026-07-09)
+
+- **Task 1:** the plan's "allows duplicate item placements" test placed the second item
+  on a blocked tile (2,1); coordinate corrected to walkable (2,0).
+- **Task 2:** extra compile fallout beyond the plan's list: `conditionMet` needed a
+  stubbed `coin-at-least` case (exhaustiveness), `applyChoose` and finalize's
+  effect-link loop needed `effect.type === "deed"` narrowing once `DialogueEffect`
+  became a union, and a test-local `NpcDef` literal in `npc.test.ts` needed
+  `pockets: []`.
+- **Task 5:** the plan's "sees diagonally past the corner" LOS golden was wrong — plain
+  Bresenham correctly blocks a wall square sitting exactly on the diagonal; test renamed
+  to "a wall square on the diagonal blocks sight" expecting `false`, corrected in both
+  the test and the plan.
+- **Task 6:** the plan said to update two tests asserting the reason string "finish the
+  conversation first"; no test asserted that string, so no edits were needed.
+- **Task 10:** plan gap — `currentNode` only consulted the NPC's regular `dialogueId`,
+  making confrontation nodes unreachable; minimal fix falls back to
+  `confront.dialogueId` when the node isn't in the talk dialogue. Works because
+  talk/confront node ids are disjoint in all current content; if collisions ever become
+  possible, `DialogueState` should carry an explicit `dialogueId`.
+- **Task 12:** `toDialogueDef`'s effect mapping rewritten to switch on `effect.type`
+  (pay effects have no `deed` field); the finalize test fixture needed explicit
+  `pockets: []` (fixtures bypass Zod defaults); the plan's placeholder link-pass tests
+  were written out fully and back-filled into the plan.
+- **Task 13:** `base.test.ts`'s pre-existing count/pocket assertions updated for the 5th
+  NPC — required by the task's "existing suite must keep passing".
+- **Task 15:** a second stale `social.spec.ts` assertion (NPC objects now carry
+  `pockets`) needed the same update as the planned deed fix.
+- **Process:** implemented by per-task subagents with coordinator review between tasks;
+  a session limit interrupted the Task 3 agent immediately after its commit landed
+  (verified green afterward); Task 14's manual browser play-through was replaced by
+  Task 15's e2e run (9/9) because the sandbox lacks a manually drivable Chrome.
