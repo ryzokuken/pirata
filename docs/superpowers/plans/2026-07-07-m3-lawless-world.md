@@ -3100,7 +3100,7 @@ git add -A && git commit -m "Render crime, gossip, inventory, and trade in the c
 - Create: `e2e/crime.spec.ts`
 - Modify: `e2e/social.spec.ts`
 
-- [ ] **Step 1: Fix the M2 spec** — in `e2e/social.spec.ts`, the deed assertion gains
+- [x] **Step 1: Fix the M2 spec** — in `e2e/social.spec.ts`, the deed assertion gains
       the new shape:
 
 ```ts
@@ -3114,7 +3114,7 @@ expect(deeds).toEqual([
 ]);
 ```
 
-- [ ] **Step 2: Write `e2e/crime.spec.ts`**
+- [x] **Step 2: Write `e2e/crime.spec.ts`**
 
 ```ts
 /* eslint-disable no-underscore-dangle -- __pirata is the documented Window debug-hook name (e2e/types.d.ts) */
@@ -3193,11 +3193,11 @@ test("sneaking doubles the cost of a step", async ({ page }) => {
 to 17; north 2 → (10,4) the market door → (10,3) the stall. The merchant at (9,3) is
 adjacent — both the witness and, for the trade test, the shopkeeper in reach.)
 
-- [ ] **Step 3: Run** — `pnpm test:e2e`
+- [x] **Step 3: Run** — `pnpm test:e2e`
       Expected: all specs pass (social + crime). If the stall route hits a wall, print the
       walls row and fix the _route_, not the map.
 
-- [ ] **Step 4: Full gate and commit**
+- [x] **Step 4: Full gate and commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm test:e2e

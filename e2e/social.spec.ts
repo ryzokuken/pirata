@@ -8,10 +8,26 @@ test.beforeEach(async ({ page }) => {
 
 test("NPCs stand at their scheduled morning posts", async ({ page }) => {
   const npcs = await page.evaluate(() => window.__pirata?.getState().npcs);
-  expect(npcs).toContainEqual({ id: "base:tavernkeeper", pos: { x: 3, y: 3 } });
-  expect(npcs).toContainEqual({ id: "base:merchant", pos: { x: 9, y: 3 } });
-  expect(npcs).toContainEqual({ id: "base:harbormaster", pos: { x: 17, y: 10 } });
-  expect(npcs).toContainEqual({ id: "base:stevedore", pos: { x: 17, y: 11 } });
+  expect(npcs).toContainEqual({
+    id: "base:tavernkeeper",
+    pos: { x: 3, y: 3 },
+    pockets: ["base:rum_bottle"],
+  });
+  expect(npcs).toContainEqual({
+    id: "base:merchant",
+    pos: { x: 9, y: 3 },
+    pockets: ["base:silver_ring"],
+  });
+  expect(npcs).toContainEqual({
+    id: "base:harbormaster",
+    pos: { x: 17, y: 10 },
+    pockets: ["base:tobacco_pouch"],
+  });
+  expect(npcs).toContainEqual({
+    id: "base:stevedore",
+    pos: { x: 17, y: 11 },
+    pockets: ["base:dried_fish"],
+  });
 });
 
 test("talking to the harbormaster runs a dialogue and moves reputation", async ({ page }) => {
@@ -25,7 +41,14 @@ test("talking to the harbormaster runs a dialogue and moves reputation", async (
   await page.getByRole("button", { name: "Lend a hand with the cargo." }).click();
   await expect(page.getByTestId("dialogue-text")).toContainText("grunts");
   const deeds = await page.evaluate(() => window.__pirata?.getState().deeds);
-  expect(deeds).toEqual([{ deedId: "base:lent_a_hand", npcId: "base:harbormaster", tick: 4 }]);
+  expect(deeds).toEqual([
+    {
+      deedId: "base:lent_a_hand",
+      npcId: "base:harbormaster",
+      tick: 4,
+      knownBy: ["base:harbormaster"],
+    },
+  ]);
   await expect(page.getByTestId("base:dockworkers")).toContainText("+10");
   await page.getByRole("button", { name: "Anytime." }).click();
   const dialogue = await page.evaluate(() => window.__pirata?.getState().dialogue);
