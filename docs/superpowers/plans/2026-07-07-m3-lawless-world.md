@@ -769,7 +769,7 @@ git add -A && git commit -m "Compute standing from deed knowledge, not instant f
 - Test: `packages/core/src/awareness.test.ts`
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Write the failing tests** — `packages/core/src/awareness.test.ts`:
+- [x] **Step 1: Write the failing tests** — `packages/core/src/awareness.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -790,8 +790,8 @@ describe("lineOfSight", () => {
     expect(lineOfSight(map, { x: 1, y: 2 }, { x: 3, y: 2 })).toBe(false);
   });
 
-  it("sees diagonally past the corner of a single wall", () => {
-    expect(lineOfSight(map, { x: 1, y: 1 }, { x: 3, y: 3 })).toBe(true);
+  it("a wall square on the diagonal blocks sight", () => {
+    expect(lineOfSight(map, { x: 1, y: 1 }, { x: 3, y: 3 })).toBe(false);
   });
 
   it("always sees adjacent tiles", () => {
@@ -848,9 +848,9 @@ and the LOS line from keeper (4,4) to (1,3) passes (3,4)/(2,4)? Both are wall ro
 blocked either way. The assertion holds for both reasons; the golden value is what's
 pinned.)
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./awareness.ts`)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: cannot resolve `./awareness.ts`)
 
-- [ ] **Step 3: Write `packages/core/src/awareness.ts`**
+- [x] **Step 3: Write `packages/core/src/awareness.ts`**
 
 ```ts
 import { isBlocked, type MapModel } from "./map.ts";
@@ -920,7 +920,7 @@ export function witnesses(state: GameState, world: WorldDef, at: Vec2): readonly
 }
 ```
 
-- [ ] **Step 4: Verify pass, export, full gate, commit**
+- [x] **Step 4: Verify pass, export, full gate, commit**
 
 Append to `packages/core/src/index.ts`:
 

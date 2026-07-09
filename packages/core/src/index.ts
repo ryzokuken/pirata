@@ -65,3 +65,12 @@ export { advanceNpcs, scheduleTarget } from "./npc.ts";
 export { factionStanding, npcStanding } from "./reputation.ts";
 export { currentNode, visibleChoices } from "./dialogue.ts";
 export { runScenario, type ScenarioResult } from "./harness.ts";
+export {
+  BASE_PERCEPTION,
+  lineOfSight,
+  NIGHT_ENDS,
+  NIGHT_PERCEPTION,
+  NIGHT_STARTS,
+  perceptionRadius,
+  witnesses,
+} from "./awareness.ts";
