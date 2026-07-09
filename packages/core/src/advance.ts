@@ -1,3 +1,4 @@
+import { witnesses } from "./awareness.ts";
 import type { WorldDef } from "./defs.ts";
 import { visibleChoices } from "./dialogue.ts";
 import type { GameEvent } from "./event.ts";
@@ -29,6 +30,10 @@ export function advance(state: GameState, intent: Intent, world: WorldDef): Adva
     case "sneak":
       return state.dialogue === null && state.trade === null
         ? applySneak(state)
+        : rejected(state, "not while you're occupied");
+    case "take":
+      return state.dialogue === null && state.trade === null
+        ? applyTake(state, world)
         : rejected(state, "not while you're occupied");
   }
 }
@@ -84,6 +89,31 @@ function applySneak(state: GameState): AdvanceResult {
     state: { ...state, player: { ...state.player, sneaking } },
     events: [{ type: "sneak-toggled", sneaking }],
   };
+}
+
+function applyTake(state: GameState, world: WorldDef): AdvanceResult {
+  const at = state.player.pos;
+  const index = state.worldItems.findIndex((item) => item.pos.x === at.x && item.pos.y === at.y);
+  const item = state.worldItems[index];
+  if (item === undefined) {
+    return rejected(state, "there is nothing here to take");
+  }
+  const deedId = world.crimes.theft;
+  if (deedId === undefined) {
+    return rejected(state, "this world knows no law against taking things");
+  }
+  const knownBy = witnesses(state, world, at);
+  const events: GameEvent[] = [{ type: "item-taken", itemId: item.itemId, at }];
+  if (knownBy.length > 0) {
+    events.push({ type: "crime-witnessed", deedId, witnessIds: knownBy });
+  }
+  const next: GameState = {
+    ...state,
+    player: { ...state.player, items: [...state.player.items, item.itemId] },
+    worldItems: state.worldItems.filter((_, i) => i !== index),
+    deeds: [...state.deeds, { deedId, tick: state.tick, knownBy }],
+  };
+  return applyTick(next, at, events, world);
 }
 
 function applyTalk(state: GameState, world: WorldDef): AdvanceResult {

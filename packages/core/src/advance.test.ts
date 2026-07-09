@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "./advance.ts";
 import type { Intent } from "./intent.ts";
 import { isBlocked } from "./map.ts";
+import { factionStanding, npcStanding } from "./reputation.ts";
 import { createGameState, type GameState } from "./state.ts";
 import { fixtureWorld } from "./world.fixture.ts";
 
@@ -213,5 +214,60 @@ describe("advance: sneak", () => {
     const result = advance(inDialogue, { type: "sneak" }, world);
     expect(result.state.player.sneaking).toBe(false);
     expect(result.events[0]?.type).toBe("intent-rejected");
+  });
+});
+
+// Player (1,1) → the trinket tile (3,3).
+const WALK_TO_TRINKET: readonly Intent[] = [
+  { type: "move", direction: "south" },
+  { type: "move", direction: "south" },
+  { type: "move", direction: "east" },
+  { type: "move", direction: "east" },
+];
+
+describe("advance: take (theft)", () => {
+  it("picks up the item underfoot; the keeper witnesses", () => {
+    const atTrinket = run(freshState(), WALK_TO_TRINKET);
+    const result = advance(atTrinket, { type: "take" }, world);
+    expect(result.state.player.items).toEqual(["test:trinket"]);
+    expect(result.state.worldItems).toEqual([]);
+    expect(result.state.deeds).toEqual([
+      { deedId: "test:theft", tick: 4, knownBy: ["test:keeper"] },
+    ]);
+    expect(result.state.tick).toBe(5);
+    expect(result.events).toContainEqual({
+      type: "item-taken",
+      itemId: "test:trinket",
+      at: { x: 3, y: 3 },
+    });
+    expect(result.events).toContainEqual({
+      type: "crime-witnessed",
+      deedId: "test:theft",
+      witnessIds: ["test:keeper"],
+    });
+  });
+
+  it("drops standing with everyone who knows", () => {
+    const atTrinket = run(freshState(), WALK_TO_TRINKET);
+    const result = advance(atTrinket, { type: "take" }, world);
+    expect(npcStanding(result.state, world, "test:keeper")).toBe(-20);
+    expect(factionStanding(result.state, world, "test:guild")).toBe(-20);
+    expect(factionStanding(result.state, world, "test:watch")).toBe(0);
+  });
+
+  it("rejects taking where there is nothing", () => {
+    const result = advance(freshState(), { type: "take" }, world);
+    expect(result.events).toEqual([
+      { type: "intent-rejected", reason: "there is nothing here to take" },
+    ]);
+    expect(result.state.tick).toBe(0);
+  });
+
+  it("rejects the verb when the world defines no theft crime", () => {
+    const lawless = { ...world, crimes: {} };
+    const atTrinket = run(createGameState({ seed: 42, world: lawless }), WALK_TO_TRINKET);
+    const result = advance(atTrinket, { type: "take" }, lawless);
+    expect(result.events[0]?.type).toBe("intent-rejected");
+    expect(result.state.worldItems).toHaveLength(1);
   });
 });

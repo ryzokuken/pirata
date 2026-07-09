@@ -22,7 +22,11 @@ export interface SneakIntent {
   readonly type: "sneak";
 }
 
-export type Intent = MoveIntent | WaitIntent | TalkIntent | ChooseIntent | SneakIntent;
+export interface TakeIntent {
+  readonly type: "take";
+}
+
+export type Intent = MoveIntent | WaitIntent | TalkIntent | ChooseIntent | SneakIntent | TakeIntent;
 
 export const DIRECTION_DELTAS: Record<Direction, { readonly dx: number; readonly dy: number }> = {
   north: { dx: 0, dy: -1 },

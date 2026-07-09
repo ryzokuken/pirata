@@ -60,6 +60,18 @@ export interface SneakToggledEvent {
   readonly sneaking: boolean;
 }
 
+export interface ItemTakenEvent {
+  readonly type: "item-taken";
+  readonly itemId: string;
+  readonly at: Vec2;
+}
+
+export interface CrimeWitnessedEvent {
+  readonly type: "crime-witnessed";
+  readonly deedId: string;
+  readonly witnessIds: readonly string[];
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -70,4 +82,6 @@ export type GameEvent =
   | DeedRecordedEvent
   | ReputationChangedEvent
   | IntentRejectedEvent
-  | SneakToggledEvent;
+  | SneakToggledEvent
+  | ItemTakenEvent
+  | CrimeWitnessedEvent;

@@ -1081,7 +1081,7 @@ git add -A && git commit -m "Add sneak toggle: smaller profile, double move cost
 - Modify: `packages/core/src/intent.ts`, `packages/core/src/event.ts`, `packages/core/src/advance.ts`, `packages/core/src/index.ts`, `packages/client/src/world-scene.ts`
 - Test: `packages/core/src/advance.test.ts`
 
-- [ ] **Step 1: Add failing tests** — append to `packages/core/src/advance.test.ts`:
+- [x] **Step 1: Add failing tests** — append to `packages/core/src/advance.test.ts`:
 
 ```ts
 // Player (1,1) → the trinket tile (3,3).
@@ -1143,9 +1143,9 @@ describe("advance: take (theft)", () => {
 Add the imports to the top of the file (merge with existing import lines):
 `npcStanding`, `factionStanding` from `./reputation.ts`.
 
-- [ ] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `take` is not a valid intent)
+- [x] **Step 2: Run to verify failure** (`pnpm test` — FAIL: `take` is not a valid intent)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `packages/core/src/intent.ts`:
 
@@ -1218,7 +1218,7 @@ function applyTake(state: GameState, world: WorldDef): AdvanceResult {
 
 `packages/core/src/index.ts` — export the new intent/event types.
 
-- [ ] **Step 4: Verify pass, full gate, commit**
+- [x] **Step 4: Verify pass, full gate, commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
