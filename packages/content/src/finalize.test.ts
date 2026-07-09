@@ -235,3 +235,60 @@ describe("finalize items and crimes", () => {
     );
   });
 });
+
+describe("finalize reachability", () => {
+  // width 5, height 3: spawn at (0,0), an open row 0, and a sealed room at
+  // row 2 walled off from row 0 by a solid wall row 1 (no door).
+  const sealedMap: MapModel = {
+    id: "town",
+    width: 5,
+    height: 3,
+    blocked: [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ],
+    playerSpawn: { x: 0, y: 0 },
+    locations: { market: { x: 1, y: 0 }, cellar: { x: 1, y: 2 } },
+    items: [],
+  };
+
+  it("rejects a scheduled location on an unreachable tile", () => {
+    const broken = objects().map((object) =>
+      object.type === "npc" ? { ...object, schedule: [{ hour: 8, location: "cellar" }] } : object,
+    );
+    expect(() => finalizeWorld({ objects: broken, map: sealedMap })).toThrow(
+      /map "town": location "cellar" at \(1,2\) is unreachable from the player spawn \(blocked off by walls\?\)/,
+    );
+  });
+
+  it("rejects a placed item on an unreachable tile", () => {
+    const brokenMap: MapModel = {
+      ...sealedMap,
+      items: [{ itemId: "t:coin", pos: { x: 2, y: 2 } }],
+    };
+    const brokenObjects = [
+      ...objects(),
+      { type: "item" as const, id: "t:coin", name: "Coin", value: 1 },
+    ];
+    expect(() => finalizeWorld({ objects: brokenObjects, map: brokenMap })).toThrow(
+      /map "town": item "t:coin" at \(2,2\) is unreachable from the player spawn \(blocked off by walls\?\)/,
+    );
+  });
+
+  it("does not reject an unreferenced sealed location", () => {
+    expect(() => finalizeWorld({ objects: objects(), map: sealedMap })).not.toThrow();
+  });
+});

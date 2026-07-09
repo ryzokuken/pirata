@@ -69,10 +69,6 @@ export class WorldScene extends Scene {
     // Match the device-resolution canvas set up in main.ts: world coordinates
     // stay 768x512, the camera renders them at native pixel density.
     this.cameras.main.setZoom(DPR);
-    this.cameras.main.centerOn(
-      (this.world.map.width * TILE) / 2,
-      (this.world.map.height * TILE) / 2,
-    );
 
     this.createPlaceholderTileset();
     const tilemap = this.make.tilemap({ key: "port_town" });
@@ -92,6 +88,12 @@ export class WorldScene extends Scene {
       0xd9a441,
     );
     this.playerSprite.setAlpha(this.state.player.sneaking ? 0.5 : 1);
+
+    // The map now exceeds the 768x512 viewport, so clamp the camera to the
+    // map bounds and have it track the player instead of centering statically.
+    this.cameras.main.setBounds(0, 0, this.world.map.width * TILE, this.world.map.height * TILE);
+    this.cameras.main.startFollow(this.playerSprite, true, 0.15, 0.15);
+
     this.createNpcSprites();
     this.renderWorldItems();
 

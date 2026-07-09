@@ -6,22 +6,32 @@ test.beforeEach(async ({ page }) => {
   await page.waitForFunction(() => window.__pirata !== undefined);
 });
 
-// Spawn is (17,5); the silk bolt sits at (10,3) inside the market, watched
-// by the merchant at (9,3).
-async function walkToStall(page: import("@playwright/test").Page): Promise<void> {
+// Spawn is (30,17) on the north pier. The market sits far to the northwest:
+// walk off the pier, up to the open row south of the watch post (row 8, so
+// as not to walk through the watchwoman standing at her post at (21,7)), then
+// west and north to arrive just east of the merchant at (12,3) — adjacent to
+// the silk bolt at (14,3).
+async function walkToMerchant(page: import("@playwright/test").Page): Promise<void> {
   await page.evaluate(() => {
-    for (let i = 0; i < 7; i += 1) {
+    for (let i = 0; i < 2; i += 1) {
       window.__pirata?.dispatch({ type: "move", direction: "west" });
     }
-    for (let i = 0; i < 2; i += 1) {
+    for (let i = 0; i < 9; i += 1) {
+      window.__pirata?.dispatch({ type: "move", direction: "north" });
+    }
+    for (let i = 0; i < 15; i += 1) {
+      window.__pirata?.dispatch({ type: "move", direction: "west" });
+    }
+    for (let i = 0; i < 5; i += 1) {
       window.__pirata?.dispatch({ type: "move", direction: "north" });
     }
   });
 }
 
 test("stealing in front of the merchant is witnessed and remembered", async ({ page }) => {
-  await walkToStall(page);
+  await walkToMerchant(page);
   await page.evaluate(() => {
+    window.__pirata?.dispatch({ type: "move", direction: "east" });
     window.__pirata?.dispatch({ type: "take" });
   });
   const state = await page.evaluate(() => window.__pirata?.getState());
@@ -32,9 +42,11 @@ test("stealing in front of the merchant is witnessed and remembered", async ({ p
 });
 
 test("a hostile merchant refuses to trade", async ({ page }) => {
-  await walkToStall(page);
+  await walkToMerchant(page);
   await page.evaluate(() => {
+    window.__pirata?.dispatch({ type: "move", direction: "east" });
     window.__pirata?.dispatch({ type: "take" });
+    window.__pirata?.dispatch({ type: "move", direction: "west" });
     window.__pirata?.dispatch({ type: "trade" });
   });
   const trade = await page.evaluate(() => window.__pirata?.getState().trade);
@@ -42,7 +54,7 @@ test("a hostile merchant refuses to trade", async ({ page }) => {
 });
 
 test("buying and selling moves coin and goods", async ({ page }) => {
-  await walkToStall(page);
+  await walkToMerchant(page);
   await page.evaluate(() => {
     window.__pirata?.dispatch({ type: "trade" });
   });

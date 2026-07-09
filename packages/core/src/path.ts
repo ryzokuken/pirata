@@ -59,3 +59,36 @@ export function nextStep(map: MapModel, from: Vec2, to: Vec2): Vec2 | undefined 
   }
   return undefined;
 }
+
+/**
+ * Every tile reachable from `start` by 4-directional walking, as a
+ * width*height boolean grid. Ignores entities — this is static geometry.
+ */
+export function reachableFrom(map: MapModel, start: Vec2): readonly boolean[] {
+  const reachable = Array.from({ length: map.width * map.height }, () => false);
+  if (isBlocked(map, start.x, start.y)) {
+    return reachable;
+  }
+
+  reachable[start.y * map.width + start.x] = true;
+  const queue: Vec2[] = [start];
+  for (let head = 0; head < queue.length; head += 1) {
+    const current = queue[head];
+    if (current === undefined) {
+      break;
+    }
+    for (const step of STEP_ORDER) {
+      const next = { x: current.x + step.x, y: current.y + step.y };
+      if (isBlocked(map, next.x, next.y)) {
+        continue;
+      }
+      const index = next.y * map.width + next.x;
+      if (reachable[index] === true) {
+        continue;
+      }
+      reachable[index] = true;
+      queue.push(next);
+    }
+  }
+  return reachable;
+}

@@ -1,13 +1,14 @@
-import type {
-  CrimeVerb,
-  DeedDef,
-  DialogueDef,
-  DialogueNode,
-  FactionDef,
-  ItemDef,
-  MapModel,
-  NpcDef,
-  WorldDef,
+import {
+  reachableFrom,
+  type CrimeVerb,
+  type DeedDef,
+  type DialogueDef,
+  type DialogueNode,
+  type FactionDef,
+  type ItemDef,
+  type MapModel,
+  type NpcDef,
+  type WorldDef,
 } from "@pirata/core";
 import { ContentError } from "./loader.ts";
 import type { DialogueObject, PackObject } from "./schemas.ts";
@@ -155,6 +156,27 @@ export function finalizeWorld(options: {
     if (items[placed.itemId] === undefined) {
       throw new ContentError(
         `map "${options.map.id}": unknown item "${placed.itemId}" placed at (${placed.pos.x},${placed.pos.y})`,
+      );
+    }
+  }
+
+  const reachable = reachableFrom(options.map, options.map.playerSpawn);
+  const isReachable = (pos: { readonly x: number; readonly y: number }): boolean =>
+    reachable[pos.y * options.map.width + pos.x] === true;
+  for (const npc of Object.values(npcs)) {
+    for (const entry of npc.schedule) {
+      const pos = options.map.locations[entry.location];
+      if (pos !== undefined && !isReachable(pos)) {
+        throw new ContentError(
+          `map "${options.map.id}": location "${entry.location}" at (${pos.x},${pos.y}) is unreachable from the player spawn (blocked off by walls?)`,
+        );
+      }
+    }
+  }
+  for (const placed of options.map.items) {
+    if (!isReachable(placed.pos)) {
+      throw new ContentError(
+        `map "${options.map.id}": item "${placed.itemId}" at (${placed.pos.x},${placed.pos.y}) is unreachable from the player spawn (blocked off by walls?)`,
       );
     }
   }
