@@ -2834,7 +2834,7 @@ git add -A && git commit -m "Ship base pack 0.3.0: town watch, items, crimes, sh
 No unit tests (client stays thin; Task 15's e2e covers it). Verify each step with
 `pnpm typecheck` and eyeball `pnpm dev`.
 
-- [ ] **Step 1: `index.html`** — under the reputation `<aside>`, add:
+- [x] **Step 1: `index.html`** — under the reputation `<aside>`, add:
 
 ```html
 <aside id="inventory" aria-label="Inventory">
@@ -2872,7 +2872,7 @@ in the right column: wrap them in `<div id="side">` with `display: grid; gap: 8p
 put `#reputation`/`#inventory` inside). `#trade` copies the `#dialogue` panel rules
 (group the selectors); `#trade h3 { margin: 8px 0 4px; font-size: 12px; color: #8a93a3; }`.
 
-- [ ] **Step 2: `ui.ts`** — add render helpers:
+- [x] **Step 2: `ui.ts`** — add render helpers:
 
 ```ts
 export function renderInventory(state: GameState, world: WorldDef): void {
@@ -2939,7 +2939,7 @@ function tradeRow(label: string, onClick: () => void): HTMLElement {
 
 Add `buyPrice`, `sellPrice` to the `@pirata/core` imports.
 
-- [ ] **Step 3: `world-scene.ts`**
+- [x] **Step 3: `world-scene.ts`**
 
 0. **Faction color** — add the watch to `FACTION_COLORS`:
    `"base:town_watch": 0xb1493f,`
@@ -3081,12 +3081,12 @@ document.querySelector("#trade-close")?.addEventListener("click", () => {
 Also restore sneak alpha on load (saved games): after creating `playerSprite` in
 `create()`, `this.playerSprite.setAlpha(this.state.player.sneaking ? 0.5 : 1);`.
 
-- [ ] **Step 4: Play it** — `pnpm dev`: walk to the market, `G` on the silk with the
+- [x] **Step 4: Play it** — `pnpm dev`: walk to the market, `G` on the silk with the
       merchant watching (toast + reputation drop), `T` to trade (hostile refusal if you stole),
       `C` at night near the warehouse, pickpocket someone. Fix what feels broken _in the
       client only_ — rules changes go back to their core task with a test first.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test

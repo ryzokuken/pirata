@@ -41,41 +41,56 @@
         gap: 8px;
         align-items: start;
       }
-      #reputation {
+      #side {
+        display: grid;
+        gap: 8px;
+      }
+      #reputation,
+      #inventory {
         background: var(--panel);
         border: 1px solid var(--border);
         border-radius: 6px;
         padding: 10px;
         font-size: 13px;
       }
-      #reputation h2 {
+      #reputation h2,
+      #inventory h2 {
         margin: 0 0 6px;
         font-size: 13px;
         color: var(--accent);
       }
-      #reputation ul {
+      #reputation ul,
+      #inventory ul {
         margin: 0;
         padding: 0;
         list-style: none;
         display: grid;
         gap: 4px;
       }
-      #dialogue {
+      #dialogue,
+      #trade {
         background: var(--panel);
         border: 1px solid var(--border);
         border-radius: 6px;
         padding: 12px 14px;
         max-width: 640px;
       }
-      #dialogue h2 {
+      #dialogue h2,
+      #trade h2 {
         margin: 0 0 4px;
         font-size: 14px;
         color: var(--accent);
       }
+      #trade h3 {
+        margin: 8px 0 4px;
+        font-size: 12px;
+        color: #8a93a3;
+      }
       #dialogue p {
         margin: 0 0 8px;
       }
-      #dialogue ol {
+      #dialogue ol,
+      #trade ol {
         margin: 0;
         padding: 0;
         list-style: none;
@@ -83,7 +98,8 @@
         gap: 4px;
         counter-reset: choice;
       }
-      #dialogue button {
+      #dialogue button,
+      #trade button {
         width: 100%;
         text-align: left;
         background: #232b36;
@@ -100,7 +116,9 @@
         color: var(--accent);
       }
       #dialogue button:hover,
-      #dialogue button:focus-visible {
+      #dialogue button:focus-visible,
+      #trade button:hover,
+      #trade button:focus-visible {
         border-color: var(--accent);
       }
       #toast {
@@ -121,19 +139,37 @@
     <div id="app">
       <header id="hud">
         <span id="clock" data-testid="clock"></span>
-        <span id="hint">Arrows/WASD move · E talk · Space wait · 1-5 choose</span>
+        <span id="hint"
+          >Arrows/WASD move · E talk · Space wait · C sneak · G take · P pickpocket · T trade · 1-5
+          choose</span
+        >
       </header>
       <div id="stage">
         <main id="game" aria-label="Pirata game canvas"></main>
-        <aside id="reputation" aria-label="Reputation">
-          <h2>Reputation</h2>
-          <ul id="reputation-list"></ul>
-        </aside>
+        <div id="side">
+          <aside id="reputation" aria-label="Reputation">
+            <h2>Reputation</h2>
+            <ul id="reputation-list"></ul>
+          </aside>
+          <aside id="inventory" aria-label="Inventory">
+            <h2>Purse &amp; bag</h2>
+            <p id="coin" data-testid="coin"></p>
+            <ul id="inventory-list"></ul>
+          </aside>
+        </div>
       </div>
       <section id="dialogue" role="dialog" aria-label="Conversation" hidden>
         <h2 id="dialogue-name"></h2>
         <p id="dialogue-text" data-testid="dialogue-text"></p>
         <ol id="dialogue-choices"></ol>
+      </section>
+      <section id="trade" role="dialog" aria-label="Trade" hidden>
+        <h2 id="trade-name"></h2>
+        <h3>Their wares</h3>
+        <ol id="trade-stock"></ol>
+        <h3>Your goods</h3>
+        <ol id="trade-goods"></ol>
+        <button type="button" id="trade-close">Done (Esc)</button>
       </section>
     </div>
     <div id="toast" role="status" hidden></div>

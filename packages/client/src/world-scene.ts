@@ -14,7 +14,14 @@ import {
   type WorldDef,
 } from "@pirata/core";
 import { GameObjects, Input, Scene } from "phaser";
-import { renderClock, renderDialogue, renderReputation, showToast } from "./ui.ts";
+import {
+  renderClock,
+  renderDialogue,
+  renderInventory,
+  renderReputation,
+  renderTrade,
+  showToast,
+} from "./ui.ts";
 
 const TILE = 32;
 const MOVE_COOLDOWN_MS = 140;
@@ -23,6 +30,7 @@ const TILE_COLORS = [0x8a795d, 0x4d4338, 0x1d3f6e];
 const FACTION_COLORS: Readonly<Record<string, number>> = {
   "base:merchants_guild": 0x7fb069,
   "base:dockworkers": 0x5b8dbe,
+  "base:town_watch": 0xb1493f,
 };
 const CHOICE_KEYS = ["ONE", "TWO", "THREE", "FOUR", "FIVE"] as const;
 const DPR = window.devicePixelRatio || 1;
@@ -42,6 +50,7 @@ export class WorldScene extends Scene {
   private state!: GameState;
   private playerSprite!: GameObjects.Rectangle;
   private npcSprites = new Map<string, GameObjects.Container>();
+  private itemSprites: GameObjects.Arc[] = [];
   private polledKeys!: ReadonlyArray<readonly [Intent, Input.Keyboard.Key]>;
   private lastMoveAt = 0;
 
@@ -82,16 +91,21 @@ export class WorldScene extends Scene {
       TILE - 4,
       0xd9a441,
     );
+    this.playerSprite.setAlpha(this.state.player.sneaking ? 0.5 : 1);
     this.createNpcSprites();
+    this.renderWorldItems();
 
     this.setUpKeys();
     this.setUpPersistence();
     this.exposeDebugHook();
+    document.querySelector("#trade-close")?.addEventListener("click", () => {
+      this.apply({ type: "close-trade" });
+    });
     this.renderUi();
   }
 
   override update(time: number): void {
-    if (this.state.dialogue !== null) {
+    if (this.state.dialogue !== null || this.state.trade !== null) {
       return;
     }
     if (time - this.lastMoveAt < MOVE_COOLDOWN_MS) {
@@ -143,22 +157,48 @@ export class WorldScene extends Scene {
       case "intent-rejected":
         showToast(event.reason);
         break;
+      case "sneak-toggled":
+        this.playerSprite.setAlpha(event.sneaking ? 0.5 : 1);
+        showToast(event.sneaking ? "You move quietly." : "You straighten up.");
+        break;
+      case "item-taken":
+        this.renderWorldItems();
+        this.floatText(`+ ${this.world.items[event.itemId]?.name ?? event.itemId}`, "#9fdf7f");
+        break;
+      case "crime-witnessed": {
+        const names = event.witnessIds.map((id) => this.world.npcs[id]?.name ?? id).join(", ");
+        showToast(`${names} saw that!`);
+        break;
+      }
+      case "pickpocket-succeeded":
+        this.floatText(`+ ${this.world.items[event.itemId]?.name ?? event.itemId}`, "#9fdf7f");
+        break;
+      case "pickpocket-failed":
+        showToast(`${this.world.npcs[event.npcId]?.name ?? event.npcId} catches your hand!`);
+        break;
+      case "gossip-shared": {
+        const to = this.npcSprites.get(event.toNpcId);
+        if (to !== undefined) {
+          this.floatTextAt(to.x, to.y - 24, "psst…", "#8a93a3");
+        }
+        break;
+      }
+      case "item-bought":
+        this.floatText(`-${String(event.price)}c`, "#e07a5f");
+        break;
+      case "item-sold":
+        this.floatText(`+${String(event.price)}c`, "#9fdf7f");
+        break;
+      case "coin-paid":
+        this.floatText(`-${String(event.amount)}c`, "#e07a5f");
+        break;
       case "movement-blocked":
       case "dialogue-started":
       case "dialogue-advanced":
       case "dialogue-ended":
       case "reputation-changed":
-      case "sneak-toggled":
-      case "item-taken":
-      case "crime-witnessed":
-      case "pickpocket-succeeded":
-      case "pickpocket-failed":
-      case "gossip-shared":
-      case "coin-paid":
       case "trade-started":
       case "trade-ended":
-      case "item-bought":
-      case "item-sold":
         break; // reflected by renderUi()
     }
   }
@@ -166,8 +206,17 @@ export class WorldScene extends Scene {
   private renderUi(): void {
     renderClock(this.state);
     renderReputation(this.state, this.world);
+    renderInventory(this.state, this.world);
     renderDialogue(this.state, this.world, (index) => {
       this.apply({ type: "choose", index });
+    });
+    renderTrade(this.state, this.world, {
+      onBuy: (index) => {
+        this.apply({ type: "buy", index });
+      },
+      onSell: (index) => {
+        this.apply({ type: "sell", index });
+      },
     });
   }
 
@@ -178,13 +227,19 @@ export class WorldScene extends Scene {
       return;
     }
     const gain = deed.standingDelta >= 0;
+    this.floatText(
+      `${gain ? "+" : ""}${String(deed.standingDelta)} ${npc.name}`,
+      gain ? "#9fdf7f" : "#e07a5f",
+    );
+  }
+
+  private floatText(text: string, color: string): void {
+    this.floatTextAt(this.playerSprite.x, this.playerSprite.y - 20, text, color);
+  }
+
+  private floatTextAt(x: number, y: number, text: string, color: string): void {
     const label = this.add
-      .text(
-        this.playerSprite.x,
-        this.playerSprite.y - 20,
-        `${gain ? "+" : ""}${String(deed.standingDelta)} ${npc.name}`,
-        { ...LABEL_STYLE, fontSize: "12px", color: gain ? "#9fdf7f" : "#e07a5f" },
-      )
+      .text(x, y, text, { ...LABEL_STYLE, fontSize: "12px", color })
       .setStroke("#101418", 3)
       .setOrigin(0.5, 1);
     this.tweens.add({
@@ -222,6 +277,15 @@ export class WorldScene extends Scene {
       );
       this.npcSprites.set(npc.id, container);
     }
+  }
+
+  private renderWorldItems(): void {
+    for (const sprite of this.itemSprites) {
+      sprite.destroy();
+    }
+    this.itemSprites = this.state.worldItems.map((item) =>
+      this.add.circle(item.pos.x * TILE + TILE / 2, item.pos.y * TILE + TILE / 2, 6, 0xd9a441),
+    );
   }
 
   private createPlaceholderTileset(): void {
@@ -268,6 +332,23 @@ export class WorldScene extends Scene {
     ];
     keyboard.on("keydown-E", () => {
       this.apply({ type: "talk" });
+    });
+    keyboard.on("keydown-C", () => {
+      this.apply({ type: "sneak" });
+    });
+    keyboard.on("keydown-G", () => {
+      this.apply({ type: "take" });
+    });
+    keyboard.on("keydown-P", () => {
+      this.apply({ type: "pickpocket" });
+    });
+    keyboard.on("keydown-T", () => {
+      this.apply({ type: "trade" });
+    });
+    keyboard.on("keydown-ESC", () => {
+      if (this.state.trade !== null) {
+        this.apply({ type: "close-trade" });
+      }
     });
     CHOICE_KEYS.forEach((name, index) => {
       keyboard.on(`keydown-${name}`, () => {

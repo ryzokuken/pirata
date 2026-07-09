@@ -1,8 +1,10 @@
 import {
+  buyPrice,
   clockOf,
   currentNode,
   factionStanding,
   npcStanding,
+  sellPrice,
   visibleChoices,
   type GameState,
   type WorldDef,
@@ -69,6 +71,67 @@ export function renderDialogue(
       return item;
     }),
   );
+}
+
+export function renderInventory(state: GameState, world: WorldDef): void {
+  element<HTMLElement>("#coin").textContent = `Coin: ${String(state.player.coin)}`;
+  element<HTMLElement>("#inventory-list").replaceChildren(
+    ...state.player.items.map((itemId) => {
+      const row = document.createElement("li");
+      row.textContent = world.items[itemId]?.name ?? itemId;
+      return row;
+    }),
+  );
+}
+
+export function renderTrade(
+  state: GameState,
+  world: WorldDef,
+  handlers: { onBuy: (index: number) => void; onSell: (index: number) => void },
+): void {
+  const panel = element<HTMLElement>("#trade");
+  const npc = state.trade === null ? undefined : world.npcs[state.trade.npcId];
+  if (npc === undefined || state.trade === null) {
+    panel.hidden = true;
+    return;
+  }
+  const npcId = state.trade.npcId;
+  panel.hidden = false;
+  element<HTMLElement>("#trade-name").textContent = `Trading with ${npc.name}`;
+  element<HTMLElement>("#trade-stock").replaceChildren(
+    ...(npc.shop?.sells ?? []).map((itemId, index) =>
+      tradeRow(
+        `Buy ${world.items[itemId]?.name ?? itemId} — ${String(
+          buyPrice(state, world, npcId, itemId) ?? "?",
+        )}c`,
+        () => {
+          handlers.onBuy(index);
+        },
+      ),
+    ),
+  );
+  element<HTMLElement>("#trade-goods").replaceChildren(
+    ...state.player.items.map((itemId, index) =>
+      tradeRow(
+        `Sell ${world.items[itemId]?.name ?? itemId} — ${String(
+          sellPrice(state, world, npcId, itemId) ?? "?",
+        )}c`,
+        () => {
+          handlers.onSell(index);
+        },
+      ),
+    ),
+  );
+}
+
+function tradeRow(label: string, onClick: () => void): HTMLElement {
+  const item = document.createElement("li");
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = label;
+  button.addEventListener("click", onClick);
+  item.append(button);
+  return item;
 }
 
 let toastTimer: number | undefined;
