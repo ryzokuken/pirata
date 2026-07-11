@@ -64,4 +64,11 @@ describe("witnesses", () => {
     // radius 3 still covers (5,1)->guard(4,1) and walker(6,1); move out to distance 4
     expect(witnesses(sneaking, world, { x: 1, y: 3 })).toEqual([]);
   });
+
+  it("ignores an NPC on another map even when its raw coordinates are adjacent", () => {
+    const state = createGameState({ seed: 1, world });
+    // The lair brute spawns at (3,1); (3,1) is open floor on the town map
+    // too, so an act there would be adjacent by coordinates alone.
+    expect(witnesses(state, world, { x: 3, y: 1 })).not.toContain("test:brute");
+  });
 });

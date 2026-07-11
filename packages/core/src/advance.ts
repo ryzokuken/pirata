@@ -85,11 +85,10 @@ function applyTick(
   const collected: GameEvent[] = [...events];
   for (let step = 0; step < ticks; step += 1) {
     tick += 1;
-    const npcResult = advanceNpcs({ npcs, playerPos, world, tick });
+    const npcResult = advanceNpcs({ npcs, playerPos, playerMapId: state.mapId, world, tick });
     npcs = npcResult.npcs;
     collected.push(...npcResult.events);
-    // Task 3 replaces this single-map stopgap with per-map gossip pairs.
-    const gossip = spreadGossip({ deeds, npcs, map: world.maps[world.startMapId]! });
+    const gossip = spreadGossip({ deeds, npcs, world });
     deeds = gossip.deeds;
     collected.push(...gossip.events);
   }
@@ -119,6 +118,9 @@ function findConfronter(
   world: WorldDef,
 ): { npcId: string; dialogueId: string } | undefined {
   for (const npc of state.npcs) {
+    if (npc.mapId !== state.mapId) {
+      continue;
+    }
     const confront = world.npcs[npc.id]?.confront;
     if (confront === undefined) {
       continue;
@@ -141,8 +143,7 @@ function applyMove(state: GameState, intent: MoveIntent, world: WorldDef): Advan
   const delta = DIRECTION_DELTAS[intent.direction];
   const from = state.player.pos;
   const to = { x: from.x + delta.dx, y: from.y + delta.dy };
-  // Task 3 replaces this with the full per-map occupancy model; NPCs on other
-  // maps must not block movement in the meantime.
+  // NPCs on other maps must not block movement here.
   const occupiedByNpc = state.npcs.some(
     (npc) => npc.mapId === state.mapId && npc.pos.x === to.x && npc.pos.y === to.y,
   );
@@ -171,7 +172,9 @@ function applySneak(state: GameState): AdvanceResult {
 
 function applyTake(state: GameState, world: WorldDef): AdvanceResult {
   const at = state.player.pos;
-  const index = state.worldItems.findIndex((item) => item.pos.x === at.x && item.pos.y === at.y);
+  const index = state.worldItems.findIndex(
+    (item) => item.mapId === state.mapId && item.pos.x === at.x && item.pos.y === at.y,
+  );
   const item = state.worldItems[index];
   if (item === undefined) {
     return rejected(state, "there is nothing here to take");
@@ -328,8 +331,7 @@ function applyTalk(state: GameState, world: WorldDef): AdvanceResult {
   };
 }
 
-// Task 3 replaces this with the full per-map interaction model; NPCs on
-// other maps must not be reachable in the meantime.
+// NPCs on other maps must not be reachable for interaction.
 function adjacentNpc(state: GameState): NpcState | undefined {
   const { x, y } = state.player.pos;
   for (const delta of Object.values(DIRECTION_DELTAS)) {

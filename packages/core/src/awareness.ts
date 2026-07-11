@@ -53,7 +53,6 @@ export function witnesses(state: GameState, world: WorldDef, at: Vec2): readonly
   const radius = perceptionRadius(hourOf(state.tick), state.player.sneaking);
   const seen: string[] = [];
   for (const npc of state.npcs) {
-    // Task 3 replaces this with the full per-map awareness model.
     if (npc.mapId !== state.mapId) {
       continue;
     }

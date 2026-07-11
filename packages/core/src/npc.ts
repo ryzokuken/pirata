@@ -27,21 +27,21 @@ export function scheduleTarget(npc: NpcDef, hour: number): string | undefined {
 export function advanceNpcs(options: {
   readonly npcs: readonly NpcState[];
   readonly playerPos: Vec2;
+  readonly playerMapId: string;
   readonly world: WorldDef;
   readonly tick: number;
 }): { readonly npcs: readonly NpcState[]; readonly events: readonly GameEvent[] } {
-  const { world, tick } = options;
-  // Task 3 replaces this single-map stopgap with per-NPC-map movement.
-  const map = world.maps[world.startMapId]!;
+  const { world, tick, playerMapId } = options;
   const hour = hourOf(tick);
   const moved: NpcState[] = [...options.npcs];
   const events: GameEvent[] = [];
-  const occupied = new Set<string>(moved.map((npc) => `${npc.pos.x},${npc.pos.y}`));
-  occupied.add(`${options.playerPos.x},${options.playerPos.y}`);
+  const occupied = new Set<string>(moved.map((npc) => `${npc.mapId}:${npc.pos.x},${npc.pos.y}`));
+  occupied.add(`${playerMapId}:${options.playerPos.x},${options.playerPos.y}`);
 
   moved.forEach((npc, index) => {
     const def = world.npcs[npc.id];
-    if (def === undefined) {
+    const map = world.maps[npc.mapId];
+    if (def === undefined || map === undefined) {
       return;
     }
     const location = scheduleTarget(def, hour);
@@ -53,11 +53,11 @@ export function advanceNpcs(options: {
     if (step === undefined) {
       return;
     }
-    const key = `${step.x},${step.y}`;
+    const key = `${npc.mapId}:${step.x},${step.y}`;
     if (occupied.has(key)) {
       return;
     }
-    occupied.delete(`${npc.pos.x},${npc.pos.y}`);
+    occupied.delete(`${npc.mapId}:${npc.pos.x},${npc.pos.y}`);
     occupied.add(key);
     moved[index] = { ...npc, pos: step };
     events.push({ type: "npc-moved", npcId: npc.id, from: npc.pos, to: step });

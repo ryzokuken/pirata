@@ -181,8 +181,7 @@ describe("advance: properties", () => {
         let state = freshState();
         for (const intent of intents) {
           state = advance(state, intent, world).state;
-          // Same-map only: cross-map NPCs may share raw coordinates until
-          // Task 3 gives every function its own per-map occupancy model.
+          // Same-map only: cross-map NPCs may legitimately share raw coordinates.
           const sameMapNpcs = state.npcs.filter((npc) => npc.mapId === state.mapId);
           const tiles = [state.player.pos, ...sameMapNpcs.map((npc) => npc.pos)];
           for (const pos of tiles) {
@@ -270,6 +269,22 @@ describe("advance: take (theft)", () => {
       { type: "intent-rejected", reason: "there is nothing here to take" },
     ]);
     expect(result.state.tick).toBe(0);
+  });
+
+  it("ignores an item on another map at the same raw coordinates", () => {
+    const atTrinket = run(freshState(), WALK_TO_TRINKET);
+    // Replace the town trinket with a decoy on the lair map at the same
+    // (3,3) coordinates: the player, standing on the town map, must not be
+    // able to take it.
+    const decoy: GameState = {
+      ...atTrinket,
+      worldItems: [{ mapId: "lair", itemId: "test:loot", pos: { x: 3, y: 3 } }],
+    };
+    const result = advance(decoy, { type: "take" }, world);
+    expect(result.state.player.items).toEqual([]);
+    expect(result.events).toEqual([
+      { type: "intent-rejected", reason: "there is nothing here to take" },
+    ]);
   });
 
   it("rejects the verb when the world defines no theft crime", () => {
@@ -424,6 +439,19 @@ describe("guard confrontation and fines", () => {
     // coin 0 hides "Pay 20 coin"; index 0 is now "I owe you nothing" — deed lands, no pay
     expect(result.state.player.coin).toBe(0);
     expect(result.state.deeds.some((deed) => deed.deedId === "test:defied")).toBe(true);
+  });
+
+  it("does not confront across maps, even when adjacent by raw coordinates", () => {
+    const hostile = hostileToGuard();
+    const guardElsewhere: GameState = {
+      ...hostile,
+      npcs: hostile.npcs.map((npc) => (npc.id === "test:guard" ? { ...npc, mapId: "lair" } : npc)),
+    };
+    const result = run(guardElsewhere, [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]);
+    expect(result.dialogue).toBeNull();
   });
 });
 
