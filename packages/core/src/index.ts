@@ -50,7 +50,7 @@ export type {
   TradeEndedEvent,
   TradeStartedEvent,
 } from "./event.ts";
-export { isBlocked, MapParseError, parseTiledMap, type MapModel } from "./map.ts";
+export { isBlocked, MapParseError, parseTiledMap, type MapModel, type MapPortal } from "./map.ts";
 export { advance, type AdvanceResult } from "./advance.ts";
 export { deserialize, SaveError, serialize, SAVE_VERSION } from "./save.ts";
 export {
@@ -63,8 +63,10 @@ export {
   type Clock,
 } from "./time.ts";
 export type {
+  CombatantDef,
   ConfrontDef,
   CrimeVerb,
+  DamageDie,
   DeedDef,
   DialogueChoice,
   DialogueCondition,
@@ -74,6 +76,7 @@ export type {
   FactionDef,
   ItemDef,
   NpcDef,
+  RumorDef,
   ScheduleEntry,
   ShopDef,
   WorldDef,

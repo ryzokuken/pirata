@@ -183,7 +183,7 @@ describe("advance: properties", () => {
           state = advance(state, intent, world).state;
           const tiles = [state.player.pos, ...state.npcs.map((npc) => npc.pos)];
           for (const pos of tiles) {
-            expect(isBlocked(world.map, pos.x, pos.y)).toBe(false);
+            expect(isBlocked(world.maps[world.startMapId]!, pos.x, pos.y)).toBe(false);
           }
           expect(new Set(tiles.map((pos) => `${pos.x},${pos.y}`)).size).toBe(tiles.length);
         }

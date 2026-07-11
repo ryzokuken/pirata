@@ -31,6 +31,8 @@ export function advanceNpcs(options: {
   readonly tick: number;
 }): { readonly npcs: readonly NpcState[]; readonly events: readonly GameEvent[] } {
   const { world, tick } = options;
+  // Task 3 replaces this single-map stopgap with per-NPC-map movement.
+  const map = world.maps[world.startMapId]!;
   const hour = hourOf(tick);
   const moved: NpcState[] = [...options.npcs];
   const events: GameEvent[] = [];
@@ -43,11 +45,11 @@ export function advanceNpcs(options: {
       return;
     }
     const location = scheduleTarget(def, hour);
-    const target = location === undefined ? undefined : world.map.locations[location];
+    const target = location === undefined ? undefined : map.locations[location];
     if (target === undefined) {
       return;
     }
-    const step = nextStep(world.map, npc.pos, target);
+    const step = nextStep(map, npc.pos, target);
     if (step === undefined) {
       return;
     }

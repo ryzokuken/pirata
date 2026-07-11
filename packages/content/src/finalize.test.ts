@@ -12,6 +12,7 @@ const map: MapModel = {
   playerSpawn: { x: 0, y: 0 },
   locations: { market: { x: 1, y: 0 } },
   items: [],
+  portals: [],
 };
 
 function objects(): PackObject[] {
@@ -263,6 +264,7 @@ describe("finalize reachability", () => {
     playerSpawn: { x: 0, y: 0 },
     locations: { market: { x: 1, y: 0 }, cellar: { x: 1, y: 2 } },
     items: [],
+    portals: [],
   };
 
   it("rejects a scheduled location on an unreachable tile", () => {

@@ -10,6 +10,7 @@ function npcWithSchedule(schedule: NpcDef["schedule"]): NpcDef {
     name: "Npc",
     factionId: "test:guild",
     dialogueId: "test:talk",
+    mapId: "fixture",
     schedule,
     pockets: [],
   };

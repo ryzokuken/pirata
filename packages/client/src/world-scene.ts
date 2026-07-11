@@ -11,6 +11,7 @@ import {
   type GameEvent,
   type GameState,
   type Intent,
+  type MapModel,
   type WorldDef,
 } from "@pirata/core";
 import { GameObjects, Input, Scene } from "phaser";
@@ -43,6 +44,15 @@ const LABEL_STYLE = {
 
 function move(direction: Direction): Intent {
   return { type: "move", direction };
+}
+
+// Task 13 replaces this single-map stopgap with per-map switching on map-changed.
+function startMap(world: WorldDef): MapModel {
+  const map = world.maps[world.startMapId];
+  if (map === undefined) {
+    throw new Error(`world has no map for startMapId "${world.startMapId}"`);
+  }
+  return map;
 }
 
 export class WorldScene extends Scene {
@@ -91,7 +101,8 @@ export class WorldScene extends Scene {
 
     // The map now exceeds the 768x512 viewport, so clamp the camera to the
     // map bounds and have it track the player instead of centering statically.
-    this.cameras.main.setBounds(0, 0, this.world.map.width * TILE, this.world.map.height * TILE);
+    const map = startMap(this.world);
+    this.cameras.main.setBounds(0, 0, map.width * TILE, map.height * TILE);
     this.cameras.main.startFollow(this.playerSprite, true, 0.15, 0.15);
 
     this.createNpcSprites();

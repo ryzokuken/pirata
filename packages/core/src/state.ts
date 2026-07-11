@@ -58,20 +58,22 @@ export interface GameState {
 
 export function createGameState(options: { seed: number; world: WorldDef }): GameState {
   const { world } = options;
+  // Task 2 replaces this single-map stopgap with per-map spawning.
+  const map = world.maps[world.startMapId]!;
   const hour = hourOf(0);
   const npcs: NpcState[] = [];
   const occupied = new Map<string, string>();
-  occupied.set(`${world.map.playerSpawn.x},${world.map.playerSpawn.y}`, "the player");
+  occupied.set(`${map.playerSpawn.x},${map.playerSpawn.y}`, "the player");
   for (const npcId of Object.keys(world.npcs).toSorted()) {
     const def = world.npcs[npcId];
     if (def === undefined) {
       continue;
     }
     const location = scheduleTarget(def, hour);
-    const pos = location === undefined ? undefined : world.map.locations[location];
+    const pos = location === undefined ? undefined : map.locations[location];
     if (pos === undefined) {
       throw new Error(
-        `npc "${npcId}": schedule location "${location ?? "(none)"}" is missing from map "${world.map.id}"`,
+        `npc "${npcId}": schedule location "${location ?? "(none)"}" is missing from map "${map.id}"`,
       );
     }
     const key = `${pos.x},${pos.y}`;
@@ -85,10 +87,10 @@ export function createGameState(options: { seed: number; world: WorldDef }): Gam
   return {
     tick: 0,
     rng: seedRng(options.seed),
-    mapId: world.map.id,
-    player: { pos: world.map.playerSpawn, coin: PLAYER_START_COIN, items: [], sneaking: false },
+    mapId: map.id,
+    player: { pos: map.playerSpawn, coin: PLAYER_START_COIN, items: [], sneaking: false },
     npcs,
-    worldItems: world.map.items.map((item) => ({ itemId: item.itemId, pos: item.pos })),
+    worldItems: map.items.map((item) => ({ itemId: item.itemId, pos: item.pos })),
     dialogue: null,
     trade: null,
     deeds: [],

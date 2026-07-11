@@ -33,7 +33,16 @@ export function mapFromAscii(
       }
     });
   });
-  return { id: "fixture", width, height, blocked, playerSpawn: spawn, locations, items };
+  return {
+    id: "fixture",
+    width,
+    height,
+    blocked,
+    playerSpawn: spawn,
+    locations,
+    items,
+    portals: [],
+  };
 }
 
 export const FIXTURE_MAP = mapFromAscii(
@@ -43,7 +52,10 @@ export const FIXTURE_MAP = mapFromAscii(
 
 export function fixtureWorld(): WorldDef {
   return {
-    map: FIXTURE_MAP,
+    // Task 2 replaces this with the real second-map fixture (town + lair).
+    maps: { fixture: FIXTURE_MAP },
+    startMapId: "fixture",
+    rumors: {},
     factions: {
       "test:guild": { id: "test:guild", name: "The Guild" },
       "test:dockers": { id: "test:dockers", name: "The Dockers" },
@@ -68,6 +80,7 @@ export function fixtureWorld(): WorldDef {
         name: "Keeper",
         factionId: "test:guild",
         dialogueId: "test:keeper_talk",
+        mapId: "fixture",
         schedule: [{ hour: 0, location: "t" }],
         pockets: ["test:pearl"],
         shop: { sells: ["test:trinket"] },
@@ -77,6 +90,7 @@ export function fixtureWorld(): WorldDef {
         name: "Walker",
         factionId: "test:dockers",
         dialogueId: "test:walker_talk",
+        mapId: "fixture",
         schedule: [
           { hour: 8, location: "a" },
           { hour: 9, location: "b" },
@@ -88,6 +102,7 @@ export function fixtureWorld(): WorldDef {
         name: "Guard",
         factionId: "test:watch",
         dialogueId: "test:walker_talk",
+        mapId: "fixture",
         schedule: [{ hour: 0, location: "g" }],
         pockets: [],
         confront: { standingBelow: -10, dialogueId: "test:guard_confront" },

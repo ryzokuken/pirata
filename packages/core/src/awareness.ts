@@ -49,6 +49,8 @@ export function lineOfSight(map: MapModel, from: Vec2, to: Vec2): boolean {
 
 /** NPC ids (sorted) that can see an act at `at` right now. */
 export function witnesses(state: GameState, world: WorldDef, at: Vec2): readonly string[] {
+  // Task 2 replaces this with currentMap(state, world); Task 3 filters by npc.mapId.
+  const map = world.maps[state.mapId]!;
   const radius = perceptionRadius(hourOf(state.tick), state.player.sneaking);
   const seen: string[] = [];
   for (const npc of state.npcs) {
@@ -56,7 +58,7 @@ export function witnesses(state: GameState, world: WorldDef, at: Vec2): readonly
     if (distance > radius) {
       continue;
     }
-    if (!lineOfSight(world.map, npc.pos, at)) {
+    if (!lineOfSight(map, npc.pos, at)) {
       continue;
     }
     seen.push(npc.id);

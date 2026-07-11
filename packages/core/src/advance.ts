@@ -88,7 +88,8 @@ function applyTick(
     const npcResult = advanceNpcs({ npcs, playerPos, world, tick });
     npcs = npcResult.npcs;
     collected.push(...npcResult.events);
-    const gossip = spreadGossip({ deeds, npcs, map: world.map });
+    // Task 3 replaces this single-map stopgap with per-map gossip pairs.
+    const gossip = spreadGossip({ deeds, npcs, map: world.maps[world.startMapId]! });
     deeds = gossip.deeds;
     collected.push(...gossip.events);
   }
@@ -142,7 +143,9 @@ function applyMove(state: GameState, intent: MoveIntent, world: WorldDef): Advan
   const to = { x: from.x + delta.dx, y: from.y + delta.dy };
   const occupiedByNpc = state.npcs.some((npc) => npc.pos.x === to.x && npc.pos.y === to.y);
   const ticks = state.player.sneaking ? 2 : 1;
-  if (isBlocked(world.map, to.x, to.y) || occupiedByNpc) {
+  // Task 2 replaces this with currentMap(state, world); Task 4 adds portal handling.
+  const map = world.maps[state.mapId]!;
+  if (isBlocked(map, to.x, to.y) || occupiedByNpc) {
     return applyTick(
       state,
       from,
@@ -358,9 +361,10 @@ function applyChoose(state: GameState, intent: ChooseIntent, world: WorldDef): A
     if (effect.type === "deed") {
       deeds = [...deeds, { deedId: effect.deedId, npcId, tick: state.tick, knownBy: [npcId] }];
       events.push({ type: "deed-recorded", deedId: effect.deedId, npcId });
-    } else {
+    } else if (effect.type === "pay") {
       events.push({ type: "coin-paid", amount: effect.amount, npcId });
     }
+    // Task 5 implements the "rumor" effect.
   }
   const player =
     totalPay === 0 ? state.player : { ...state.player, coin: state.player.coin - totalPay };

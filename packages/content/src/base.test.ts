@@ -39,6 +39,6 @@ describe("base pack", () => {
     });
     expect(world.crimes).toEqual({ pickpocket: "base:pickpocketing", theft: "base:theft" });
     expect(world.npcs["base:merchant"]?.shop?.sells).toContain("base:rum_bottle");
-    expect(world.map.items.length).toBeGreaterThanOrEqual(3);
+    expect(world.maps[world.startMapId]?.items.length).toBeGreaterThanOrEqual(3);
   });
 });

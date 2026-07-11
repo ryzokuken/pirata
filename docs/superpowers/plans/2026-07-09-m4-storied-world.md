@@ -85,7 +85,7 @@ pirata/
 
 **Files:** modify `packages/core/src/map.ts`, `packages/core/src/map.test.ts`, `packages/core/src/defs.ts`, `packages/core/src/world.fixture.ts`, `packages/core/src/index.ts`
 
-- [ ] **Step 1: Failing map tests** — add a `portals` layer to `tiledFixture()`:
+- [x] **Step 1: Failing map tests** — add a `portals` layer to `tiledFixture()`:
 
 ```ts
       {
@@ -97,7 +97,7 @@ pirata/
 
 and tests: parses `map.portals` to `[{ at: { x: 1, y: 1 }, toMapId: "other", toLocation: "arrival" }]`; absent layer → `[]`; a portal on a blocked tile throws (`not on walkable ground`, matching the items convention); a portal name without `/` throws `map "test": portal "bad" must be named "<mapId>/<location>"`.
 
-- [ ] **Step 2: Implement** in `map.ts`:
+- [x] **Step 2: Implement** in `map.ts`:
 
 ```ts
 export interface MapPortal {
@@ -109,7 +109,7 @@ export interface MapPortal {
 
 `MapModel` gains `readonly portals: readonly MapPortal[];`. Parse loop mirrors the items loop (walkability + bounds check); split the object name on the first `/`; both halves must be non-empty.
 
-- [ ] **Step 3: Multi-map defs** in `defs.ts`:
+- [x] **Step 3: Multi-map defs** in `defs.ts`:
 
 ```ts
 export interface DamageDie {
@@ -133,7 +133,7 @@ export interface RumorDef {
 
 `NpcDef` gains `readonly mapId: string;`, `readonly combat?: CombatantDef;`, `readonly hostile?: boolean;`. `ItemDef` gains `readonly food?: { readonly nutrition: number };` and `readonly treasure?: boolean;`. `DialogueEffect` union gains `| { readonly type: "rumor"; readonly rumorId: string }`. `WorldDef`: replace `map: MapModel` with `readonly maps: Readonly<Record<string, MapModel>>;` and `readonly startMapId: string;`, and add `readonly rumors: Readonly<Record<string, RumorDef>>;`.
 
-- [ ] **Step 4: Compile fallout, mechanically.** `mapFromAscii` gains `portals: []` in its return. `fixtureWorld()` temporarily: `maps: { fixture: FIXTURE_MAP }, startMapId: "fixture", rumors: {}`, `mapId: "fixture"` on every NPC (Task 2 rebuilds it properly). Everywhere `world.map` is referenced (`advance.ts`, `npc.ts`, `state.ts`, `dialogue.ts` — grep `world.map`), substitute `world.maps[state.mapId]!`-style access ONLY as a compile stopgap where a state is in scope; where none is (content `finalize.ts`, client), stub per Task 11/13 notes: finalize returns `maps: { [map.id]: map }, startMapId: map.id, rumors: {}` (its signature still takes one map until Task 11); the client uses `world.maps[world.startMapId]` via a small `startMap(world)` local. Prefer introducing `currentMap(state, world)` in Task 2 — if the stopgaps get ugly, do the minimal thing that compiles and leave a `// Task 2 replaces` comment.
+- [x] **Step 4: Compile fallout, mechanically.** `mapFromAscii` gains `portals: []` in its return. `fixtureWorld()` temporarily: `maps: { fixture: FIXTURE_MAP }, startMapId: "fixture", rumors: {}`, `mapId: "fixture"` on every NPC (Task 2 rebuilds it properly). Everywhere `world.map` is referenced (`advance.ts`, `npc.ts`, `state.ts`, `dialogue.ts` — grep `world.map`), substitute `world.maps[state.mapId]!`-style access ONLY as a compile stopgap where a state is in scope; where none is (content `finalize.ts`, client), stub per Task 11/13 notes: finalize returns `maps: { [map.id]: map }, startMapId: map.id, rumors: {}` (its signature still takes one map until Task 11); the client uses `world.maps[world.startMapId]` via a small `startMap(world)` local. Prefer introducing `currentMap(state, world)` in Task 2 — if the stopgaps get ugly, do the minimal thing that compiles and leave a `// Task 2 replaces` comment.
 
 ## Task 2: Core — GameState v4 (hp, hunger, rumors, combat, flags, per-map NPCs) + fixture v4
 

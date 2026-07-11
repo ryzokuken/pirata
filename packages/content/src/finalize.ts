@@ -54,6 +54,8 @@ export function finalizeWorld(options: {
           name: object.name,
           factionId: object.faction,
           dialogueId: object.dialogue,
+          // Task 11 replaces this with the content schema's optional `map` field.
+          mapId: options.map.id,
           schedule: object.schedule,
           pockets: object.pockets,
           ...(object.shop !== undefined ? { shop: { sells: object.shop.sells } } : {}),
@@ -181,7 +183,18 @@ export function finalizeWorld(options: {
     }
   }
 
-  return { map: options.map, factions, npcs, dialogues, deeds, items, crimes };
+  // Task 11 replaces this with a real maps record built from multiple MapModels.
+  return {
+    maps: { [options.map.id]: options.map },
+    startMapId: options.map.id,
+    factions,
+    npcs,
+    dialogues,
+    deeds,
+    items,
+    crimes,
+    rumors: {},
+  };
 }
 
 function assertNewId(bucket: Record<string, unknown>, id: string, kind: string): void {
