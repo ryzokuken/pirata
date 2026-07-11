@@ -214,6 +214,8 @@ export class WorldScene extends Scene {
       case "trade-started":
       case "trade-ended":
       case "rumor-heard":
+      case "ate-food":
+      case "hunger-changed":
         break; // reflected by renderUi()
     }
   }

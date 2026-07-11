@@ -21,6 +21,7 @@ export {
   type ChooseIntent,
   type CloseTradeIntent,
   type Direction,
+  type EatIntent,
   type Intent,
   type MoveIntent,
   type PickpocketIntent,
@@ -32,6 +33,7 @@ export {
   type WaitIntent,
 } from "./intent.ts";
 export type {
+  AteFoodEvent,
   CoinPaidEvent,
   CrimeWitnessedEvent,
   DeedRecordedEvent,
@@ -40,6 +42,7 @@ export type {
   DialogueStartedEvent,
   GameEvent,
   GossipSharedEvent,
+  HungerChangedEvent,
   IntentRejectedEvent,
   ItemBoughtEvent,
   ItemSoldEvent,
@@ -56,6 +59,14 @@ export type {
   TradeEndedEvent,
   TradeStartedEvent,
 } from "./event.ts";
+export {
+  HUNGER_MAX,
+  HUNGRY_AT,
+  hungerStage,
+  STARVING_AT,
+  TICKS_PER_HUNGER,
+  type HungerStage,
+} from "./hunger.ts";
 export { isBlocked, MapParseError, parseTiledMap, type MapModel, type MapPortal } from "./map.ts";
 export { advance, type AdvanceResult } from "./advance.ts";
 export { deserialize, SaveError, serialize, SAVE_VERSION } from "./save.ts";

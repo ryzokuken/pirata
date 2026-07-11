@@ -1,3 +1,4 @@
+import type { HungerStage } from "./hunger.ts";
 import type { Vec2 } from "./state.ts";
 
 export interface PlayerMovedEvent {
@@ -130,6 +131,16 @@ export interface RumorHeardEvent {
   readonly rumorId: string;
 }
 
+export interface AteFoodEvent {
+  readonly type: "ate-food";
+  readonly itemId: string;
+}
+
+export interface HungerChangedEvent {
+  readonly type: "hunger-changed";
+  readonly stage: HungerStage;
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -152,4 +163,6 @@ export type GameEvent =
   | TradeEndedEvent
   | ItemBoughtEvent
   | ItemSoldEvent
-  | RumorHeardEvent;
+  | RumorHeardEvent
+  | AteFoodEvent
+  | HungerChangedEvent;

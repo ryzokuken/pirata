@@ -1,11 +1,13 @@
 import { array, assert, constantFrom, property } from "fast-check";
 import { describe, expect, it } from "vitest";
 import { advance } from "./advance.ts";
+import type { GameEvent } from "./event.ts";
 import { runScenario } from "./harness.ts";
+import { HUNGER_MAX } from "./hunger.ts";
 import type { Intent } from "./intent.ts";
 import { isBlocked } from "./map.ts";
 import { factionStanding, npcStanding } from "./reputation.ts";
-import { createGameState, type GameState } from "./state.ts";
+import { createGameState, PLAYER_COMBAT, type GameState } from "./state.ts";
 import { fixtureWorld } from "./world.fixture.ts";
 
 const world = fixtureWorld();
@@ -599,5 +601,110 @@ describe("advance: trade", () => {
     const result = advance(trading(), { type: "move", direction: "north" }, world);
     expect(result.events[0]?.type).toBe("intent-rejected");
     expect(result.state.tick).toBe(trading().tick);
+  });
+});
+
+function withHunger(hunger: number, hp: number = PLAYER_COMBAT.maxHp): GameState {
+  return { ...freshState(), player: { ...freshState().player, hunger, hp } };
+}
+
+describe("advance: hunger", () => {
+  it("accrues one hunger point every 10 ticks", () => {
+    let state = freshState();
+    for (let i = 0; i < 10; i += 1) {
+      state = advance(state, { type: "wait" }, world).state;
+    }
+    expect(state.player.hunger).toBe(1);
+  });
+
+  it("does not fire hunger-changed while the stage is unchanged", () => {
+    let state = freshState();
+    let events: GameEvent[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      const result = advance(state, { type: "wait" }, world);
+      state = result.state;
+      events = [...events, ...result.events];
+    }
+    expect(events.some((event) => event.type === "hunger-changed")).toBe(false);
+  });
+
+  it("crossing into starving fires hunger-changed and costs 1 hp", () => {
+    let state = withHunger(23, 5);
+    let events: GameEvent[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      const result = advance(state, { type: "wait" }, world);
+      state = result.state;
+      events = [...events, ...result.events];
+    }
+    expect(state.player.hunger).toBe(24);
+    expect(state.player.hp).toBe(4);
+    expect(events).toContainEqual({ type: "hunger-changed", stage: "starving" });
+  });
+
+  it("hp never drops below 1 from starvation", () => {
+    let state = withHunger(24, 1);
+    for (let i = 0; i < 10; i += 1) {
+      state = advance(state, { type: "wait" }, world).state;
+    }
+    expect(state.player.hunger).toBe(25);
+    expect(state.player.hp).toBe(1);
+  });
+
+  it("hunger clamps at HUNGER_MAX", () => {
+    let state = withHunger(HUNGER_MAX, 5);
+    for (let i = 0; i < 10; i += 1) {
+      state = advance(state, { type: "wait" }, world).state;
+    }
+    expect(state.player.hunger).toBe(HUNGER_MAX);
+  });
+});
+
+function withFood(state: GameState, hunger: number = 20): GameState {
+  return { ...state, player: { ...state.player, items: ["test:trinket"], hunger } };
+}
+
+describe("advance: eat", () => {
+  it("eating a food item reduces hunger, costs a tick, and emits ate-food", () => {
+    const result = advance(withFood(freshState()), { type: "eat", index: 0 }, world);
+    expect(result.state.player.items).toEqual([]);
+    expect(result.state.player.hunger).toBe(12);
+    expect(result.state.tick).toBe(1);
+    expect(result.events).toContainEqual({ type: "ate-food", itemId: "test:trinket" });
+  });
+
+  it("hunger does not go below 0", () => {
+    const result = advance(withFood(freshState(), 3), { type: "eat", index: 0 }, world);
+    expect(result.state.player.hunger).toBe(0);
+  });
+
+  it("rejects eating an item with no food def", () => {
+    const carrying = { ...freshState(), player: { ...freshState().player, items: ["test:pearl"] } };
+    const result = advance(carrying, { type: "eat", index: 0 }, world);
+    expect(result.events).toEqual([{ type: "intent-rejected", reason: "you cannot eat that" }]);
+    expect(result.state.player.items).toEqual(["test:pearl"]);
+  });
+
+  it("rejects eating at an empty index", () => {
+    const result = advance(freshState(), { type: "eat", index: 0 }, world);
+    expect(result.events).toEqual([{ type: "intent-rejected", reason: "you cannot eat that" }]);
+  });
+
+  it("rejects eating while in dialogue", () => {
+    const talking = advance(run(freshState(), WALK_TO_KEEPER), { type: "talk" }, world).state;
+    const result = advance(withFood(talking), { type: "eat", index: 0 }, world);
+    expect(result.events[0]?.type).toBe("intent-rejected");
+  });
+
+  it("rejects eating while trading", () => {
+    const atKeeper = run(freshState(), WALK_TO_KEEPER);
+    const tradingState = advance(atKeeper, { type: "trade" }, world).state;
+    const result = advance(withFood(tradingState), { type: "eat", index: 0 }, world);
+    expect(result.events[0]?.type).toBe("intent-rejected");
+  });
+
+  it("rejects eating in combat", () => {
+    const inCombat: GameState = { ...freshState(), combat: { enemyIds: ["test:brute"] } };
+    const result = advance(withFood(inCombat), { type: "eat", index: 0 }, world);
+    expect(result.events[0]?.type).toBe("intent-rejected");
   });
 });

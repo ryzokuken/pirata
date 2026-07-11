@@ -320,7 +320,7 @@ describe("advance: portals", () => {
 
 **Files:** create `packages/core/src/hunger.ts` + `hunger.test.ts`; modify `advance.ts`, `intent.ts`, `event.ts`; test `advance.test.ts`
 
-- [ ] **Step 1: Failing unit tests** — `hunger.test.ts` (golden values):
+- [x] **Step 1: Failing unit tests** — `hunger.test.ts` (golden values):
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -345,7 +345,7 @@ describe("hunger stages (golden)", () => {
 });
 ```
 
-- [ ] **Step 2: `hunger.ts`:**
+- [x] **Step 2: `hunger.ts`:**
 
 ```ts
 export const TICKS_PER_HUNGER = 10;
@@ -363,9 +363,9 @@ export function hungerStage(hunger: number): HungerStage {
 }
 ```
 
-- [ ] **Step 3: Failing advance tests.** In `applyTick`, whenever the tick crosses a multiple of `TICKS_PER_HUNGER` (i.e. `tick % TICKS_PER_HUNGER === 0` inside the per-tick loop), hunger +1 (clamped at `HUNGER_MAX`); if the player is starving at that increment, hp −1 but never below 1; `hunger-changed { stage }` fires only when the stage differs from before the increment. Tests: waiting 10 ticks → hunger 1; a state manufactured at hunger 23 waiting 10 ticks → hunger 24 + `hunger-changed {stage:"starving"}`; a starving player at hp 1 loses no further hp. `eat` intent: consumes `player.items[index]`, requires the item's `food` def (else rejected `"you cannot eat that"`), hunger −nutrition (min 0), 1 tick passes, event `ate-food { itemId }`; rejected while in dialogue/trade/combat. Test with the fixture trinket (nutrition 8).
+- [x] **Step 3: Failing advance tests.** In `applyTick`, whenever the tick crosses a multiple of `TICKS_PER_HUNGER` (i.e. `tick % TICKS_PER_HUNGER === 0` inside the per-tick loop), hunger +1 (clamped at `HUNGER_MAX`); if the player is starving at that increment, hp −1 but never below 1; `hunger-changed { stage }` fires only when the stage differs from before the increment. Tests: waiting 10 ticks → hunger 1; a state manufactured at hunger 23 waiting 10 ticks → hunger 24 + `hunger-changed {stage:"starving"}`; a starving player at hp 1 loses no further hp. `eat` intent: consumes `player.items[index]`, requires the item's `food` def (else rejected `"you cannot eat that"`), hunger −nutrition (min 0), 1 tick passes, event `ate-food { itemId }`; rejected while in dialogue/trade/combat. Test with the fixture trinket (nutrition 8).
 
-- [ ] **Step 4: Implement** — `EatIntent { type:"eat"; index }`, `AteFoodEvent`, `HungerChangedEvent { stage: HungerStage }` in their unions; logic per Step 3 in `applyTick`/`applyEat`.
+- [x] **Step 4: Implement** — `EatIntent { type:"eat"; index }`, `AteFoodEvent`, `HungerChangedEvent { stage: HungerStage }` in their unions; logic per Step 3 in `applyTick`/`applyEat`.
 
 ## Task 7: Core — combat math (`combat.ts`)
 

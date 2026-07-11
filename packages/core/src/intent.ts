@@ -48,6 +48,11 @@ export interface CloseTradeIntent {
   readonly type: "close-trade";
 }
 
+export interface EatIntent {
+  readonly type: "eat";
+  readonly index: number;
+}
+
 export type Intent =
   | MoveIntent
   | WaitIntent
@@ -59,7 +64,8 @@ export type Intent =
   | TradeIntent
   | BuyIntent
   | SellIntent
-  | CloseTradeIntent;
+  | CloseTradeIntent
+  | EatIntent;
 
 export const DIRECTION_DELTAS: Record<Direction, { readonly dx: number; readonly dy: number }> = {
   north: { dx: 0, dy: -1 },

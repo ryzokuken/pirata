@@ -3,10 +3,12 @@ import type { WorldDef } from "./defs.ts";
 import { visibleChoices } from "./dialogue.ts";
 import type { GameEvent } from "./event.ts";
 import { spreadGossip } from "./gossip.ts";
+import { HUNGER_MAX, hungerStage, TICKS_PER_HUNGER } from "./hunger.ts";
 import {
   DIRECTION_DELTAS,
   type BuyIntent,
   type ChooseIntent,
+  type EatIntent,
   type Intent,
   type MoveIntent,
   type SellIntent,
@@ -64,6 +66,10 @@ export function advance(state: GameState, intent: Intent, world: WorldDef): Adva
             state: { ...state, trade: null },
             events: [{ type: "trade-ended", npcId: state.trade.npcId }],
           };
+    case "eat":
+      return state.dialogue === null && state.trade === null && state.combat === null
+        ? applyEat(state, intent, world)
+        : rejected(state, "not while you're occupied");
   }
 }
 
@@ -83,6 +89,8 @@ function applyTick(
   let tick = state.tick;
   let npcs = state.npcs;
   let deeds = state.deeds;
+  let hunger = state.player.hunger;
+  let hp = state.player.hp;
   const collected: GameEvent[] = [...events];
   for (let step = 0; step < ticks; step += 1) {
     tick += 1;
@@ -92,12 +100,23 @@ function applyTick(
     const gossip = spreadGossip({ deeds, npcs, world });
     deeds = gossip.deeds;
     collected.push(...gossip.events);
+    if (tick % TICKS_PER_HUNGER === 0) {
+      const stageBefore = hungerStage(hunger);
+      hunger = Math.min(HUNGER_MAX, hunger + 1);
+      const stageAfter = hungerStage(hunger);
+      if (stageAfter === "starving") {
+        hp = Math.max(1, hp - 1);
+      }
+      if (stageAfter !== stageBefore) {
+        collected.push({ type: "hunger-changed", stage: stageAfter });
+      }
+    }
   }
   const next: GameState = {
     ...state,
     tick,
     mapId: playerMapId,
-    player: { ...state.player, pos: playerPos },
+    player: { ...state.player, pos: playerPos, hunger, hp },
     npcs,
     deeds,
   };
@@ -329,6 +348,23 @@ function applySell(state: GameState, intent: SellIntent, world: WorldDef): Advan
     },
     events: [{ type: "item-sold", itemId, price }],
   };
+}
+
+function applyEat(state: GameState, intent: EatIntent, world: WorldDef): AdvanceResult {
+  const itemId = state.player.items[intent.index];
+  const food = itemId === undefined ? undefined : world.items[itemId]?.food;
+  if (itemId === undefined || food === undefined) {
+    return rejected(state, "you cannot eat that");
+  }
+  const next: GameState = {
+    ...state,
+    player: {
+      ...state.player,
+      items: state.player.items.filter((_, i) => i !== intent.index),
+      hunger: Math.max(0, state.player.hunger - food.nutrition),
+    },
+  };
+  return applyTick(next, state.player.pos, [{ type: "ate-food", itemId }], world);
 }
 
 function applyTalk(state: GameState, world: WorldDef): AdvanceResult {
