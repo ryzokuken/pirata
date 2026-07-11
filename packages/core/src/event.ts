@@ -156,6 +156,33 @@ export interface CombatStartedEvent {
   readonly enemyIds: readonly string[];
 }
 
+export interface AttackHitEvent {
+  readonly type: "attack-hit";
+  readonly attackerId: string;
+  readonly targetId: string;
+  readonly damage: number;
+}
+
+export interface AttackMissedEvent {
+  readonly type: "attack-missed";
+  readonly attackerId: string;
+  readonly targetId: string;
+}
+
+export interface NpcDiedEvent {
+  readonly type: "npc-died";
+  readonly npcId: string;
+}
+
+export interface CombatEndedEvent {
+  readonly type: "combat-ended";
+  readonly outcome: "victory" | "fled";
+}
+
+export interface PlayerDefeatedEvent {
+  readonly type: "player-defeated";
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -183,4 +210,9 @@ export type GameEvent =
   | HungerChangedEvent
   | NpcAlertedEvent
   | NpcCalmedEvent
-  | CombatStartedEvent;
+  | CombatStartedEvent
+  | AttackHitEvent
+  | AttackMissedEvent
+  | NpcDiedEvent
+  | CombatEndedEvent
+  | PlayerDefeatedEvent;

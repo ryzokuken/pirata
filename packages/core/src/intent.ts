@@ -53,6 +53,16 @@ export interface EatIntent {
   readonly index: number;
 }
 
+export interface AttackIntent {
+  readonly type: "attack";
+  readonly index: number;
+}
+
+export interface FleeIntent {
+  readonly type: "flee";
+  readonly direction: Direction;
+}
+
 export type Intent =
   | MoveIntent
   | WaitIntent
@@ -65,7 +75,9 @@ export type Intent =
   | BuyIntent
   | SellIntent
   | CloseTradeIntent
-  | EatIntent;
+  | EatIntent
+  | AttackIntent
+  | FleeIntent;
 
 export const DIRECTION_DELTAS: Record<Direction, { readonly dx: number; readonly dy: number }> = {
   north: { dx: 0, dy: -1 },

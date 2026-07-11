@@ -1,4 +1,5 @@
 import { canPerceive, perceptionRadius, witnesses } from "./awareness.ts";
+import { rollAttack } from "./combat.ts";
 import type { WorldDef } from "./defs.ts";
 import { visibleChoices } from "./dialogue.ts";
 import type { GameEvent } from "./event.ts";
@@ -6,18 +7,28 @@ import { spreadGossip } from "./gossip.ts";
 import { HUNGER_MAX, hungerStage, TICKS_PER_HUNGER } from "./hunger.ts";
 import {
   DIRECTION_DELTAS,
+  type AttackIntent,
   type BuyIntent,
   type ChooseIntent,
   type EatIntent,
+  type FleeIntent,
   type Intent,
   type MoveIntent,
   type SellIntent,
 } from "./intent.ts";
 import { isBlocked } from "./map.ts";
 import { advanceNpcs } from "./npc.ts";
+import { nextStep } from "./path.ts";
 import { factionStanding, npcStanding } from "./reputation.ts";
-import { nextFloat } from "./rng.ts";
-import { currentMap, type CombatState, type GameState, type NpcState, type Vec2 } from "./state.ts";
+import { nextFloat, type RngState } from "./rng.ts";
+import {
+  currentMap,
+  PLAYER_COMBAT,
+  type CombatState,
+  type GameState,
+  type NpcState,
+  type Vec2,
+} from "./state.ts";
 import { hourOf } from "./time.ts";
 import { buyPrice, sellPrice, tradeRefused } from "./trade.ts";
 
@@ -29,7 +40,25 @@ export interface AdvanceResult {
 /** Alert clears once the player is farther than this or leaves the NPC's map. */
 export const CHASE_RANGE = 10;
 
+/** Fleeing ends the fight once every combat enemy is farther than this. */
+export const DISENGAGE_RANGE = 2;
+
+/** Intents a player cannot act on while steel is drawn. */
+const COMBAT_BLOCKED_INTENTS: ReadonlySet<Intent["type"]> = new Set([
+  "move",
+  "wait",
+  "talk",
+  "take",
+  "trade",
+  "sneak",
+  "eat",
+  "pickpocket",
+]);
+
 export function advance(state: GameState, intent: Intent, world: WorldDef): AdvanceResult {
+  if (state.combat !== null && COMBAT_BLOCKED_INTENTS.has(intent.type)) {
+    return rejected(state, "not in the middle of a fight");
+  }
   switch (intent.type) {
     case "move":
       return state.dialogue === null && state.trade === null
@@ -71,9 +100,13 @@ export function advance(state: GameState, intent: Intent, world: WorldDef): Adva
             events: [{ type: "trade-ended", npcId: state.trade.npcId }],
           };
     case "eat":
-      return state.dialogue === null && state.trade === null && state.combat === null
+      return state.dialogue === null && state.trade === null
         ? applyEat(state, intent, world)
         : rejected(state, "not while you're occupied");
+    case "attack":
+      return applyAttack(state, intent, world);
+    case "flee":
+      return applyFlee(state, intent, world);
   }
 }
 
@@ -449,6 +482,252 @@ function applyEat(state: GameState, intent: EatIntent, world: WorldDef): Advance
     },
   };
   return applyTick(next, state.player.pos, [{ type: "ate-food", itemId }], world);
+}
+
+interface EnemyTurnsResult {
+  readonly npcs: readonly NpcState[];
+  readonly combat: CombatState;
+  readonly playerHp: number;
+  readonly rng: RngState;
+  readonly events: readonly GameEvent[];
+}
+
+/**
+ * Every living enemy in `state.combat` acts once, in order: adjacent to the
+ * player it makes an attack roll; otherwise it takes one BFS step toward the
+ * player on its own map. Enemies missing from `state.npcs` or reduced to 0 hp
+ * are dropped from the returned combat's enemy list.
+ */
+function enemyTurns(state: GameState, world: WorldDef): EnemyTurnsResult {
+  const combat = state.combat;
+  if (combat === null) {
+    throw new Error("enemyTurns called without an active combat");
+  }
+  const events: GameEvent[] = [];
+  let npcs = state.npcs;
+  let rng = state.rng;
+  let playerHp = state.player.hp;
+  const playerPos = state.player.pos;
+  const survivingIds: string[] = [];
+
+  for (const enemyId of combat.enemyIds) {
+    const enemy = npcs.find((npc) => npc.id === enemyId);
+    const def = world.npcs[enemyId];
+    if (enemy === undefined || def?.combat === undefined || (enemy.hp ?? 0) <= 0) {
+      continue;
+    }
+    survivingIds.push(enemyId);
+    const map = world.maps[enemy.mapId];
+    if (playerHp <= 0 || map === undefined) {
+      continue;
+    }
+    const adjacent =
+      Math.max(Math.abs(enemy.pos.x - playerPos.x), Math.abs(enemy.pos.y - playerPos.y)) <= 1;
+    if (adjacent) {
+      const roll = rollAttack(rng, def.combat, PLAYER_COMBAT);
+      rng = roll.state;
+      if (roll.hit) {
+        playerHp = Math.max(0, playerHp - roll.damage);
+        events.push({
+          type: "attack-hit",
+          attackerId: enemyId,
+          targetId: "player",
+          damage: roll.damage,
+        });
+      } else {
+        events.push({ type: "attack-missed", attackerId: enemyId, targetId: "player" });
+      }
+      continue;
+    }
+    const step = nextStep(map, enemy.pos, playerPos);
+    if (step === undefined) {
+      continue;
+    }
+    const stepBlocked =
+      npcs.some(
+        (other) =>
+          other.id !== enemyId &&
+          other.mapId === enemy.mapId &&
+          other.pos.x === step.x &&
+          other.pos.y === step.y,
+      ) ||
+      (enemy.mapId === state.mapId && step.x === playerPos.x && step.y === playerPos.y);
+    if (stepBlocked) {
+      continue;
+    }
+    npcs = npcs.map((npc) => (npc.id === enemyId ? { ...npc, pos: step } : npc));
+    events.push({ type: "npc-moved", npcId: enemyId, from: enemy.pos, to: step });
+  }
+
+  return { npcs, combat: { enemyIds: survivingIds }, playerHp, rng, events };
+}
+
+/**
+ * Player hp reaching 0: robbed, not dead. Wakes at the start map's spawn with
+ * nothing, hp restored; combat's engaged enemies keep their wounds but lose
+ * alert. The rest of the world (deeds, rumors, other npcs) is untouched.
+ */
+function applyDefeat(state: GameState, world: WorldDef, npcs: readonly NpcState[]): GameState {
+  const startMap = world.maps[world.startMapId];
+  if (startMap === undefined) {
+    throw new Error(`world references unknown start map "${world.startMapId}"`);
+  }
+  const engagedIds = new Set(state.combat === null ? [] : state.combat.enemyIds);
+  const calmed = npcs.map((npc) => {
+    if (!engagedIds.has(npc.id) || npc.alert !== true) {
+      return npc;
+    }
+    const { alert: _alert, ...rest } = npc;
+    return rest;
+  });
+  return {
+    ...state,
+    mapId: world.startMapId,
+    player: {
+      ...state.player,
+      pos: startMap.playerSpawn,
+      coin: 0,
+      items: [],
+      hp: PLAYER_COMBAT.maxHp,
+      sneaking: false,
+    },
+    npcs: calmed,
+    combat: null,
+  };
+}
+
+/** Runs the enemy turns following a player action and folds the outcome into a result. */
+function resolveEnemyTurns(state: GameState, world: WorldDef, events: GameEvent[]): AdvanceResult {
+  const turn = enemyTurns(state, world);
+  events.push(...turn.events);
+  if (turn.playerHp <= 0) {
+    events.push({ type: "player-defeated" });
+    return { state: applyDefeat(state, world, turn.npcs), events };
+  }
+  const combat: CombatState | null = turn.combat.enemyIds.length === 0 ? null : turn.combat;
+  if (combat === null) {
+    events.push({ type: "combat-ended", outcome: "victory" });
+  }
+  return {
+    state: {
+      ...state,
+      rng: turn.rng,
+      npcs: turn.npcs,
+      player: { ...state.player, hp: turn.playerHp },
+      combat,
+    },
+    events,
+  };
+}
+
+function applyAttack(state: GameState, intent: AttackIntent, world: WorldDef): AdvanceResult {
+  if (state.combat === null) {
+    return rejected(state, "there is no fight");
+  }
+  const enemyId = state.combat.enemyIds[intent.index];
+  const enemy = enemyId === undefined ? undefined : state.npcs.find((npc) => npc.id === enemyId);
+  const def = enemyId === undefined ? undefined : world.npcs[enemyId];
+  if (enemyId === undefined || enemy === undefined || def?.combat === undefined) {
+    return rejected(state, `there is no foe ${intent.index}`);
+  }
+
+  const roll = rollAttack(state.rng, PLAYER_COMBAT, def.combat);
+  const events: GameEvent[] = [];
+  let npcs = state.npcs;
+  let worldItems = state.worldItems;
+  let enemyIds = state.combat.enemyIds;
+
+  if (!roll.hit) {
+    events.push({ type: "attack-missed", attackerId: "player", targetId: enemyId });
+  } else {
+    events.push({
+      type: "attack-hit",
+      attackerId: "player",
+      targetId: enemyId,
+      damage: roll.damage,
+    });
+    const hp = Math.max(0, (enemy.hp ?? def.combat.maxHp) - roll.damage);
+    if (hp > 0) {
+      npcs = npcs.map((npc) => (npc.id === enemyId ? { ...npc, hp } : npc));
+    } else {
+      npcs = npcs.filter((npc) => npc.id !== enemyId);
+      worldItems = [
+        ...worldItems,
+        ...enemy.pockets.map((itemId) => ({ mapId: enemy.mapId, itemId, pos: enemy.pos })),
+      ];
+      enemyIds = enemyIds.filter((id) => id !== enemyId);
+      events.push({ type: "npc-died", npcId: enemyId });
+    }
+  }
+
+  const afterPlayer: GameState = {
+    ...state,
+    rng: roll.state,
+    npcs,
+    worldItems,
+    combat: { enemyIds },
+  };
+  if (enemyIds.length === 0) {
+    events.push({ type: "combat-ended", outcome: "victory" });
+    return { state: { ...afterPlayer, combat: null }, events };
+  }
+  return resolveEnemyTurns(afterPlayer, world, events);
+}
+
+function applyFlee(state: GameState, intent: FleeIntent, world: WorldDef): AdvanceResult {
+  if (state.combat === null) {
+    return rejected(state, "there is no fight");
+  }
+  const opportunity = enemyTurns(state, world);
+  const events: GameEvent[] = [...opportunity.events];
+  if (opportunity.playerHp <= 0) {
+    events.push({ type: "player-defeated" });
+    return { state: applyDefeat(state, world, opportunity.npcs), events };
+  }
+
+  const afterOpportunity: GameState = {
+    ...state,
+    rng: opportunity.rng,
+    npcs: opportunity.npcs,
+    player: { ...state.player, hp: opportunity.playerHp },
+    combat: opportunity.combat,
+  };
+
+  const delta = DIRECTION_DELTAS[intent.direction];
+  const from = afterOpportunity.player.pos;
+  const to = { x: from.x + delta.dx, y: from.y + delta.dy };
+  const map = currentMap(afterOpportunity, world);
+  const blocked =
+    isBlocked(map, to.x, to.y) ||
+    afterOpportunity.npcs.some(
+      (npc) => npc.mapId === afterOpportunity.mapId && npc.pos.x === to.x && npc.pos.y === to.y,
+    );
+  const playerPos = blocked ? from : to;
+  events.push(
+    blocked
+      ? { type: "movement-blocked", at: from, toward: to }
+      : { type: "player-moved", from, to },
+  );
+
+  const stillNear = afterOpportunity.npcs.some((npc) => {
+    if (npc.mapId !== afterOpportunity.mapId || !opportunity.combat.enemyIds.includes(npc.id)) {
+      return false;
+    }
+    const distance = Math.max(Math.abs(npc.pos.x - playerPos.x), Math.abs(npc.pos.y - playerPos.y));
+    return distance <= DISENGAGE_RANGE;
+  });
+  if (!stillNear) {
+    events.push({ type: "combat-ended", outcome: "fled" });
+  }
+
+  return {
+    state: {
+      ...afterOpportunity,
+      player: { ...afterOpportunity.player, pos: playerPos },
+      combat: stillNear ? afterOpportunity.combat : null,
+    },
+    events,
+  };
 }
 
 function applyTalk(state: GameState, world: WorldDef): AdvanceResult {

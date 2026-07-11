@@ -219,6 +219,11 @@ export class WorldScene extends Scene {
       case "npc-alerted":
       case "npc-calmed":
       case "combat-started":
+      case "attack-hit":
+      case "attack-missed":
+      case "npc-died":
+      case "combat-ended":
+      case "player-defeated":
         break; // reflected by renderUi()
     }
   }

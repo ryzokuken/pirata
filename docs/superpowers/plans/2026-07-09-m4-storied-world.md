@@ -472,9 +472,9 @@ export function rollAttack(
 
 **Files:** modify `packages/core/src/advance.ts`, `intent.ts`, `event.ts`; test `advance.test.ts`
 
-- [ ] **Step 1: Intents/events.** `AttackIntent { type:"attack"; index }` (into `combat.enemyIds`), `FleeIntent { type:"flee"; direction }`. Events: `AttackHitEvent { type:"attack-hit"; attackerId; targetId; damage }`, `AttackMissedEvent { attackerId; targetId }` (attacker/target: NPC id or the literal `"player"` — namespaced ids can't collide), `NpcDiedEvent { npcId }`, `CombatEndedEvent { type:"combat-ended"; outcome: "victory" | "fled" }`.
+- [x] **Step 1: Intents/events.** `AttackIntent { type:"attack"; index }` (into `combat.enemyIds`), `FleeIntent { type:"flee"; direction }`. Events: `AttackHitEvent { type:"attack-hit"; attackerId; targetId; damage }`, `AttackMissedEvent { attackerId; targetId }` (attacker/target: NPC id or the literal `"player"` — namespaced ids can't collide), `NpcDiedEvent { npcId }`, `CombatEndedEvent { type:"combat-ended"; outcome: "victory" | "fled" }`.
 
-- [ ] **Step 2: Failing tests** (drive with seeds; loop seeds where an outcome is random, like M3's pickpocket tests):
+- [x] **Step 2: Failing tests** (drive with seeds; loop seeds where an outcome is random, like M3's pickpocket tests):
 
 - While `combat !== null`: `move`/`wait`/`talk`/`take`/`trade`/`sneak`/`eat`/`pickpocket` are rejected (`"not in the middle of a fight"`); `attack`/`flee` are rejected when `combat === null` (`"there is no fight"`).
 - `attack {index:0}` on the brute: exactly one player attack resolves (hit → brute hp drops + `attack-hit`; miss → `attack-missed`), then the brute retaliates if alive and adjacent (one enemy attack roll against the player). rng threads; same seed ⇒ identical outcome.
@@ -482,15 +482,15 @@ export function rollAttack(
 - `flee` away from an adjacent brute: the brute's opportunity attack resolves first, then the player steps (blocked step = no movement, round still spent); if afterwards the brute is farther than `DISENGAGE_RANGE = 2`, combat ends `"fled"` with the brute still `alert`; else combat continues.
 - Enemy turns do NOT advance `state.tick` (assert tick unchanged across an attack round).
 
-- [ ] **Step 3: Implement** `applyAttack`/`applyFlee` in `advance.ts` (shared `enemyTurns(state, events)` helper: for each living enemy in `enemyIds` order — adjacent → `rollAttack(enemy.combat, PLAYER_COMBAT)` against the player; not adjacent → one `nextStep` toward the player on its map; dead/missing enemies are dropped from `enemyIds`; when the list empties → victory). Player hp reaching ≤ 0 during enemy turns short-circuits into Task 10's defeat path (write `applyDefeat` as a stub returning the unchanged state with a `// Task 10` comment if implementing strictly in order — or pull Task 10 forward into this task if the stub feels wrong; record whichever you do).
+- [x] **Step 3: Implement** `applyAttack`/`applyFlee` in `advance.ts` (shared `enemyTurns(state, events)` helper: for each living enemy in `enemyIds` order — adjacent → `rollAttack(enemy.combat, PLAYER_COMBAT)` against the player; not adjacent → one `nextStep` toward the player on its map; dead/missing enemies are dropped from `enemyIds`; when the list empties → victory). Player hp reaching ≤ 0 during enemy turns short-circuits into Task 10's defeat path (write `applyDefeat` as a stub returning the unchanged state with a `// Task 10` comment if implementing strictly in order — or pull Task 10 forward into this task if the stub feels wrong; record whichever you do). **Deviation:** pulled Task 10 forward into this task — a stub left the game stuck at hp ≤ 0 with no way to recover, which is worse than implementing the real reset now; `applyDefeat` (robbed, not dead) is fully implemented and tested here, and Task 10's boxes below are ticked as done by this task.
 
 ## Task 10: Core — defeat: robbed, not dead
 
 **Files:** modify `packages/core/src/advance.ts`, `event.ts`; test `advance.test.ts`
 
-- [ ] **Step 1: Failing tests.** Manufacture a combat state with player hp 1 and a brute with overwhelming stats/seed such that the enemy hit lands (loop seeds): after the round, `player-defeated` fires; the player is on the start map at its spawn with `coin 0`, `items []`, `hp === PLAYER_COMBAT.maxHp`, `sneaking false`, `combat === null`; the brute keeps its current hp and loses `alert`; the world is otherwise intact (deeds, rumors, worldItems untouched); tick unchanged.
+- [x] **Step 1: Failing tests.** Manufacture a combat state with player hp 1 and a brute with overwhelming stats/seed such that the enemy hit lands (loop seeds): after the round, `player-defeated` fires; the player is on the start map at its spawn with `coin 0`, `items []`, `hp === PLAYER_COMBAT.maxHp`, `sneaking false`, `combat === null`; the brute keeps its current hp and loses `alert`; the world is otherwise intact (deeds, rumors, worldItems untouched); tick unchanged. **(Implemented in Task 9 — see deviation note above.)**
 
-- [ ] **Step 2: Implement** `PlayerDefeatedEvent { type: "player-defeated" }` + the reset in the enemy-turn resolution.
+- [x] **Step 2: Implement** `PlayerDefeatedEvent { type: "player-defeated" }` + the reset in the enemy-turn resolution. **(Implemented in Task 9 — see deviation note above.)**
 
 ## Task 11: Content — schemas, finalize, and per-map reachability
 

@@ -17,11 +17,13 @@ export {
 } from "./state.ts";
 export {
   DIRECTION_DELTAS,
+  type AttackIntent,
   type BuyIntent,
   type ChooseIntent,
   type CloseTradeIntent,
   type Direction,
   type EatIntent,
+  type FleeIntent,
   type Intent,
   type MoveIntent,
   type PickpocketIntent,
@@ -34,7 +36,10 @@ export {
 } from "./intent.ts";
 export type {
   AteFoodEvent,
+  AttackHitEvent,
+  AttackMissedEvent,
   CoinPaidEvent,
+  CombatEndedEvent,
   CombatStartedEvent,
   CrimeWitnessedEvent,
   DeedRecordedEvent,
@@ -52,9 +57,11 @@ export type {
   MovementBlockedEvent,
   NpcAlertedEvent,
   NpcCalmedEvent,
+  NpcDiedEvent,
   NpcMovedEvent,
   PickpocketFailedEvent,
   PickpocketSucceededEvent,
+  PlayerDefeatedEvent,
   PlayerMovedEvent,
   ReputationChangedEvent,
   RumorHeardEvent,
@@ -71,7 +78,7 @@ export {
   type HungerStage,
 } from "./hunger.ts";
 export { isBlocked, MapParseError, parseTiledMap, type MapModel, type MapPortal } from "./map.ts";
-export { advance, CHASE_RANGE, type AdvanceResult } from "./advance.ts";
+export { advance, CHASE_RANGE, DISENGAGE_RANGE, type AdvanceResult } from "./advance.ts";
 export { deserialize, SaveError, serialize, SAVE_VERSION } from "./save.ts";
 export {
   clockOf,

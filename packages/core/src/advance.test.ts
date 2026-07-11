@@ -185,6 +185,183 @@ describe("advance: aggro and combat start", () => {
   });
 });
 
+describe("advance: combat rounds", () => {
+  // Walks through the lair portal then waits once: the brute chases adjacent
+  // and combat-started fires (mirrors "advance: aggro and combat start").
+  // Player ends at (3,3), brute at (3,2) — no rng consumed getting here.
+  function combatState(seed: number): GameState {
+    const arrived = run(createGameState({ seed, world }), WALK_TO_PORTAL);
+    return advance(arrived, { type: "wait" }, world).state;
+  }
+
+  it("rejects other world intents while a fight is on", () => {
+    const state = combatState(1);
+    const blocked: Intent[] = [
+      { type: "move", direction: "north" },
+      { type: "wait" },
+      { type: "talk" },
+      { type: "take" },
+      { type: "trade" },
+      { type: "sneak" },
+      { type: "eat", index: 0 },
+      { type: "pickpocket" },
+    ];
+    for (const intent of blocked) {
+      const result = advance(state, intent, world);
+      expect(result.events).toEqual([
+        { type: "intent-rejected", reason: "not in the middle of a fight" },
+      ]);
+      expect(result.state).toEqual(state);
+    }
+  });
+
+  it("rejects attack and flee when there is no fight", () => {
+    const fresh = freshState();
+    expect(advance(fresh, { type: "attack", index: 0 }, world).events).toEqual([
+      { type: "intent-rejected", reason: "there is no fight" },
+    ]);
+    expect(advance(fresh, { type: "flee", direction: "north" }, world).events).toEqual([
+      { type: "intent-rejected", reason: "there is no fight" },
+    ]);
+  });
+
+  it("resolves the player's attack deterministically and does not advance the tick", () => {
+    const state = combatState(1);
+    const result = advance(state, { type: "attack", index: 0 }, world);
+    expect(["attack-hit", "attack-missed"]).toContain(result.events[0]?.type);
+    expect(result.state.tick).toBe(state.tick);
+    expect(advance(state, { type: "attack", index: 0 }, world)).toEqual(result);
+  });
+
+  it("the brute retaliates when it survives the player's attack and stays adjacent", () => {
+    for (let seed = 1; seed < 50; seed += 1) {
+      const state = combatState(seed);
+      const result = advance(state, { type: "attack", index: 0 }, world);
+      const brute = result.state.npcs.find((npc) => npc.id === "test:brute");
+      if (brute !== undefined && (brute.hp ?? 0) > 0) {
+        expect(
+          result.events.some(
+            (event) =>
+              (event.type === "attack-hit" || event.type === "attack-missed") &&
+              event.attackerId === "test:brute" &&
+              event.targetId === "player",
+          ),
+        ).toBe(true);
+        return;
+      }
+    }
+    expect.unreachable("the brute never survived a player attack in 50 seeds");
+  });
+
+  it("kills the brute, drops its pockets, and ends combat in victory", () => {
+    for (let seed = 1; seed < 200; seed += 1) {
+      let result = advance(combatState(seed), { type: "attack", index: 0 }, world);
+      let rounds = 0;
+      while (result.state.combat !== null && rounds < 20) {
+        result = advance(result.state, { type: "attack", index: 0 }, world);
+        rounds += 1;
+      }
+      const bruteGone = !result.state.npcs.some((npc) => npc.id === "test:brute");
+      if (result.state.combat === null && bruteGone) {
+        expect(result.events).toContainEqual({ type: "npc-died", npcId: "test:brute" });
+        expect(result.events).toContainEqual({ type: "combat-ended", outcome: "victory" });
+        expect(result.state.worldItems).toContainEqual({
+          mapId: "lair",
+          itemId: "test:trinket",
+          pos: { x: 3, y: 2 },
+        });
+        return;
+      }
+    }
+    expect.unreachable("the brute never died within the round budget across seeds");
+  });
+
+  it("flee resolves the brute's opportunity attack before the player's step", () => {
+    const state = combatState(3);
+    const result = advance(state, { type: "flee", direction: "west" }, world);
+    expect(["attack-hit", "attack-missed"]).toContain(result.events[0]?.type);
+    expect(result.events[0]).toMatchObject({ attackerId: "test:brute", targetId: "player" });
+    expect(result.state.tick).toBe(state.tick);
+  });
+
+  it("wastes the round when the flee step is blocked", () => {
+    const state = combatState(5);
+    const result = advance(state, { type: "flee", direction: "south" }, world);
+    expect(result.state.player.pos).toEqual({ x: 3, y: 3 });
+    expect(result.events).toContainEqual({
+      type: "movement-blocked",
+      at: { x: 3, y: 3 },
+      toward: { x: 3, y: 4 },
+    });
+    expect(result.state.tick).toBe(state.tick);
+  });
+
+  it("ends combat 'fled' once no enemy remains within disengage range, keeping it alert", () => {
+    // Opposite corners of the lair's open room (Chebyshev distance 4): the
+    // brute's one chase step and the player's one (blocked) flee step still
+    // leave them 3 apart, clearing DISENGAGE_RANGE (2) with no rng involved.
+    const fresh = freshState();
+    const state: GameState = {
+      ...fresh,
+      mapId: "lair",
+      combat: { enemyIds: ["test:brute"] },
+      player: { ...fresh.player, pos: { x: 5, y: 3 } },
+      npcs: fresh.npcs.map((npc) =>
+        npc.id === "test:brute" ? { ...npc, pos: { x: 1, y: 1 }, alert: true } : npc,
+      ),
+    };
+    const result = advance(state, { type: "flee", direction: "east" }, world);
+    expect(result.events).toContainEqual({
+      type: "movement-blocked",
+      at: { x: 5, y: 3 },
+      toward: { x: 6, y: 3 },
+    });
+    expect(result.state.combat).toBeNull();
+    expect(result.events).toContainEqual({ type: "combat-ended", outcome: "fled" });
+    const brute = result.state.npcs.find((npc) => npc.id === "test:brute");
+    expect(brute?.pos).toEqual({ x: 2, y: 1 });
+    expect(brute?.alert).toBe(true);
+    expect(result.state.tick).toBe(state.tick);
+  });
+});
+
+describe("advance: defeat (robbed, not dead)", () => {
+  // Same arrival as "advance: combat rounds", but the player's hp is forced
+  // to 1 so that any hit the brute lands is a killing blow.
+  function overwhelmed(seed: number): GameState {
+    const arrived = run(createGameState({ seed, world }), WALK_TO_PORTAL);
+    const chased = advance(arrived, { type: "wait" }, world).state;
+    return { ...chased, player: { ...chased.player, hp: 1 } };
+  }
+
+  it("resets the player and calms the brute once hp reaches 0, leaving the world otherwise intact", () => {
+    for (let seed = 1; seed < 200; seed += 1) {
+      const before = overwhelmed(seed);
+      const result = advance(before, { type: "attack", index: 0 }, world);
+      const defeated = result.events.some((event) => event.type === "player-defeated");
+      if (defeated) {
+        expect(result.state.mapId).toBe(world.startMapId);
+        expect(result.state.player.pos).toEqual(world.maps[world.startMapId]?.playerSpawn);
+        expect(result.state.player.coin).toBe(0);
+        expect(result.state.player.items).toEqual([]);
+        expect(result.state.player.hp).toBe(PLAYER_COMBAT.maxHp);
+        expect(result.state.player.sneaking).toBe(false);
+        expect(result.state.combat).toBeNull();
+        expect(result.state.deeds).toEqual(before.deeds);
+        expect(result.state.rumors).toEqual(before.rumors);
+        expect(result.state.worldItems).toEqual(before.worldItems);
+        const brute = result.state.npcs.find((npc) => npc.id === "test:brute");
+        expect(brute).toBeDefined();
+        expect(brute?.alert).toBeUndefined();
+        expect(brute?.hp).toBeGreaterThan(0);
+        expect(result.state.tick).toBe(before.tick);
+        return;
+      }
+    }
+    expect.unreachable("the brute never landed a killing blow on hp 1 across 200 seeds");
+  });
+});
+
 describe("advance: talk & choose", () => {
   it("talk with no adjacent NPC is rejected without ticking", () => {
     const result = advance(freshState(), { type: "talk" }, world);
