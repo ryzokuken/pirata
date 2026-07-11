@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:e2e": "pnpm --filter @pirata/client build && playwright test",
     "build": "pnpm -r --if-present build",
-    "build:maps": "node scripts/build-town-map.ts",
+    "build:maps": "node scripts/build-maps.ts",
     "validate:content": "node packages/content/src/validate.ts",
     "check:attribution": "node scripts/check-attribution.ts"
   },

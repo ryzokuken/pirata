@@ -504,8 +504,8 @@ export function rollAttack(
 
 **Files:** rename `scripts/build-town-map.ts` → `scripts/build-maps.ts` (update the `build:maps` script in `package.json` if it names the file); modify base pack JSONs; regenerate both maps; test `base.test.ts`
 
-- [ ] **Step 1: Script.** Restructure to build N maps from a table of `{ id, layout, locationLegend, itemLegend, portalLegend }`. Portal legend: char → `{ toMapId, toLocation }`, emitted as a `portals` object layer (objects named `"<toMapId>/<toLocation>"`). Town changes: ONE character edit — row 1 col 27 `.`→`O` (the north-road gap in the coast, walkable), `O` = portal to `smugglers_cove/cove_beach`; plus new location `R`=north_road at row 1 col 26 (`.`→`R`) as the return-arrival tile. (Verify both chars are `.` first; row 1 is `"#............................~~~~~~#"` — cols 1–28 are dots.)
-- [ ] **Step 2: The cove layout** — 28×18, `smugglers_cove`, authoritative (every row exactly 28 chars; the script's length check plus the reachability link pass are the safety net, but transcribe carefully):
+- [x] **Step 1: Script.** Restructure to build N maps from a table of `{ id, layout, locationLegend, itemLegend, portalLegend }`. Portal legend: char → `{ toMapId, toLocation }`, emitted as a `portals` object layer (objects named `"<toMapId>/<toLocation>"`). Town changes: ONE character edit — row 1 col 27 `.`→`O` (the north-road gap in the coast, walkable), `O` = portal to `smugglers_cove/cove_beach`; plus new location `R`=north_road at row 1 col 26 (`.`→`R`) as the return-arrival tile. (Verify both chars are `.` first; row 1 is `"#............................~~~~~~#"` — cols 1–28 are dots.)
+- [x] **Step 2: The cove layout** — 28×18, `smugglers_cove`, authoritative (every row exactly 28 chars; the script's length check plus the reachability link pass are the safety net, but transcribe carefully):
 
 ```ts
 const COVE_LAYOUT: readonly string[] = [
@@ -548,14 +548,14 @@ Why this geometry (the encounter design, verified against day perception radius 
 - The beach (row 15) is ≥ 6 from every post — arriving is safe; the approach through the rock-band gap (14,12) closes to distance 3 from `n` — the frontal approach is the risky one.
 - All locations, items, and both portal tiles are mutually reachable (tunnel and mouth both connect beach↔chamber); the link pass enforces this — run `pnpm validate:content` early and often.
 
-- [ ] **Step 3: Content.** `factions.json` += `base:smugglers` ("The Brethren of the Cove"). `npcs.json` += two smugglers on `smugglers_cove`, `hostile: true`:
+- [x] **Step 3: Content.** `factions.json` += `base:smugglers` ("The Brethren of the Cove"). `npcs.json` += two smugglers on `smugglers_cove`, `hostile: true`:
   - `base:smuggler_lookout` "Vico" — patrols the mouth ground all day: schedule `[{hour:0, location:"cove_west"}, {hour:6, location:"cove_east"}, {hour:12, location:"cove_west"}, {hour:18, location:"cove_east"}]` (`l`↔`m`; his BFS route may detour around Tano at `n` — the occupancy rules handle it). Combat `{ maxHp: 8, attackBonus: 3, armorClass: 12, damage: { count: 1, sides: 6, bonus: 0 } }`, pockets `["base:rum_bottle"]`, dialogue `base:smuggler_talk` — a minimal hostile bark (one node, "You shouldn't be here.", one exit choice; talking to a not-yet-alerted smuggler is legal).
   - `base:smuggler_quartermaster` "Old Tano" — **the timing mechanic**: schedule `[{hour:0, location:"cove_cellar"}, {hour:12, location:"cove_mouth"}]` (`g` then `n`) — he guards the treasure through the night and morning, and drinks at the mouth 12:00–23:59, exactly as the rumor says. Combat `{ maxHp: 10, attackBonus: 4, armorClass: 13, damage: { count: 1, sides: 8, bonus: 1 } }`, pockets `["base:silver_ring"]`, same bark dialogue.
   - `items.json`: `base:pearl_strand { value: 60, treasure: true }` new; `base:dried_fish` gains `food: { nutrition: 8 }`; `base:rum_bottle` gains `food: { nutrition: 2 }`.
   - `rumors.json` (new): `base:cove_cache` — text: `"The Brethren cache their haul in the cove up the north road. The old quartermaster drinks at the cave mouth from midday — his cellar stands unwatched till dark, if you know the tide-tunnel."`
   - `dialogues.json`: tavernkeeper `hello` node gains `{ text: "What's the word on the coast? (10 coin)", condition: {coin-at-least 10}, effects: [{pay 10}, {rumor base:cove_cache}], next: "word" }` + node `word` echoing the hint; harbormaster's existing standing-gated `hint` node gains the rumor effect (free for trusted friends — two extraction paths, spec §4.3).
   - `pack.json` → `0.4.0`.
-- [ ] **Step 4: Tests + gate.** `base.test.ts`: world has 2 maps, smugglers hostile with combat, rumor linked, pearl treasure, fish is food; counts updated. `pnpm build:maps && pnpm validate:content` green (this is where cove geometry errors surface — fix the LAYOUT, rerun). Full gate.
+- [x] **Step 4: Tests + gate.** `base.test.ts`: world has 2 maps, smugglers hostile with combat, rumor linked, pearl treasure, fish is food; counts updated. `pnpm build:maps && pnpm validate:content` green (this is where cove geometry errors surface — fix the LAYOUT, rerun). Full gate.
 
 ## Task 13: Client — many maps, combat, hunger, journal
 

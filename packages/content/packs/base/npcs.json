@@ -59,5 +59,47 @@
     ],
     "pockets": [],
     "confront": { "standingBelow": -10, "dialogue": "base:watch_confront" }
+  },
+  {
+    "type": "npc",
+    "id": "base:smuggler_lookout",
+    "name": "Vico",
+    "faction": "base:smugglers",
+    "dialogue": "base:smuggler_talk",
+    "map": "smugglers_cove",
+    "schedule": [
+      { "hour": 0, "location": "cove_west" },
+      { "hour": 6, "location": "cove_east" },
+      { "hour": 12, "location": "cove_west" },
+      { "hour": 18, "location": "cove_east" }
+    ],
+    "pockets": ["base:rum_bottle"],
+    "hostile": true,
+    "combat": {
+      "maxHp": 8,
+      "attackBonus": 3,
+      "armorClass": 12,
+      "damage": { "count": 1, "sides": 6, "bonus": 0 }
+    }
+  },
+  {
+    "type": "npc",
+    "id": "base:smuggler_quartermaster",
+    "name": "Old Tano",
+    "faction": "base:smugglers",
+    "dialogue": "base:smuggler_talk",
+    "map": "smugglers_cove",
+    "schedule": [
+      { "hour": 0, "location": "cove_cellar" },
+      { "hour": 12, "location": "cove_mouth" }
+    ],
+    "pockets": ["base:silver_ring"],
+    "hostile": true,
+    "combat": {
+      "maxHp": 10,
+      "attackBonus": 4,
+      "armorClass": 13,
+      "damage": { "count": 1, "sides": 8, "bonus": 1 }
+    }
   }
 ]

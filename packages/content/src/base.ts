@@ -4,7 +4,9 @@ import dialoguesJson from "@pirata/content/packs/base/dialogues.json" with { typ
 import factionsJson from "@pirata/content/packs/base/factions.json" with { type: "json" };
 import itemsJson from "@pirata/content/packs/base/items.json" with { type: "json" };
 import townJson from "@pirata/content/packs/base/maps/port_town.map.json" with { type: "json" };
+import coveJson from "@pirata/content/packs/base/maps/smugglers_cove.map.json" with { type: "json" };
 import npcsJson from "@pirata/content/packs/base/npcs.json" with { type: "json" };
+import rumorsJson from "@pirata/content/packs/base/rumors.json" with { type: "json" };
 import { parseTiledMap, type WorldDef } from "@pirata/core";
 import { finalizeWorld } from "./finalize.ts";
 import { parsePackObjects } from "./loader.ts";
@@ -18,10 +20,11 @@ export function loadBaseWorld(): WorldDef {
     ...parsePackObjects(crimesJson, "packs/base/crimes.json"),
     ...parsePackObjects(npcsJson, "packs/base/npcs.json"),
     ...parsePackObjects(dialoguesJson, "packs/base/dialogues.json"),
+    ...parsePackObjects(rumorsJson, "packs/base/rumors.json"),
   ];
   return finalizeWorld({
     objects,
-    maps: [parseTiledMap("port_town", townJson)],
+    maps: [parseTiledMap("port_town", townJson), parseTiledMap("smugglers_cove", coveJson)],
     startMapId: "port_town",
   });
 }
