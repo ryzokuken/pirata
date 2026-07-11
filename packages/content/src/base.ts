@@ -19,5 +19,9 @@ export function loadBaseWorld(): WorldDef {
     ...parsePackObjects(npcsJson, "packs/base/npcs.json"),
     ...parsePackObjects(dialoguesJson, "packs/base/dialogues.json"),
   ];
-  return finalizeWorld({ objects, map: parseTiledMap("port_town", townJson) });
+  return finalizeWorld({
+    objects,
+    maps: [parseTiledMap("port_town", townJson)],
+    startMapId: "port_town",
+  });
 }

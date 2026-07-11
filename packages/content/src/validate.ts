@@ -9,15 +9,18 @@ const manifestPath = join(packDir, "pack.json");
 const manifest = parsePackManifest(JSON.parse(readFileSync(manifestPath, "utf8")), manifestPath);
 
 const mapsDir = join(packDir, "maps");
+// Sorted so the start map is deterministic across filesystems; the base pack's
+// own start map ("port_town") sorts first alongside the cove either way.
 const maps: MapModel[] = readdirSync(mapsDir)
   .filter((file) => file.endsWith(".map.json"))
+  .toSorted()
   .map((file) => {
     const raw: unknown = JSON.parse(readFileSync(join(mapsDir, file), "utf8"));
     return parseTiledMap(file.replace(".map.json", ""), raw);
   });
-const townMap = maps[0];
-if (townMap === undefined || maps.length !== 1) {
-  console.error(`${mapsDir}: expected exactly one map, found ${String(maps.length)}`);
+const startMap = maps[0];
+if (startMap === undefined) {
+  console.error(`${mapsDir}: expected at least one map, found none`);
   process.exit(1);
 }
 
@@ -28,7 +31,7 @@ const objects = readdirSync(packDir)
     return parsePackObjects(raw, join(packDir, file));
   });
 
-const world = finalizeWorld({ objects, map: townMap });
+const world = finalizeWorld({ objects, maps, startMapId: startMap.id });
 createGameState({ seed: 1, world });
 console.log(
   `pack "${manifest.id}" OK: ${String(maps.length)} map(s), ${String(objects.length)} object(s), links resolve, world boots`,

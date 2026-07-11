@@ -8,6 +8,8 @@ import {
   type ItemDef,
   type MapModel,
   type NpcDef,
+  type RumorDef,
+  type Vec2,
   type WorldDef,
 } from "@pirata/core";
 import { ContentError } from "./loader.ts";
@@ -20,14 +22,25 @@ import type { DialogueObject, PackObject } from "./schemas.ts";
  */
 export function finalizeWorld(options: {
   readonly objects: readonly PackObject[];
-  readonly map: MapModel;
+  readonly maps: readonly MapModel[];
+  readonly startMapId: string;
 }): WorldDef {
+  const maps: Record<string, MapModel> = {};
+  for (const map of options.maps) {
+    assertNewId(maps, map.id, "map");
+    maps[map.id] = map;
+  }
+  if (maps[options.startMapId] === undefined) {
+    throw new ContentError(`unknown start map "${options.startMapId}"`);
+  }
+
   const factions: Record<string, FactionDef> = {};
   const deeds: Record<string, DeedDef> = {};
   const dialogues: Record<string, DialogueDef> = {};
   const npcs: Record<string, NpcDef> = {};
   const items: Record<string, ItemDef> = {};
   const crimes: Partial<Record<CrimeVerb, string>> = {};
+  const rumors: Record<string, RumorDef> = {};
 
   for (const object of options.objects) {
     switch (object.type) {
@@ -54,8 +67,7 @@ export function finalizeWorld(options: {
           name: object.name,
           factionId: object.faction,
           dialogueId: object.dialogue,
-          // Task 11 replaces this with the content schema's optional `map` field.
-          mapId: options.map.id,
+          mapId: object.map ?? options.startMapId,
           schedule: object.schedule,
           pockets: object.pockets,
           ...(object.shop !== undefined ? { shop: { sells: object.shop.sells } } : {}),
@@ -67,17 +79,29 @@ export function finalizeWorld(options: {
                 },
               }
             : {}),
+          ...(object.hostile !== undefined ? { hostile: object.hostile } : {}),
+          ...(object.combat !== undefined ? { combat: object.combat } : {}),
         };
         break;
       case "item":
         assertNewId(items, object.id, "item");
-        items[object.id] = { id: object.id, name: object.name, value: object.value };
+        items[object.id] = {
+          id: object.id,
+          name: object.name,
+          value: object.value,
+          ...(object.food !== undefined ? { food: object.food } : {}),
+          ...(object.treasure !== undefined ? { treasure: object.treasure } : {}),
+        };
         break;
       case "crime":
         if (crimes[object.verb] !== undefined) {
           throw new ContentError(`duplicate crime for verb "${object.verb}"`);
         }
         crimes[object.verb] = object.deed;
+        break;
+      case "rumor":
+        assertNewId(rumors, object.id, "rumor");
+        rumors[object.id] = { id: object.id, text: object.text };
         break;
     }
   }
@@ -89,6 +113,13 @@ export function finalizeWorld(options: {
     if (dialogues[npc.dialogueId] === undefined) {
       throw new ContentError(`npc "${npc.id}": unknown dialogue "${npc.dialogueId}"`);
     }
+    const map = maps[npc.mapId];
+    if (map === undefined) {
+      throw new ContentError(`npc "${npc.id}": unknown map "${npc.mapId}"`);
+    }
+    if (npc.hostile === true && npc.combat === undefined) {
+      throw new ContentError(`npc "${npc.id}": hostile without combat stats`);
+    }
     for (let i = 1; i < npc.schedule.length; i += 1) {
       const previous = npc.schedule[i - 1];
       const current = npc.schedule[i];
@@ -97,9 +128,9 @@ export function finalizeWorld(options: {
       }
     }
     for (const entry of npc.schedule) {
-      if (options.map.locations[entry.location] === undefined) {
+      if (map.locations[entry.location] === undefined) {
         throw new ContentError(
-          `npc "${npc.id}": schedule location "${entry.location}" is not on map "${options.map.id}"`,
+          `npc "${npc.id}": schedule location "${entry.location}" is not on map "${map.id}"`,
         );
       }
     }
@@ -144,6 +175,11 @@ export function finalizeWorld(options: {
               `dialogue "${dialogue.id}" node "${nodeId}": choice "${choice.text}" references unknown deed "${effect.deedId}"`,
             );
           }
+          if (effect.type === "rumor" && rumors[effect.rumorId] === undefined) {
+            throw new ContentError(
+              `dialogue "${dialogue.id}" node "${nodeId}": choice "${choice.text}" references unknown rumor "${effect.rumorId}"`,
+            );
+          }
         }
       }
     }
@@ -154,47 +190,96 @@ export function finalizeWorld(options: {
       throw new ContentError(`crime "${verb}": unknown deed "${deedId}"`);
     }
   }
-  for (const placed of options.map.items) {
-    if (items[placed.itemId] === undefined) {
-      throw new ContentError(
-        `map "${options.map.id}": unknown item "${placed.itemId}" placed at (${placed.pos.x},${placed.pos.y})`,
-      );
-    }
-  }
-
-  const reachable = reachableFrom(options.map, options.map.playerSpawn);
-  const isReachable = (pos: { readonly x: number; readonly y: number }): boolean =>
-    reachable[pos.y * options.map.width + pos.x] === true;
-  for (const npc of Object.values(npcs)) {
-    for (const entry of npc.schedule) {
-      const pos = options.map.locations[entry.location];
-      if (pos !== undefined && !isReachable(pos)) {
+  for (const map of Object.values(maps)) {
+    for (const placed of map.items) {
+      if (items[placed.itemId] === undefined) {
         throw new ContentError(
-          `map "${options.map.id}": location "${entry.location}" at (${pos.x},${pos.y}) is unreachable from the player spawn (blocked off by walls?)`,
+          `map "${map.id}": unknown item "${placed.itemId}" placed at (${placed.pos.x},${placed.pos.y})`,
+        );
+      }
+    }
+    for (const portal of map.portals) {
+      const target = maps[portal.toMapId];
+      if (target === undefined) {
+        throw new ContentError(`map "${map.id}": portal to unknown map "${portal.toMapId}"`);
+      }
+      if (target.locations[portal.toLocation] === undefined) {
+        throw new ContentError(
+          `map "${map.id}": portal to unknown location "${portal.toLocation}" on map "${portal.toMapId}"`,
         );
       }
     }
   }
-  for (const placed of options.map.items) {
-    if (!isReachable(placed.pos)) {
-      throw new ContentError(
-        `map "${options.map.id}": item "${placed.itemId}" at (${placed.pos.x},${placed.pos.y}) is unreachable from the player spawn (blocked off by walls?)`,
-      );
+
+  for (const map of Object.values(maps)) {
+    const entryPoints: Vec2[] = [];
+    if (map.id === options.startMapId) {
+      entryPoints.push(map.playerSpawn);
+    }
+    for (const source of Object.values(maps)) {
+      for (const portal of source.portals) {
+        if (portal.toMapId === map.id) {
+          const arrival = map.locations[portal.toLocation];
+          if (arrival !== undefined) {
+            entryPoints.push(arrival);
+          }
+        }
+      }
+    }
+    const reachable = unionReachable(map, entryPoints);
+    const isReachable = (pos: Vec2): boolean => reachable[pos.y * map.width + pos.x] === true;
+
+    for (const npc of Object.values(npcs)) {
+      if (npc.mapId !== map.id) {
+        continue;
+      }
+      for (const entry of npc.schedule) {
+        const pos = map.locations[entry.location];
+        if (pos !== undefined && !isReachable(pos)) {
+          throw new ContentError(
+            `map "${map.id}": location "${entry.location}" at (${pos.x},${pos.y}) is unreachable from the map's entry points (blocked off by walls?)`,
+          );
+        }
+      }
+    }
+    for (const placed of map.items) {
+      if (!isReachable(placed.pos)) {
+        throw new ContentError(
+          `map "${map.id}": item "${placed.itemId}" at (${placed.pos.x},${placed.pos.y}) is unreachable from the map's entry points (blocked off by walls?)`,
+        );
+      }
+    }
+    for (const portal of map.portals) {
+      if (!isReachable(portal.at)) {
+        throw new ContentError(
+          `map "${map.id}": portal "${portal.toMapId}/${portal.toLocation}" at (${portal.at.x},${portal.at.y}) is unreachable from the map's entry points (blocked off by walls?)`,
+        );
+      }
     }
   }
 
-  // Task 11 replaces this with a real maps record built from multiple MapModels.
   return {
-    maps: { [options.map.id]: options.map },
-    startMapId: options.map.id,
+    maps,
+    startMapId: options.startMapId,
     factions,
     npcs,
     dialogues,
     deeds,
     items,
     crimes,
-    rumors: {},
+    rumors,
   };
+}
+
+function unionReachable(map: MapModel, entryPoints: readonly Vec2[]): readonly boolean[] {
+  const union = Array.from({ length: map.width * map.height }, () => false);
+  for (const entry of entryPoints) {
+    const reachable = reachableFrom(map, entry);
+    for (let i = 0; i < union.length; i += 1) {
+      union[i] = union[i] === true || reachable[i] === true;
+    }
+  }
+  return union;
 }
 
 function assertNewId(bucket: Record<string, unknown>, id: string, kind: string): void {
@@ -214,11 +299,16 @@ function toDialogueDef(object: DialogueObject): DialogueDef {
         ...(choice.condition !== undefined ? { condition: choice.condition } : {}),
         ...(choice.effects !== undefined
           ? {
-              effects: choice.effects.map((effect) =>
-                effect.type === "deed"
-                  ? { type: "deed" as const, deedId: effect.deed }
-                  : { type: "pay" as const, amount: effect.amount },
-              ),
+              effects: choice.effects.map((effect) => {
+                switch (effect.type) {
+                  case "deed":
+                    return { type: "deed" as const, deedId: effect.deed };
+                  case "pay":
+                    return { type: "pay" as const, amount: effect.amount };
+                  case "rumor":
+                    return { type: "rumor" as const, rumorId: effect.rumor };
+                }
+              }),
             }
           : {}),
       })),

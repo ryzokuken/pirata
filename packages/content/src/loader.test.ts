@@ -190,3 +190,171 @@ describe("item and crime objects", () => {
     expect(objects[0]?.type).toBe("dialogue");
   });
 });
+
+describe("rumor object", () => {
+  it("parses a rumor", () => {
+    const objects = parsePackObjects(
+      [{ type: "rumor", id: "base:cove_whisper", text: "There's a cove north of town." }],
+      "rumors.json",
+    );
+    expect(objects[0]).toMatchObject({ type: "rumor", text: "There's a cove north of town." });
+  });
+
+  it("rejects a rumor with empty text", () => {
+    expect(() =>
+      parsePackObjects([{ type: "rumor", id: "base:empty", text: "" }], "rumors.json"),
+    ).toThrow(ContentError);
+  });
+});
+
+describe("npc map, hostile, and combat fields", () => {
+  it("parses an npc's map, hostile flag, and combat stats", () => {
+    const objects = parsePackObjects(
+      [
+        {
+          type: "npc",
+          id: "base:smuggler",
+          name: "Smuggler",
+          faction: "base:merchants_guild",
+          dialogue: "base:smuggler_talk",
+          map: "smugglers_cove",
+          schedule: [{ hour: 0, location: "mouth" }],
+          hostile: true,
+          combat: {
+            maxHp: 6,
+            attackBonus: 2,
+            armorClass: 10,
+            damage: { count: 1, sides: 4, bonus: 0 },
+          },
+        },
+      ],
+      "npcs.json",
+    );
+    expect(objects[0]).toMatchObject({ map: "smugglers_cove", hostile: true });
+  });
+
+  it("rejects an npc map that is not lowercase snake_case", () => {
+    expect(() =>
+      parsePackObjects(
+        [
+          {
+            type: "npc",
+            id: "base:smuggler",
+            name: "Smuggler",
+            faction: "base:merchants_guild",
+            dialogue: "base:smuggler_talk",
+            map: "Smugglers-Cove",
+            schedule: [{ hour: 0, location: "mouth" }],
+          },
+        ],
+        "npcs.json",
+      ),
+    ).toThrow(/snake_case/);
+  });
+
+  it("rejects combat stats with a non-positive armor class", () => {
+    expect(() =>
+      parsePackObjects(
+        [
+          {
+            type: "npc",
+            id: "base:smuggler",
+            name: "Smuggler",
+            faction: "base:merchants_guild",
+            dialogue: "base:smuggler_talk",
+            schedule: [{ hour: 0, location: "mouth" }],
+            hostile: true,
+            combat: {
+              maxHp: 6,
+              attackBonus: 2,
+              armorClass: 0,
+              damage: { count: 1, sides: 4, bonus: 0 },
+            },
+          },
+        ],
+        "npcs.json",
+      ),
+    ).toThrow(ContentError);
+  });
+});
+
+describe("item food and treasure fields", () => {
+  it("parses food and treasure flags", () => {
+    const objects = parsePackObjects(
+      [
+        {
+          type: "item",
+          id: "base:dried_fish",
+          name: "Dried fish",
+          value: 3,
+          food: { nutrition: 8 },
+        },
+        {
+          type: "item",
+          id: "base:pearl_strand",
+          name: "Pearl strand",
+          value: 50,
+          treasure: true,
+        },
+      ],
+      "items.json",
+    );
+    expect(objects[0]).toMatchObject({ food: { nutrition: 8 } });
+    expect(objects[1]).toMatchObject({ treasure: true });
+  });
+
+  it("rejects zero nutrition", () => {
+    expect(() =>
+      parsePackObjects(
+        [{ type: "item", id: "base:water", name: "Water", value: 1, food: { nutrition: 0 } }],
+        "items.json",
+      ),
+    ).toThrow(ContentError);
+  });
+});
+
+describe("rumor dialogue effect", () => {
+  it("parses a rumor effect", () => {
+    const objects = parsePackObjects(
+      [
+        {
+          type: "dialogue",
+          id: "base:tavernkeeper_talk",
+          start: "hello",
+          nodes: {
+            hello: {
+              text: "What'll it be?",
+              choices: [
+                { text: "Any whispers?", effects: [{ type: "rumor", rumor: "base:cove_whisper" }] },
+                { text: "Nothing." },
+              ],
+            },
+          },
+        },
+      ],
+      "dialogues.json",
+    );
+    expect(objects[0]?.type).toBe("dialogue");
+  });
+
+  it("rejects a rumor effect naming an object id instead of a rumor field", () => {
+    expect(() =>
+      parsePackObjects(
+        [
+          {
+            type: "dialogue",
+            id: "base:tavernkeeper_talk",
+            start: "hello",
+            nodes: {
+              hello: {
+                text: "What'll it be?",
+                choices: [{ text: "Any whispers?", effects: [{ type: "rumor" }] }],
+              },
+            },
+          },
+        ],
+        "dialogues.json",
+      ),
+    ).toThrow(ContentError);
+  });
+});
