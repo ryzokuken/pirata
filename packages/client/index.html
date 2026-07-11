@@ -32,6 +32,10 @@
         gap: 16px;
         font-size: 14px;
       }
+      #hud-status {
+        display: flex;
+        gap: 16px;
+      }
       #hint {
         color: #8a93a3;
       }
@@ -46,7 +50,8 @@
         gap: 8px;
       }
       #reputation,
-      #inventory {
+      #inventory,
+      #journal {
         background: var(--panel);
         border: 1px solid var(--border);
         border-radius: 6px;
@@ -54,21 +59,40 @@
         font-size: 13px;
       }
       #reputation h2,
-      #inventory h2 {
+      #inventory h2,
+      #journal h2 {
         margin: 0 0 6px;
         font-size: 13px;
         color: var(--accent);
       }
       #reputation ul,
-      #inventory ul {
+      #inventory ul,
+      #journal ul {
         margin: 0;
         padding: 0;
         list-style: none;
         display: grid;
         gap: 4px;
       }
+      #inventory-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      #inventory-list button,
+      #combat-enemies button {
+        background: #232b36;
+        color: var(--ink);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 2px 8px;
+        font: inherit;
+        cursor: pointer;
+      }
       #dialogue,
-      #trade {
+      #trade,
+      #combat {
         background: var(--panel);
         border: 1px solid var(--border);
         border-radius: 6px;
@@ -76,7 +100,8 @@
         max-width: 640px;
       }
       #dialogue h2,
-      #trade h2 {
+      #trade h2,
+      #combat h2 {
         margin: 0 0 4px;
         font-size: 14px;
         color: var(--accent);
@@ -86,7 +111,8 @@
         font-size: 12px;
         color: #8a93a3;
       }
-      #dialogue p {
+      #dialogue p,
+      #combat p {
         margin: 0 0 8px;
       }
       #dialogue ol,
@@ -97,6 +123,21 @@
         display: grid;
         gap: 4px;
         counter-reset: choice;
+      }
+      #combat-enemies {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 8px;
+      }
+      #combat-enemies li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #combat-enemies progress {
+        flex: 1;
       }
       #dialogue button,
       #trade button {
@@ -118,8 +159,24 @@
       #dialogue button:hover,
       #dialogue button:focus-visible,
       #trade button:hover,
-      #trade button:focus-visible {
+      #trade button:focus-visible,
+      #combat-enemies button:hover,
+      #combat-enemies button:focus-visible,
+      #inventory-list button:hover,
+      #inventory-list button:focus-visible {
         border-color: var(--accent);
+      }
+      #defeat-banner {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(16, 20, 24, 0.92);
+        color: var(--ink);
+        font-size: 20px;
+        text-align: center;
+        padding: 24px;
+        z-index: 10;
       }
       #toast {
         position: fixed;
@@ -138,10 +195,14 @@
   <body>
     <div id="app">
       <header id="hud">
-        <span id="clock" data-testid="clock"></span>
+        <div id="hud-status">
+          <span id="clock" data-testid="clock"></span>
+          <span id="hp" data-testid="hp"></span>
+          <span id="hunger" data-testid="hunger"></span>
+        </div>
         <span id="hint"
           >Arrows/WASD move · E talk · Space wait · C sneak · G take · P pickpocket · T trade · 1-5
-          choose</span
+          choose · Esc close</span
         >
       </header>
       <div id="stage">
@@ -155,6 +216,10 @@
             <h2>Purse &amp; bag</h2>
             <p id="coin" data-testid="coin"></p>
             <ul id="inventory-list"></ul>
+          </aside>
+          <aside id="journal" aria-label="Journal">
+            <h2>Journal</h2>
+            <ul id="journal-list"></ul>
           </aside>
         </div>
       </div>
@@ -171,8 +236,16 @@
         <ol id="trade-goods"></ol>
         <button type="button" id="trade-close">Done (Esc)</button>
       </section>
+      <section id="combat" role="dialog" aria-label="Combat" hidden>
+        <h2>Steel is drawn!</h2>
+        <p>Flee with movement keys.</p>
+        <ul id="combat-enemies"></ul>
+      </section>
     </div>
     <div id="toast" role="status" hidden></div>
+    <div id="defeat-banner" role="alertdialog" aria-label="Defeated" hidden>
+      <p>You wake on the docks, stripped of everything… Press any key to continue.</p>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
