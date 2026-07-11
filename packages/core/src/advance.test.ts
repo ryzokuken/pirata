@@ -181,9 +181,12 @@ describe("advance: properties", () => {
         let state = freshState();
         for (const intent of intents) {
           state = advance(state, intent, world).state;
-          const tiles = [state.player.pos, ...state.npcs.map((npc) => npc.pos)];
+          // Same-map only: cross-map NPCs may share raw coordinates until
+          // Task 3 gives every function its own per-map occupancy model.
+          const sameMapNpcs = state.npcs.filter((npc) => npc.mapId === state.mapId);
+          const tiles = [state.player.pos, ...sameMapNpcs.map((npc) => npc.pos)];
           for (const pos of tiles) {
-            expect(isBlocked(world.maps[world.startMapId]!, pos.x, pos.y)).toBe(false);
+            expect(isBlocked(world.maps[state.mapId]!, pos.x, pos.y)).toBe(false);
           }
           expect(new Set(tiles.map((pos) => `${pos.x},${pos.y}`)).size).toBe(tiles.length);
         }
@@ -234,7 +237,9 @@ describe("advance: take (theft)", () => {
     const atTrinket = run(freshState(), WALK_TO_TRINKET);
     const result = advance(atTrinket, { type: "take" }, world);
     expect(result.state.player.items).toEqual(["test:trinket"]);
-    expect(result.state.worldItems).toEqual([]);
+    expect(result.state.worldItems).toEqual([
+      { mapId: "lair", itemId: "test:loot", pos: { x: 2, y: 1 } },
+    ]);
     expect(result.state.deeds).toEqual([
       { deedId: "test:theft", tick: 4, knownBy: ["test:keeper"] },
     ]);
@@ -272,7 +277,7 @@ describe("advance: take (theft)", () => {
     const atTrinket = run(createGameState({ seed: 42, world: lawless }), WALK_TO_TRINKET);
     const result = advance(atTrinket, { type: "take" }, lawless);
     expect(result.events[0]?.type).toBe("intent-rejected");
-    expect(result.state.worldItems).toHaveLength(1);
+    expect(result.state.worldItems).toHaveLength(2);
   });
 });
 

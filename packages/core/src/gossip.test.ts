@@ -6,7 +6,7 @@ import { fixtureWorld } from "./world.fixture.ts";
 const world = fixtureWorld();
 
 function npc(id: string, x: number, y: number): NpcState {
-  return { id, pos: { x, y }, pockets: [] };
+  return { id, mapId: "town", pos: { x, y }, pockets: [] };
 }
 
 const theft: DeedRecord = { deedId: "test:theft", tick: 1, knownBy: ["test:keeper"] };

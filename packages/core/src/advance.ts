@@ -15,7 +15,7 @@ import { isBlocked } from "./map.ts";
 import { advanceNpcs } from "./npc.ts";
 import { factionStanding, npcStanding } from "./reputation.ts";
 import { nextFloat } from "./rng.ts";
-import type { GameState, NpcState, Vec2 } from "./state.ts";
+import { currentMap, type GameState, type NpcState, type Vec2 } from "./state.ts";
 import { buyPrice, sellPrice, tradeRefused } from "./trade.ts";
 
 export interface AdvanceResult {
@@ -141,10 +141,14 @@ function applyMove(state: GameState, intent: MoveIntent, world: WorldDef): Advan
   const delta = DIRECTION_DELTAS[intent.direction];
   const from = state.player.pos;
   const to = { x: from.x + delta.dx, y: from.y + delta.dy };
-  const occupiedByNpc = state.npcs.some((npc) => npc.pos.x === to.x && npc.pos.y === to.y);
+  // Task 3 replaces this with the full per-map occupancy model; NPCs on other
+  // maps must not block movement in the meantime.
+  const occupiedByNpc = state.npcs.some(
+    (npc) => npc.mapId === state.mapId && npc.pos.x === to.x && npc.pos.y === to.y,
+  );
   const ticks = state.player.sneaking ? 2 : 1;
-  // Task 2 replaces this with currentMap(state, world); Task 4 adds portal handling.
-  const map = world.maps[state.mapId]!;
+  // Task 4 adds portal handling.
+  const map = currentMap(state, world);
   if (isBlocked(map, to.x, to.y) || occupiedByNpc) {
     return applyTick(
       state,
@@ -324,11 +328,14 @@ function applyTalk(state: GameState, world: WorldDef): AdvanceResult {
   };
 }
 
+// Task 3 replaces this with the full per-map interaction model; NPCs on
+// other maps must not be reachable in the meantime.
 function adjacentNpc(state: GameState): NpcState | undefined {
   const { x, y } = state.player.pos;
   for (const delta of Object.values(DIRECTION_DELTAS)) {
     const found = state.npcs.find(
-      (npc) => npc.pos.x === x + delta.dx && npc.pos.y === y + delta.dy,
+      (npc) =>
+        npc.mapId === state.mapId && npc.pos.x === x + delta.dx && npc.pos.y === y + delta.dy,
     );
     if (found !== undefined) {
       return found;

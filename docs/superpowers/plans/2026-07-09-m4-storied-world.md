@@ -139,7 +139,7 @@ export interface RumorDef {
 
 **Files:** modify `packages/core/src/state.ts`, `save.ts`, `world.fixture.ts`; tests `state.test.ts`, `save.test.ts`
 
-- [ ] **Step 1: Rebuild the fixture** — `world.fixture.ts` gets a second map and a hostile brute. Keep the existing `FIXTURE_MAP` town rows exactly; add a 7×5 lair — loot `9` at (2,1), brute post `x` at (3,1), arrival location `o` at (3,3):
+- [x] **Step 1: Rebuild the fixture** — `world.fixture.ts` gets a second map and a hostile brute. Keep the existing `FIXTURE_MAP` town rows exactly; add a 7×5 lair — loot `9` at (2,1), brute post `x` at (3,1), arrival location `o` at (3,3):
 
 ```ts
 export const LAIR_MAP: MapModel = {
@@ -178,9 +178,9 @@ export const FIXTURE_TOWN: MapModel = {
 
 items: `test:loot` `{ id, name: "Loot", value: 40, treasure: true }` added; `test:trinket` gains `food: { nutrition: 8 }` (double-duty test food); rumors: `"test:whisper": { id: "test:whisper", text: "There is loot in the lair." }`.
 
-- [ ] **Step 2: Failing state/save tests.** `state.test.ts` additions: fresh state has `player.hp === PLAYER_COMBAT.maxHp`, `player.hunger === 0`, `rumors: []`, `combat: null`, `flags: { fortuneMade: false }`; NPCs carry `mapId` and combat-capable NPCs carry `hp` (`test:brute` → `hp: 6`, non-combat NPCs have NO `hp` key) and no `alert` key; `worldItems` seed from ALL maps with their `mapId` (`{ mapId: "lair", itemId: "test:loot", pos: {x:2,y:1} }` present alongside the town trinket); NPCs spawn on their own map (brute at (3,1) — no collision with town NPCs at the same coordinates on a different map). `save.test.ts`: round-trip a state carrying combat/rumors/hunger; reject version 3.
+- [x] **Step 2: Failing state/save tests.** `state.test.ts` additions: fresh state has `player.hp === PLAYER_COMBAT.maxHp`, `player.hunger === 0`, `rumors: []`, `combat: null`, `flags: { fortuneMade: false }`; NPCs carry `mapId` and combat-capable NPCs carry `hp` (`test:brute` → `hp: 6`, non-combat NPCs have NO `hp` key) and no `alert` key; `worldItems` seed from ALL maps with their `mapId` (`{ mapId: "lair", itemId: "test:loot", pos: {x:2,y:1} }` present alongside the town trinket); NPCs spawn on their own map (brute at (3,1) — no collision with town NPCs at the same coordinates on a different map). `save.test.ts`: round-trip a state carrying combat/rumors/hunger; reject version 3.
 
-- [ ] **Step 3: Implement `state.ts`.**
+- [x] **Step 3: Implement `state.ts`.**
 
 ```ts
 export const PLAYER_COMBAT: CombatantDef = {

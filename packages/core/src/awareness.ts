@@ -1,6 +1,6 @@
 import { isBlocked, type MapModel } from "./map.ts";
 import type { WorldDef } from "./defs.ts";
-import type { GameState, Vec2 } from "./state.ts";
+import { currentMap, type GameState, type Vec2 } from "./state.ts";
 import { hourOf } from "./time.ts";
 
 export const BASE_PERCEPTION = 5;
@@ -49,11 +49,14 @@ export function lineOfSight(map: MapModel, from: Vec2, to: Vec2): boolean {
 
 /** NPC ids (sorted) that can see an act at `at` right now. */
 export function witnesses(state: GameState, world: WorldDef, at: Vec2): readonly string[] {
-  // Task 2 replaces this with currentMap(state, world); Task 3 filters by npc.mapId.
-  const map = world.maps[state.mapId]!;
+  const map = currentMap(state, world);
   const radius = perceptionRadius(hourOf(state.tick), state.player.sneaking);
   const seen: string[] = [];
   for (const npc of state.npcs) {
+    // Task 3 replaces this with the full per-map awareness model.
+    if (npc.mapId !== state.mapId) {
+      continue;
+    }
     const distance = Math.max(Math.abs(npc.pos.x - at.x), Math.abs(npc.pos.y - at.y));
     if (distance > radius) {
       continue;

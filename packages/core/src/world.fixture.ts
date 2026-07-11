@@ -50,20 +50,41 @@ export const FIXTURE_MAP = mapFromAscii(
   { "1": "test:trinket" },
 );
 
+export const FIXTURE_TOWN: MapModel = {
+  ...FIXTURE_MAP,
+  id: "town",
+  portals: [{ at: { x: 6, y: 3 }, toMapId: "lair", toLocation: "o" }],
+};
+
+export const LAIR_MAP: MapModel = {
+  ...mapFromAscii(["#######", "#.9x..#", "#.....#", "#..o..#", "#######"], {
+    "9": "test:loot",
+  }),
+  id: "lair",
+  portals: [{ at: { x: 5, y: 3 }, toMapId: "town", toLocation: "b" }],
+};
+
 export function fixtureWorld(): WorldDef {
   return {
-    // Task 2 replaces this with the real second-map fixture (town + lair).
-    maps: { fixture: FIXTURE_MAP },
-    startMapId: "fixture",
-    rumors: {},
+    maps: { town: FIXTURE_TOWN, lair: LAIR_MAP },
+    startMapId: "town",
+    rumors: {
+      "test:whisper": { id: "test:whisper", text: "There is loot in the lair." },
+    },
     factions: {
       "test:guild": { id: "test:guild", name: "The Guild" },
       "test:dockers": { id: "test:dockers", name: "The Dockers" },
       "test:watch": { id: "test:watch", name: "The Watch" },
     },
     items: {
-      "test:trinket": { id: "test:trinket", name: "Brass trinket", value: 10 },
+      "test:trinket": {
+        id: "test:trinket",
+        name: "Brass trinket",
+        value: 10,
+        food: { nutrition: 8 },
+      },
       "test:pearl": { id: "test:pearl", name: "Pearl", value: 15 },
+      "test:loot": { id: "test:loot", name: "Loot", value: 40, treasure: true },
     },
     crimes: { pickpocket: "test:pickpocketing", theft: "test:theft" },
     deeds: {
@@ -80,7 +101,7 @@ export function fixtureWorld(): WorldDef {
         name: "Keeper",
         factionId: "test:guild",
         dialogueId: "test:keeper_talk",
-        mapId: "fixture",
+        mapId: "town",
         schedule: [{ hour: 0, location: "t" }],
         pockets: ["test:pearl"],
         shop: { sells: ["test:trinket"] },
@@ -90,7 +111,7 @@ export function fixtureWorld(): WorldDef {
         name: "Walker",
         factionId: "test:dockers",
         dialogueId: "test:walker_talk",
-        mapId: "fixture",
+        mapId: "town",
         schedule: [
           { hour: 8, location: "a" },
           { hour: 9, location: "b" },
@@ -102,10 +123,26 @@ export function fixtureWorld(): WorldDef {
         name: "Guard",
         factionId: "test:watch",
         dialogueId: "test:walker_talk",
-        mapId: "fixture",
+        mapId: "town",
         schedule: [{ hour: 0, location: "g" }],
         pockets: [],
         confront: { standingBelow: -10, dialogueId: "test:guard_confront" },
+      },
+      "test:brute": {
+        id: "test:brute",
+        name: "Brute",
+        factionId: "test:watch",
+        dialogueId: "test:walker_talk",
+        mapId: "lair",
+        schedule: [{ hour: 0, location: "x" }],
+        pockets: ["test:trinket"],
+        hostile: true,
+        combat: {
+          maxHp: 6,
+          attackBonus: 2,
+          armorClass: 10,
+          damage: { count: 1, sides: 4, bonus: 0 },
+        },
       },
     },
     dialogues: {

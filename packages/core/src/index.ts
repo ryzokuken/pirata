@@ -1,9 +1,13 @@
 export { seedRng, nextFloat, nextInt, type RngState } from "./rng.ts";
 export {
   createGameState,
+  currentMap,
+  PLAYER_COMBAT,
   PLAYER_START_COIN,
+  type CombatState,
   type DeedRecord,
   type DialogueState,
+  type GameFlags,
   type GameState,
   type NpcState,
   type PlayerState,
