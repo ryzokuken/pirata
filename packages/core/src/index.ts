@@ -44,6 +44,7 @@ export type {
   ItemBoughtEvent,
   ItemSoldEvent,
   ItemTakenEvent,
+  MapChangedEvent,
   MovementBlockedEvent,
   NpcMovedEvent,
   PickpocketFailedEvent,

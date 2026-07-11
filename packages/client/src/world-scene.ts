@@ -206,6 +206,7 @@ export class WorldScene extends Scene {
         this.floatText(`-${String(event.amount)}c`, "#e07a5f");
         break;
       case "movement-blocked":
+      case "map-changed":
       case "dialogue-started":
       case "dialogue-advanced":
       case "dialogue-ended":

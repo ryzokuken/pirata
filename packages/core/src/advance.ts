@@ -77,15 +77,16 @@ function applyTick(
   playerPos: Vec2,
   events: readonly GameEvent[],
   world: WorldDef,
-  ticks = 1,
+  options: { ticks?: number; playerMapId?: string } = {},
 ): AdvanceResult {
+  const { ticks = 1, playerMapId = state.mapId } = options;
   let tick = state.tick;
   let npcs = state.npcs;
   let deeds = state.deeds;
   const collected: GameEvent[] = [...events];
   for (let step = 0; step < ticks; step += 1) {
     tick += 1;
-    const npcResult = advanceNpcs({ npcs, playerPos, playerMapId: state.mapId, world, tick });
+    const npcResult = advanceNpcs({ npcs, playerPos, playerMapId, world, tick });
     npcs = npcResult.npcs;
     collected.push(...npcResult.events);
     const gossip = spreadGossip({ deeds, npcs, world });
@@ -95,6 +96,7 @@ function applyTick(
   const next: GameState = {
     ...state,
     tick,
+    mapId: playerMapId,
     player: { ...state.player, pos: playerPos },
     npcs,
     deeds,
@@ -148,18 +150,38 @@ function applyMove(state: GameState, intent: MoveIntent, world: WorldDef): Advan
     (npc) => npc.mapId === state.mapId && npc.pos.x === to.x && npc.pos.y === to.y,
   );
   const ticks = state.player.sneaking ? 2 : 1;
-  // Task 4 adds portal handling.
   const map = currentMap(state, world);
-  if (isBlocked(map, to.x, to.y) || occupiedByNpc) {
-    return applyTick(
-      state,
-      from,
-      [{ type: "movement-blocked", at: from, toward: to }],
-      world,
+  const blockedMove = (): AdvanceResult =>
+    applyTick(state, from, [{ type: "movement-blocked", at: from, toward: to }], world, {
       ticks,
+    });
+  if (isBlocked(map, to.x, to.y) || occupiedByNpc) {
+    return blockedMove();
+  }
+  const portal = map.portals.find(
+    (candidate) => candidate.at.x === to.x && candidate.at.y === to.y,
+  );
+  if (portal === undefined) {
+    return applyTick(state, to, [{ type: "player-moved", from, to }], world, { ticks });
+  }
+  const targetMap = world.maps[portal.toMapId];
+  const arrival = targetMap?.locations[portal.toLocation];
+  if (targetMap === undefined || arrival === undefined) {
+    throw new Error(
+      `map "${state.mapId}": portal to "${portal.toMapId}/${portal.toLocation}" is invalid`,
     );
   }
-  return applyTick(state, to, [{ type: "player-moved", from, to }], world, ticks);
+  const arrivalBlocked = state.npcs.some(
+    (npc) => npc.mapId === portal.toMapId && npc.pos.x === arrival.x && npc.pos.y === arrival.y,
+  );
+  if (arrivalBlocked) {
+    return blockedMove();
+  }
+  const events: GameEvent[] = [
+    { type: "player-moved", from, to },
+    { type: "map-changed", fromMapId: state.mapId, toMapId: portal.toMapId, at: arrival },
+  ];
+  return applyTick(state, arrival, events, world, { ticks, playerMapId: portal.toMapId });
 }
 
 function applySneak(state: GameState): AdvanceResult {

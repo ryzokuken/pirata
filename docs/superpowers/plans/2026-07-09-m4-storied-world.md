@@ -249,7 +249,7 @@ export function currentMap(state: GameState, world: WorldDef): MapModel {
 
 **Files:** modify `packages/core/src/advance.ts`, `event.ts`; test `advance.test.ts`
 
-- [ ] **Step 1: Failing tests** (fixture: town portal at (6,3) → lair `o` (3,3); lair portal (5,3) → town `b` (1,3)):
+- [x] **Step 1: Failing tests** (fixture: town portal at (6,3) → lair `o` (3,3); lair portal (5,3) → town `b` (1,3)):
 
 ```ts
 describe("advance: portals", () => {
@@ -306,7 +306,7 @@ describe("advance: portals", () => {
 
 (Fixture geometry note: `WALK_TO_PORTAL`'s south-south takes the player to (1,3)=`b`, then five easts along the open row 3 — (2,3),(3,3) the trinket tile,(4,3),(5,3),(6,3) — the trinket underfoot is irrelevant to movement.)
 
-- [ ] **Step 2: Implement.** `event.ts`: `MapChangedEvent { type: "map-changed"; fromMapId; toMapId; at: Vec2 }`. In `applyMove`, after computing an unblocked `to` on the current map: look up `currentMap(state,world).portals.find(at === to)`; if found, resolve the target map + location, check no same-map NPC occupies the arrival tile (else `movement-blocked` as usual, tick still passes); on success the tick applies with the player's NEW map/pos (`applyTick` needs the player's `mapId` — pass `playerMapId` through so NPC blocking and aggro use the arrival map) and events `player-moved` (from → portal tile) + `map-changed`. Update `applyTick`'s signature once: `applyTick(state, playerPos, events, world, options?: { ticks?: number; playerMapId?: string })` — 5 params, options object; all callers updated (sneak's double tick becomes `{ ticks: 2 }`).
+- [x] **Step 2: Implement.** `event.ts`: `MapChangedEvent { type: "map-changed"; fromMapId; toMapId; at: Vec2 }`. In `applyMove`, after computing an unblocked `to` on the current map: look up `currentMap(state,world).portals.find(at === to)`; if found, resolve the target map + location, check no same-map NPC occupies the arrival tile (else `movement-blocked` as usual, tick still passes); on success the tick applies with the player's NEW map/pos (`applyTick` needs the player's `mapId` — pass `playerMapId` through so NPC blocking and aggro use the arrival map) and events `player-moved` (from → portal tile) + `map-changed`. Update `applyTick`'s signature once: `applyTick(state, playerPos, events, world, options?: { ticks?: number; playerMapId?: string })` — 5 params, options object; all callers updated (sneak's double tick becomes `{ ticks: 2 }`).
 
 ## Task 5: Core — rumors
 

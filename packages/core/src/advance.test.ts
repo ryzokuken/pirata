@@ -75,6 +75,57 @@ describe("advance: move & wait", () => {
   });
 });
 
+describe("advance: portals", () => {
+  // Player (1,1) → (6,3): S,S,E,E,E,E,E — the last east step lands on the portal.
+  const WALK_TO_PORTAL: readonly Intent[] = [
+    { type: "move", direction: "south" },
+    { type: "move", direction: "south" },
+    ...Array.from({ length: 5 }, (): Intent => ({ type: "move", direction: "east" })),
+  ];
+
+  it("stepping onto a portal moves the player to the target map location", () => {
+    const result = run(freshState(), WALK_TO_PORTAL);
+    expect(result.mapId).toBe("lair");
+    expect(result.player.pos).toEqual({ x: 3, y: 3 });
+  });
+
+  it("emits map-changed and still costs a tick", () => {
+    const before = run(freshState(), WALK_TO_PORTAL.slice(0, -1));
+    const result = advance(before, { type: "move", direction: "east" }, world);
+    expect(result.events).toContainEqual({
+      type: "map-changed",
+      fromMapId: "town",
+      toMapId: "lair",
+      at: { x: 3, y: 3 },
+    });
+    expect(result.state.tick).toBe(before.tick + 1);
+  });
+
+  it("keeps working in both directions", () => {
+    const inLair = run(freshState(), WALK_TO_PORTAL);
+    // (3,3) → portal (5,3): E,E
+    const back = run(inLair, [
+      { type: "move", direction: "east" },
+      { type: "move", direction: "east" },
+    ]);
+    expect(back.mapId).toBe("town");
+    expect(back.player.pos).toEqual({ x: 1, y: 3 });
+  });
+
+  it("is blocked when an NPC stands on the arrival tile", () => {
+    const before = run(freshState(), WALK_TO_PORTAL.slice(0, -1));
+    const blocked = {
+      ...before,
+      npcs: before.npcs.map((npc) =>
+        npc.id === "test:brute" ? { ...npc, pos: { x: 3, y: 3 } } : npc,
+      ),
+    };
+    const result = advance(blocked, { type: "move", direction: "east" }, world);
+    expect(result.state.mapId).toBe("town");
+    expect(result.events[0]?.type).toBe("movement-blocked");
+  });
+});
+
 describe("advance: talk & choose", () => {
   it("talk with no adjacent NPC is rejected without ticking", () => {
     const result = advance(freshState(), { type: "talk" }, world);

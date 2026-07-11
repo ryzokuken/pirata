@@ -19,6 +19,13 @@ export interface NpcMovedEvent {
   readonly to: Vec2;
 }
 
+export interface MapChangedEvent {
+  readonly type: "map-changed";
+  readonly fromMapId: string;
+  readonly toMapId: string;
+  readonly at: Vec2;
+}
+
 export interface DialogueStartedEvent {
   readonly type: "dialogue-started";
   readonly npcId: string;
@@ -122,6 +129,7 @@ export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
   | NpcMovedEvent
+  | MapChangedEvent
   | DialogueStartedEvent
   | DialogueAdvancedEvent
   | DialogueEndedEvent
