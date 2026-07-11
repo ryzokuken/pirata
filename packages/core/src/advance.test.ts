@@ -201,6 +201,27 @@ describe("advance: talk & choose", () => {
   });
 });
 
+describe("advance: rumors", () => {
+  it("choosing a rumor effect appends it to state.rumors and emits rumor-heard", () => {
+    const talking = advance(run(freshState(), WALK_TO_KEEPER), { type: "talk" }, world).state;
+    const result = advance(talking, { type: "choose", index: 3 }, world);
+    expect(result.state.rumors).toEqual(["test:whisper"]);
+    expect(result.events).toEqual([
+      { type: "rumor-heard", rumorId: "test:whisper" },
+      { type: "dialogue-ended", npcId: "test:keeper" },
+    ]);
+  });
+
+  it("hearing the same rumor twice does not duplicate it or emit again", () => {
+    const talking = advance(run(freshState(), WALK_TO_KEEPER), { type: "talk" }, world).state;
+    const heard = advance(talking, { type: "choose", index: 3 }, world).state;
+    const talkingAgain = advance(heard, { type: "talk" }, world).state;
+    const result = advance(talkingAgain, { type: "choose", index: 3 }, world);
+    expect(result.state.rumors).toEqual(["test:whisper"]);
+    expect(result.events).toEqual([{ type: "dialogue-ended", npcId: "test:keeper" }]);
+  });
+});
+
 const arbitraryIntent = constantFrom<Intent>(
   { type: "move", direction: "north" },
   { type: "move", direction: "south" },

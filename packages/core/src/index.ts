@@ -51,6 +51,7 @@ export type {
   PickpocketSucceededEvent,
   PlayerMovedEvent,
   ReputationChangedEvent,
+  RumorHeardEvent,
   SneakToggledEvent,
   TradeEndedEvent,
   TradeStartedEvent,

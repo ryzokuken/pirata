@@ -388,34 +388,37 @@ function applyChoose(state: GameState, intent: ChooseIntent, world: WorldDef): A
     return rejected(state, "you cannot pay that");
   }
   let deeds = state.deeds;
+  let rumors = state.rumors;
   for (const effect of effects) {
     if (effect.type === "deed") {
       deeds = [...deeds, { deedId: effect.deedId, npcId, tick: state.tick, knownBy: [npcId] }];
       events.push({ type: "deed-recorded", deedId: effect.deedId, npcId });
     } else if (effect.type === "pay") {
       events.push({ type: "coin-paid", amount: effect.amount, npcId });
+    } else if (effect.type === "rumor" && !rumors.includes(effect.rumorId)) {
+      rumors = [...rumors, effect.rumorId];
+      events.push({ type: "rumor-heard", rumorId: effect.rumorId });
     }
-    // Task 5 implements the "rumor" effect.
   }
   const player =
     totalPay === 0 ? state.player : { ...state.player, coin: state.player.coin - totalPay };
 
-  const withDeeds: GameState = { ...state, player, deeds };
+  const withEffects: GameState = { ...state, player, deeds, rumors };
   const factionId = world.npcs[npcId]?.factionId;
   if (deeds !== state.deeds && factionId !== undefined) {
     events.push({
       type: "reputation-changed",
       npcId,
       factionId,
-      npcStanding: npcStanding(withDeeds, world, npcId),
-      factionStanding: factionStanding(withDeeds, world, factionId),
+      npcStanding: npcStanding(withEffects, world, npcId),
+      factionStanding: factionStanding(withEffects, world, factionId),
     });
   }
 
   if (choice.next === undefined) {
     events.push({ type: "dialogue-ended", npcId });
-    return { state: { ...withDeeds, dialogue: null }, events };
+    return { state: { ...withEffects, dialogue: null }, events };
   }
   events.push({ type: "dialogue-advanced", npcId, nodeId: choice.next });
-  return { state: { ...withDeeds, dialogue: { npcId, nodeId: choice.next } }, events };
+  return { state: { ...withEffects, dialogue: { npcId, nodeId: choice.next } }, events };
 }

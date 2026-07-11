@@ -165,6 +165,10 @@ export function fixtureWorld(): WorldDef {
                 next: "secret",
               },
               { text: "Bye" },
+              {
+                text: "Any whispers?",
+                effects: [{ type: "rumor", rumorId: "test:whisper" }],
+              },
             ],
           },
           smile: { text: "Much obliged.", choices: [{ text: "Bye" }] },

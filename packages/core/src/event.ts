@@ -125,6 +125,11 @@ export interface ItemSoldEvent {
   readonly price: number;
 }
 
+export interface RumorHeardEvent {
+  readonly type: "rumor-heard";
+  readonly rumorId: string;
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -146,4 +151,5 @@ export type GameEvent =
   | TradeStartedEvent
   | TradeEndedEvent
   | ItemBoughtEvent
-  | ItemSoldEvent;
+  | ItemSoldEvent
+  | RumorHeardEvent;

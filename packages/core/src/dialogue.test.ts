@@ -26,7 +26,7 @@ describe("currentNode", () => {
 describe("visibleChoices", () => {
   it("hides choices whose condition fails", () => {
     const texts = visibleChoices(inDialogue([]), world).map((choice) => choice.text);
-    expect(texts).toEqual(["Compliment", "Insult", "Bye"]);
+    expect(texts).toEqual(["Compliment", "Insult", "Bye", "Any whispers?"]);
   });
 
   it("reveals choices once standing qualifies", () => {
@@ -34,7 +34,7 @@ describe("visibleChoices", () => {
       { deedId: "test:praise", npcId: "test:keeper", tick: 1, knownBy: ["test:keeper"] },
     ]);
     const texts = visibleChoices(state, world).map((choice) => choice.text);
-    expect(texts).toEqual(["Compliment", "Insult", "Secret?", "Bye"]);
+    expect(texts).toEqual(["Compliment", "Insult", "Secret?", "Bye", "Any whispers?"]);
   });
 
   it("returns no choices outside dialogue", () => {

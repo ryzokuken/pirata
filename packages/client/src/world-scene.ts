@@ -213,6 +213,7 @@ export class WorldScene extends Scene {
       case "reputation-changed":
       case "trade-started":
       case "trade-ended":
+      case "rumor-heard":
         break; // reflected by renderUi()
     }
   }

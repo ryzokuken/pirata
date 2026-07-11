@@ -312,9 +312,9 @@ describe("advance: portals", () => {
 
 **Files:** modify `packages/core/src/advance.ts`, `event.ts`; tests `advance.test.ts`, `dialogue.test.ts` (none needed — no condition change)
 
-- [ ] **Step 1: Failing tests.** Extend the fixture keeper dialogue: add a choice `{ text: "Any whispers?", effects: [{ type: "rumor", rumorId: "test:whisper" }] }` to the `hello` node. Tests: choosing it appends `"test:whisper"` to `state.rumors` and emits `{ type: "rumor-heard", rumorId: "test:whisper" }`; choosing it twice does not duplicate the entry and the second time emits nothing.
+- [x] **Step 1: Failing tests.** Extend the fixture keeper dialogue: add a choice `{ text: "Any whispers?", effects: [{ type: "rumor", rumorId: "test:whisper" }] }` to the `hello` node. Tests: choosing it appends `"test:whisper"` to `state.rumors` and emits `{ type: "rumor-heard", rumorId: "test:whisper" }`; choosing it twice does not duplicate the entry and the second time emits nothing.
 
-- [ ] **Step 2: Implement.** `event.ts`: `RumorHeardEvent { type: "rumor-heard"; rumorId }`. In `applyChoose`'s effect loop: `rumor` effects append if `!state.rumors.includes(rumorId)` (else no-op, no event). Rumor granting is instantaneous (dialogue-time, no tick) like deeds.
+- [x] **Step 2: Implement.** `event.ts`: `RumorHeardEvent { type: "rumor-heard"; rumorId }`. In `applyChoose`'s effect loop: `rumor` effects append if `!state.rumors.includes(rumorId)` (else no-op, no event). Rumor granting is instantaneous (dialogue-time, no tick) like deeds.
 
 ## Task 6: Core — hunger and eating
 
