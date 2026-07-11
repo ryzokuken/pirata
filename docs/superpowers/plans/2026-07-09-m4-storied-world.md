@@ -371,7 +371,7 @@ export function hungerStage(hunger: number): HungerStage {
 
 **Files:** create `packages/core/src/combat.ts` + `combat.test.ts`
 
-- [ ] **Step 1: Failing tests** — deterministic golden rolls with the real RNG:
+- [x] **Step 1: Failing tests** — deterministic golden rolls with the real RNG:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -424,7 +424,7 @@ describe("combat rolls", () => {
 });
 ```
 
-- [ ] **Step 2: Implement:**
+- [x] **Step 2: Implement:**
 
 ```ts
 import type { CombatantDef, DamageDie } from "./defs.ts";

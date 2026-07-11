@@ -114,3 +114,4 @@ export {
 } from "./awareness.ts";
 export { GOSSIP_RANGE, spreadGossip } from "./gossip.ts";
 export { buyPrice, sellPrice, TRADE_FRIENDLY_AT, TRADE_REFUSE_AT, tradeRefused } from "./trade.ts";
+export { rollAttack, rollD20, rollDamage } from "./combat.ts";
