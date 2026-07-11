@@ -33,6 +33,13 @@ const WALK_TO_KEEPER: readonly Intent[] = [
   { type: "move", direction: "east" },
 ];
 
+// Player (1,1) → (6,3): S,S,E,E,E,E,E — the last east step lands on the portal.
+const WALK_TO_PORTAL: readonly Intent[] = [
+  { type: "move", direction: "south" },
+  { type: "move", direction: "south" },
+  ...Array.from({ length: 5 }, (): Intent => ({ type: "move", direction: "east" })),
+];
+
 describe("advance: move & wait", () => {
   it("moves the player into an open tile and ticks the clock", () => {
     const result = advance(freshState(), { type: "move", direction: "south" }, world);
@@ -78,13 +85,6 @@ describe("advance: move & wait", () => {
 });
 
 describe("advance: portals", () => {
-  // Player (1,1) → (6,3): S,S,E,E,E,E,E — the last east step lands on the portal.
-  const WALK_TO_PORTAL: readonly Intent[] = [
-    { type: "move", direction: "south" },
-    { type: "move", direction: "south" },
-    ...Array.from({ length: 5 }, (): Intent => ({ type: "move", direction: "east" })),
-  ];
-
   it("stepping onto a portal moves the player to the target map location", () => {
     const result = run(freshState(), WALK_TO_PORTAL);
     expect(result.mapId).toBe("lair");
@@ -125,6 +125,63 @@ describe("advance: portals", () => {
     const result = advance(blocked, { type: "move", direction: "east" }, world);
     expect(result.state.mapId).toBe("town");
     expect(result.events[0]?.type).toBe("movement-blocked");
+  });
+});
+
+describe("advance: aggro and combat start", () => {
+  it("alerts a hostile that spots the player, then starts combat once adjacent", () => {
+    const before = run(freshState(), WALK_TO_PORTAL.slice(0, -1));
+    const arrived = advance(before, { type: "move", direction: "east" }, world);
+    const arrivedBrute = arrived.state.npcs.find((npc) => npc.id === "test:brute");
+    expect(arrivedBrute?.alert).toBe(true);
+    expect(arrived.events).toContainEqual({ type: "npc-alerted", npcId: "test:brute" });
+    expect(arrived.state.combat).toBeNull();
+
+    const chased = advance(arrived.state, { type: "wait" }, world);
+    const chasedBrute = chased.state.npcs.find((npc) => npc.id === "test:brute");
+    expect(chasedBrute?.pos).toEqual({ x: 3, y: 2 });
+    expect(chased.events).toContainEqual({
+      type: "combat-started",
+      enemyIds: ["test:brute"],
+    });
+    expect(chased.state.combat).toEqual({ enemyIds: ["test:brute"] });
+  });
+
+  it("does not re-trigger combat-started while combat is already active", () => {
+    const arrived = run(freshState(), WALK_TO_PORTAL);
+    const started = advance(arrived, { type: "wait" }, world).state;
+    expect(started.combat).toEqual({ enemyIds: ["test:brute"] });
+
+    const again = advance(started, { type: "wait" }, world);
+    expect(again.events.some((event) => event.type === "combat-started")).toBe(false);
+  });
+
+  it("calms an alerted hostile once the player leaves its map", () => {
+    const before = run(freshState(), WALK_TO_PORTAL.slice(0, -1));
+    const arrived = advance(before, { type: "move", direction: "east" }, world).state;
+    const backInTown: GameState = {
+      ...arrived,
+      mapId: "town",
+      player: { ...arrived.player, pos: { x: 1, y: 3 } },
+    };
+    const result = advance(backInTown, { type: "wait" }, world);
+    const brute = result.state.npcs.find((npc) => npc.id === "test:brute");
+    expect(brute?.alert).toBeUndefined();
+    expect(result.events).toContainEqual({ type: "npc-calmed", npcId: "test:brute" });
+  });
+
+  it("does not alert while sneaking at night, outside the shorter radius", () => {
+    const fresh = freshState();
+    const nightSneaking: GameState = {
+      ...fresh,
+      tick: 129,
+      mapId: "lair",
+      player: { ...fresh.player, pos: { x: 3, y: 3 }, sneaking: true },
+    };
+    const result = advance(nightSneaking, { type: "wait" }, world);
+    const brute = result.state.npcs.find((npc) => npc.id === "test:brute");
+    expect(brute?.alert).toBeUndefined();
+    expect(result.events.some((event) => event.type === "npc-alerted")).toBe(false);
   });
 });
 

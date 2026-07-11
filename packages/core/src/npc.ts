@@ -1,5 +1,6 @@
 import type { NpcDef, WorldDef } from "./defs.ts";
 import type { GameEvent } from "./event.ts";
+import type { MapModel } from "./map.ts";
 import { nextStep } from "./path.ts";
 import type { NpcState, Vec2 } from "./state.ts";
 import { hourOf } from "./time.ts";
@@ -24,6 +25,12 @@ export function scheduleTarget(npc: NpcDef, hour: number): string | undefined {
   return target;
 }
 
+/** Where an NPC's schedule wants it, resolved to a tile on its own map. */
+function scheduleLocation(def: NpcDef, map: MapModel, hour: number): Vec2 | undefined {
+  const location = scheduleTarget(def, hour);
+  return location === undefined ? undefined : map.locations[location];
+}
+
 export function advanceNpcs(options: {
   readonly npcs: readonly NpcState[];
   readonly playerPos: Vec2;
@@ -31,12 +38,12 @@ export function advanceNpcs(options: {
   readonly world: WorldDef;
   readonly tick: number;
 }): { readonly npcs: readonly NpcState[]; readonly events: readonly GameEvent[] } {
-  const { world, tick, playerMapId } = options;
+  const { world, tick, playerMapId, playerPos } = options;
   const hour = hourOf(tick);
   const moved: NpcState[] = [...options.npcs];
   const events: GameEvent[] = [];
   const occupied = new Set<string>(moved.map((npc) => `${npc.mapId}:${npc.pos.x},${npc.pos.y}`));
-  occupied.add(`${playerMapId}:${options.playerPos.x},${options.playerPos.y}`);
+  occupied.add(`${playerMapId}:${playerPos.x},${playerPos.y}`);
 
   moved.forEach((npc, index) => {
     const def = world.npcs[npc.id];
@@ -44,8 +51,11 @@ export function advanceNpcs(options: {
     if (def === undefined || map === undefined) {
       return;
     }
-    const location = scheduleTarget(def, hour);
-    const target = location === undefined ? undefined : map.locations[location];
+    // An alerted hostile abandons its schedule and chases the player's tile.
+    const target =
+      npc.alert === true && npc.mapId === playerMapId
+        ? playerPos
+        : scheduleLocation(def, map, hour);
     if (target === undefined) {
       return;
     }

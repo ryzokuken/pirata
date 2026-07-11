@@ -143,6 +143,35 @@ describe("advanceNpcs", () => {
     expect(brute?.pos).toEqual({ x: 2, y: 1 });
   });
 
+  it("chases the player's tile when alerted, ignoring its schedule", () => {
+    const state = createGameState({ seed: 1, world });
+    const npcs = state.npcs.map((npc) => (npc.id === "test:brute" ? { ...npc, alert: true } : npc));
+    const result = advanceNpcs({
+      npcs,
+      playerPos: { x: 3, y: 3 },
+      playerMapId: "lair",
+      world,
+      tick: 5,
+    });
+    const brute = result.npcs.find((npc) => npc.id === "test:brute");
+    // The brute's post is (3,1); it steps toward the player at (3,3) instead.
+    expect(brute?.pos).toEqual({ x: 3, y: 2 });
+  });
+
+  it("ignores alert when the player is on a different map, keeping to schedule", () => {
+    const state = createGameState({ seed: 1, world });
+    const npcs = state.npcs.map((npc) => (npc.id === "test:brute" ? { ...npc, alert: true } : npc));
+    const result = advanceNpcs({
+      npcs,
+      playerPos: state.player.pos,
+      playerMapId: "town",
+      world,
+      tick: 5,
+    });
+    const brute = result.npcs.find((npc) => npc.id === "test:brute");
+    expect(brute?.pos).toEqual({ x: 3, y: 1 });
+  });
+
   it("does not let NPCs on different maps block each other's movement", () => {
     const state = createGameState({ seed: 1, world });
     const npcs = state.npcs.map((npc) => {

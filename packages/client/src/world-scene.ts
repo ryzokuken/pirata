@@ -216,6 +216,9 @@ export class WorldScene extends Scene {
       case "rumor-heard":
       case "ate-food":
       case "hunger-changed":
+      case "npc-alerted":
+      case "npc-calmed":
+      case "combat-started":
         break; // reflected by renderUi()
     }
   }

@@ -35,6 +35,7 @@ export {
 export type {
   AteFoodEvent,
   CoinPaidEvent,
+  CombatStartedEvent,
   CrimeWitnessedEvent,
   DeedRecordedEvent,
   DialogueAdvancedEvent,
@@ -49,6 +50,8 @@ export type {
   ItemTakenEvent,
   MapChangedEvent,
   MovementBlockedEvent,
+  NpcAlertedEvent,
+  NpcCalmedEvent,
   NpcMovedEvent,
   PickpocketFailedEvent,
   PickpocketSucceededEvent,
@@ -68,7 +71,7 @@ export {
   type HungerStage,
 } from "./hunger.ts";
 export { isBlocked, MapParseError, parseTiledMap, type MapModel, type MapPortal } from "./map.ts";
-export { advance, type AdvanceResult } from "./advance.ts";
+export { advance, CHASE_RANGE, type AdvanceResult } from "./advance.ts";
 export { deserialize, SaveError, serialize, SAVE_VERSION } from "./save.ts";
 export {
   clockOf,
@@ -105,6 +108,7 @@ export { currentNode, visibleChoices } from "./dialogue.ts";
 export { runScenario, type ScenarioResult } from "./harness.ts";
 export {
   BASE_PERCEPTION,
+  canPerceive,
   lineOfSight,
   NIGHT_ENDS,
   NIGHT_PERCEPTION,

@@ -1,4 +1,4 @@
-import { witnesses } from "./awareness.ts";
+import { canPerceive, perceptionRadius, witnesses } from "./awareness.ts";
 import type { WorldDef } from "./defs.ts";
 import { visibleChoices } from "./dialogue.ts";
 import type { GameEvent } from "./event.ts";
@@ -17,13 +17,17 @@ import { isBlocked } from "./map.ts";
 import { advanceNpcs } from "./npc.ts";
 import { factionStanding, npcStanding } from "./reputation.ts";
 import { nextFloat } from "./rng.ts";
-import { currentMap, type GameState, type NpcState, type Vec2 } from "./state.ts";
+import { currentMap, type CombatState, type GameState, type NpcState, type Vec2 } from "./state.ts";
+import { hourOf } from "./time.ts";
 import { buyPrice, sellPrice, tradeRefused } from "./trade.ts";
 
 export interface AdvanceResult {
   readonly state: GameState;
   readonly events: readonly GameEvent[];
 }
+
+/** Alert clears once the player is farther than this or leaves the NPC's map. */
+export const CHASE_RANGE = 10;
 
 export function advance(state: GameState, intent: Intent, world: WorldDef): AdvanceResult {
   switch (intent.type) {
@@ -86,11 +90,13 @@ function applyTick(
   options: { ticks?: number; playerMapId?: string } = {},
 ): AdvanceResult {
   const { ticks = 1, playerMapId = state.mapId } = options;
+  const sneaking = state.player.sneaking;
   let tick = state.tick;
   let npcs = state.npcs;
   let deeds = state.deeds;
   let hunger = state.player.hunger;
   let hp = state.player.hp;
+  let combat = state.combat;
   const collected: GameEvent[] = [...events];
   for (let step = 0; step < ticks; step += 1) {
     tick += 1;
@@ -111,6 +117,16 @@ function applyTick(
         collected.push({ type: "hunger-changed", stage: stageAfter });
       }
     }
+    const aggro = updateAggro({ npcs, playerPos, playerMapId, sneaking, world, tick });
+    npcs = aggro.npcs;
+    collected.push(...aggro.events);
+    if (combat === null) {
+      const started = tryStartCombat(npcs, playerPos, playerMapId);
+      if (started !== undefined) {
+        combat = started.combat;
+        collected.push(started.event);
+      }
+    }
   }
   const next: GameState = {
     ...state,
@@ -119,7 +135,11 @@ function applyTick(
     player: { ...state.player, pos: playerPos, hunger, hp },
     npcs,
     deeds,
+    combat,
   };
+  if (combat !== null) {
+    return { state: next, events: collected };
+  }
   const confronter = findConfronter(next, world);
   if (confronter !== undefined) {
     const dialogue = world.dialogues[confronter.dialogueId];
@@ -132,6 +152,70 @@ function applyTick(
     }
   }
   return { state: next, events: collected };
+}
+
+/**
+ * Alert/calm hostile NPCs on the player's map: same perception math as
+ * `witnesses` decides who spots the player. Alert clears once the player
+ * leaves the NPC's map or drifts beyond `CHASE_RANGE`; short lapses in line
+ * of sight while still in range do not calm a chasing hostile.
+ */
+function updateAggro(options: {
+  readonly npcs: readonly NpcState[];
+  readonly playerPos: Vec2;
+  readonly playerMapId: string;
+  readonly sneaking: boolean;
+  readonly world: WorldDef;
+  readonly tick: number;
+}): { readonly npcs: readonly NpcState[]; readonly events: readonly GameEvent[] } {
+  const { npcs, playerPos, playerMapId, sneaking, world, tick } = options;
+  const radius = perceptionRadius(hourOf(tick), sneaking);
+  const events: GameEvent[] = [];
+  const updated = npcs.map((npc) => {
+    if (world.npcs[npc.id]?.hostile !== true) {
+      return npc;
+    }
+    const onPlayerMap = npc.mapId === playerMapId;
+    const map = onPlayerMap ? world.maps[npc.mapId] : undefined;
+    if (map !== undefined && canPerceive(map, radius, npc.pos, playerPos)) {
+      if (npc.alert !== true) {
+        events.push({ type: "npc-alerted", npcId: npc.id });
+      }
+      return { ...npc, alert: true };
+    }
+    if (npc.alert !== true) {
+      return npc;
+    }
+    const distance = onPlayerMap
+      ? Math.max(Math.abs(npc.pos.x - playerPos.x), Math.abs(npc.pos.y - playerPos.y))
+      : Number.POSITIVE_INFINITY;
+    if (onPlayerMap && distance <= CHASE_RANGE) {
+      return npc;
+    }
+    events.push({ type: "npc-calmed", npcId: npc.id });
+    const { alert: _alert, ...calmed } = npc;
+    return calmed;
+  });
+  return { npcs: updated, events };
+}
+
+/** Combat starts once an alerted hostile is Chebyshev-adjacent to the player. */
+function tryStartCombat(
+  npcs: readonly NpcState[],
+  playerPos: Vec2,
+  playerMapId: string,
+): { combat: CombatState; event: GameEvent } | undefined {
+  const enemyIds = npcs
+    .filter((npc) => npc.mapId === playerMapId && npc.alert === true)
+    .filter(
+      (npc) => Math.max(Math.abs(npc.pos.x - playerPos.x), Math.abs(npc.pos.y - playerPos.y)) <= 1,
+    )
+    .map((npc) => npc.id)
+    .toSorted();
+  if (enemyIds.length === 0) {
+    return undefined;
+  }
+  return { combat: { enemyIds }, event: { type: "combat-started", enemyIds } };
 }
 
 function findConfronter(

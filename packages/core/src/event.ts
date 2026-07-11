@@ -141,6 +141,21 @@ export interface HungerChangedEvent {
   readonly stage: HungerStage;
 }
 
+export interface NpcAlertedEvent {
+  readonly type: "npc-alerted";
+  readonly npcId: string;
+}
+
+export interface NpcCalmedEvent {
+  readonly type: "npc-calmed";
+  readonly npcId: string;
+}
+
+export interface CombatStartedEvent {
+  readonly type: "combat-started";
+  readonly enemyIds: readonly string[];
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -165,4 +180,7 @@ export type GameEvent =
   | ItemSoldEvent
   | RumorHeardEvent
   | AteFoodEvent
-  | HungerChangedEvent;
+  | HungerChangedEvent
+  | NpcAlertedEvent
+  | NpcCalmedEvent
+  | CombatStartedEvent;
