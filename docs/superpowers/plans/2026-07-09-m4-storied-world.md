@@ -631,6 +631,12 @@ Why this geometry (the encounter design, verified against day perception radius 
   the Task 8 agent before any edits (clean re-dispatch) and the Task 14 agent after its
   work was complete but uncommitted — the coordinator ran the final e2e (12/12) and
   committed.
+- **Post-review fix:** Rosa's 20:00 post (`T`) plugged the tavern's only doorway
+  (4,6), stranding Duarte outside; moved her to a bench at (3,5) inside the room
+  (`tavern_door` renamed `tavern_bench`), leaving the doorway tile walkable. Also
+  added top-down y-sorted `setDepth` on the player sprite and NPC containers (world
+  items and portal markers pinned to depth 0, floating text to depth 1000), so a
+  sprite standing on a tile above an NPC no longer covers that NPC's name label.
 
 ---
 

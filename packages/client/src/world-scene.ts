@@ -128,6 +128,7 @@ export class WorldScene extends Scene {
       0xd9a441,
     );
     this.playerSprite.setAlpha(this.state.player.sneaking ? 0.5 : 1);
+    this.playerSprite.setDepth(y);
 
     // The map now exceeds the 768x512 viewport, so clamp the camera to the
     // map bounds and have it track the player instead of centering statically.
@@ -184,6 +185,7 @@ export class WorldScene extends Scene {
   private renderEvent(event: GameEvent): void {
     switch (event.type) {
       case "player-moved":
+        this.playerSprite.setDepth(event.to.y);
         this.tweens.add({
           targets: this.playerSprite,
           x: event.to.x * TILE + TILE / 2,
@@ -194,6 +196,7 @@ export class WorldScene extends Scene {
       case "npc-moved": {
         const sprite = this.npcSprites.get(event.npcId);
         if (sprite !== undefined) {
+          sprite.setDepth(event.to.y);
           this.tweens.add({
             targets: sprite,
             x: event.to.x * TILE + TILE / 2,
@@ -361,7 +364,8 @@ export class WorldScene extends Scene {
     const label = this.add
       .text(x, y, text, { ...LABEL_STYLE, fontSize: "12px", color })
       .setStroke("#101418", 3)
-      .setOrigin(0.5, 1);
+      .setOrigin(0.5, 1)
+      .setDepth(1000);
     this.tweens.add({
       targets: label,
       y: label.y - 18,
@@ -398,6 +402,7 @@ export class WorldScene extends Scene {
         npc.pos.y * TILE + TILE / 2,
         [body, label],
       );
+      container.setDepth(npc.pos.y);
       this.npcSprites.set(npc.id, container);
     }
   }
@@ -409,7 +414,9 @@ export class WorldScene extends Scene {
     this.itemSprites = this.state.worldItems
       .filter((item) => item.mapId === this.state.mapId)
       .map((item) =>
-        this.add.circle(item.pos.x * TILE + TILE / 2, item.pos.y * TILE + TILE / 2, 6, 0xd9a441),
+        this.add
+          .circle(item.pos.x * TILE + TILE / 2, item.pos.y * TILE + TILE / 2, 6, 0xd9a441)
+          .setDepth(0),
       );
   }
 
@@ -434,10 +441,9 @@ export class WorldScene extends Scene {
         )
         .setStroke("#101418", 3)
         .setOrigin(0.5, labelBelow ? 0 : 1);
-      this.add.container(portal.at.x * TILE + TILE / 2, portal.at.y * TILE + TILE / 2, [
-        marker,
-        label,
-      ]);
+      this.add
+        .container(portal.at.x * TILE + TILE / 2, portal.at.y * TILE + TILE / 2, [marker, label])
+        .setDepth(0);
     }
   }
 

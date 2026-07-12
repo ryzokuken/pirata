@@ -55,7 +55,7 @@
     "schedule": [
       { "hour": 6, "location": "watch_post" },
       { "hour": 12, "location": "dock_watch" },
-      { "hour": 20, "location": "tavern_door" }
+      { "hour": 20, "location": "tavern_bench" }
     ],
     "pockets": [],
     "confront": { "standingBelow": -10, "dialogue": "base:watch_confront" }

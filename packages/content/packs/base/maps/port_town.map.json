@@ -192,9 +192,9 @@
         },
         {
           "id": 7,
-          "name": "tavern_door",
-          "x": 128,
-          "y": 192,
+          "name": "tavern_bench",
+          "x": 96,
+          "y": 160,
           "width": 32,
           "height": 32,
           "rotation": 0,

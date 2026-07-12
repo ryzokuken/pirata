@@ -153,10 +153,9 @@ async function getState(page: Page): Promise<GameState> {
  * post while we're mid-route, so a route computed from one snapshot of its
  * position can go stale before we arrive. Converges once the NPC settles.
  *
- * Some posts (e.g. the watch's tavern_door beat) sit in a doorway that is
- * the only way in or out of a room — while occupied, the room behind it is
- * briefly unreachable. Rather than assume a fixed schedule, treat "no free
- * neighbor" or "no route" as transient: wait a few ticks and try again.
+ * A post could in principle sit somewhere that briefly blocks the only route
+ * to it. Rather than assume a fixed schedule, treat "no free neighbor" or
+ * "no route" as transient: wait a few ticks and try again.
  */
 async function approachNpc(page: Page, grid: WallGrid, npcId: string): Promise<void> {
   const maxAttempts = 30;
@@ -318,9 +317,9 @@ test("hunger climbs with time and resets with food", async ({ page }) => {
 
   // By 20:00 the merchant is on her way to (or already at) her evening post,
   // tavern_corner — chase her down wherever she currently stands. Catching
-  // her may itself cost extra waiting (e.g. the watch briefly camping a
-  // doorway), so buy a few dried fish rather than exactly one: enough
-  // nutrition (8 each) to cover however much hunger accrued in the meantime.
+  // her may itself cost extra waiting, so buy a few dried fish rather than
+  // exactly one: enough nutrition (8 each) to cover however much hunger
+  // accrued in the meantime.
   await approachNpc(page, TOWN_WALLS, "base:merchant");
   await dispatch(page, { type: "trade" });
   for (let fish = 0; fish < 4; fish += 1) {
