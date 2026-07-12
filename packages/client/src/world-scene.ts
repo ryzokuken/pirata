@@ -13,6 +13,7 @@ import {
   type GameEvent,
   type GameState,
   type Intent,
+  type MapModel,
   type WorldDef,
 } from "@pirata/core";
 import { GameObjects, Input, Scene } from "phaser";
@@ -51,6 +52,14 @@ const LABEL_STYLE = {
 
 function move(direction: Direction): Intent {
   return { type: "move", direction };
+}
+
+/** `smugglers_cove` -> `Smugglers Cove`. Presentation-only; the map id itself stays a rule concern. */
+function prettifyMapId(mapId: string): string {
+  return mapId
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 /** Data threaded through `scene.restart()` so the in-memory state survives the reload. */
@@ -128,6 +137,7 @@ export class WorldScene extends Scene {
 
     this.createNpcSprites();
     this.renderWorldItems();
+    this.renderPortalMarkers(map);
 
     this.setUpKeys();
     this.setUpPersistence();
@@ -235,6 +245,7 @@ export class WorldScene extends Scene {
         this.floatText(`-${String(event.amount)}c`, "#e07a5f");
         break;
       case "map-changed":
+        showToast(`You arrive in ${prettifyMapId(event.toMapId)}.`);
         this.scene.restart({ state: this.state } satisfies WorldSceneData);
         break;
       case "rumor-heard":
@@ -400,6 +411,34 @@ export class WorldScene extends Scene {
       .map((item) =>
         this.add.circle(item.pos.x * TILE + TILE / 2, item.pos.y * TILE + TILE / 2, 6, 0xd9a441),
       );
+  }
+
+  /**
+   * Marks each portal on the current map with a triangle on its tile and a
+   * floating destination label, so exits read as exits instead of unmarked
+   * street tiles. Rebuilt on every create(), so a scene restart (map change)
+   * naturally re-renders the markers for the new map.
+   */
+  private renderPortalMarkers(map: MapModel): void {
+    for (const portal of map.portals) {
+      const marker = this.add.triangle(0, 0, 8, 0, 0, 16, 16, 16, 0xd9a441, 0.75);
+      // The town portal sits one tile from the top edge, so an above-marker
+      // label would render off the top of the map; flip it below there.
+      const labelBelow = portal.at.y <= 1;
+      const label = this.add
+        .text(
+          0,
+          labelBelow ? TILE / 2 : -TILE / 2,
+          `⇢ ${prettifyMapId(portal.toMapId)}`,
+          LABEL_STYLE,
+        )
+        .setStroke("#101418", 3)
+        .setOrigin(0.5, labelBelow ? 0 : 1);
+      this.add.container(portal.at.x * TILE + TILE / 2, portal.at.y * TILE + TILE / 2, [
+        marker,
+        label,
+      ]);
+    }
   }
 
   private createPlaceholderTileset(): void {
