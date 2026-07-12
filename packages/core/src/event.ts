@@ -183,6 +183,10 @@ export interface PlayerDefeatedEvent {
   readonly type: "player-defeated";
 }
 
+export interface FortuneMadeEvent {
+  readonly type: "fortune-made";
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
@@ -215,4 +219,5 @@ export type GameEvent =
   | AttackMissedEvent
   | NpcDiedEvent
   | CombatEndedEvent
-  | PlayerDefeatedEvent;
+  | PlayerDefeatedEvent
+  | FortuneMadeEvent;

@@ -454,6 +454,11 @@ function applySell(state: GameState, intent: SellIntent, world: WorldDef): Advan
   if (itemId === undefined || price === undefined) {
     return rejected(state, `you carry no item ${intent.index}`);
   }
+  const events: GameEvent[] = [{ type: "item-sold", itemId, price }];
+  const madeFortune = world.items[itemId]?.treasure === true && !state.flags.fortuneMade;
+  if (madeFortune) {
+    events.push({ type: "fortune-made" });
+  }
   return {
     state: {
       ...state,
@@ -462,8 +467,9 @@ function applySell(state: GameState, intent: SellIntent, world: WorldDef): Advan
         coin: state.player.coin + price,
         items: state.player.items.filter((_, i) => i !== intent.index),
       },
+      flags: madeFortune ? { ...state.flags, fortuneMade: true } : state.flags,
     },
-    events: [{ type: "item-sold", itemId, price }],
+    events,
   };
 }
 

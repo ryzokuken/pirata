@@ -571,14 +571,14 @@ Why this geometry (the encounter design, verified against day perception radius 
 
 **Files:** modify `packages/core/src/advance.ts`, `event.ts`, `state.ts` (flags already exist); create `e2e/storied.spec.ts`
 
-- [ ] **Step 1: Fortune flag (core, TDD).** In `applySell`: if the sold item's def has `treasure: true` and `!state.flags.fortuneMade` → `flags.fortuneMade = true` + event `fortune-made`. Test via fixture loot. Client (small follow-up to Task 13): `fortune-made` shows a celebratory banner ("Word will spread of this. Your fortune has begun." — v0's success beat).
-- [ ] **Step 2: e2e `storied.spec.ts`** — the v0 criterion, scripted (routes derived from the ACTUAL committed cove layout; derive coordinates from the generated JSON, comment them):
+- [x] **Step 1: Fortune flag (core, TDD).** In `applySell`: if the sold item's def has `treasure: true` and `!state.flags.fortuneMade` → `flags.fortuneMade = true` + event `fortune-made`. Test via fixture loot. Client (small follow-up to Task 13): `fortune-made` shows a celebratory banner ("Word will spread of this. Your fortune has begun." — v0's success beat).
+- [x] **Step 2: e2e `storied.spec.ts`** — the v0 criterion, scripted (routes derived from the ACTUAL committed cove layout; derive coordinates from the generated JSON, comment them):
   1. **Rumor**: walk to the tavernkeeper, buy the rumor (assert coin −10, journal shows the text, `state.rumors` contains it).
   2. **Journey + heist**: wait until after 12:00 (Tano at the mouth), walk the north road portal, cross to the cove (assert `mapId`), take the tide tunnel, `take` the pearl strand (assert unwitnessed: the theft deed's `knownBy` is `[]` — the clean crime), return through the tunnel and portal.
   3. **Profit**: sell the pearl to the merchant (assert coin jump and `flags.fortuneMade === true`).
   4. **Steel (separate test)**: enter the cove before noon, walk at the mouth in daylight → assert `npc-alerted`/combat begins within bounded waits (assert `state.combat !== null`), then flee toward the beach until `combat === null`, exit via portal (alert clears on map change).
   5. **Hunger (separate test)**: wait 120 ticks, assert hunger stage HUD changed; buy + eat a dried fish, assert stage back to Fed.
-- [ ] **Step 3:** `pnpm test:e2e` fully green (all four spec files).
+- [x] **Step 3:** `pnpm test:e2e` fully green (all four spec files).
 
 ## Task 15: ADR-0004, deviations, PR
 

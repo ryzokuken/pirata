@@ -46,6 +46,7 @@ export type {
   DialogueAdvancedEvent,
   DialogueEndedEvent,
   DialogueStartedEvent,
+  FortuneMadeEvent,
   GameEvent,
   GossipSharedEvent,
   HungerChangedEvent,

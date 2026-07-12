@@ -836,6 +836,24 @@ describe("advance: trade", () => {
     expect(result.events[0]?.type).toBe("intent-rejected");
     expect(result.state.tick).toBe(trading().tick);
   });
+
+  it("selling a treasure item makes your fortune, once", () => {
+    const withLoot: GameState = {
+      ...trading(),
+      player: { ...trading().player, items: ["test:loot"] },
+    };
+    const result = advance(withLoot, { type: "sell", index: 0 }, world);
+    expect(result.state.flags.fortuneMade).toBe(true);
+    expect(result.events).toContainEqual({ type: "fortune-made" });
+
+    const soldAgain = advance(
+      { ...result.state, player: { ...result.state.player, items: ["test:loot"] } },
+      { type: "sell", index: 0 },
+      world,
+    );
+    expect(soldAgain.state.flags.fortuneMade).toBe(true);
+    expect(soldAgain.events).not.toContainEqual({ type: "fortune-made" });
+  });
 });
 
 function withHunger(hunger: number, hp: number = PLAYER_COMBAT.maxHp): GameState {

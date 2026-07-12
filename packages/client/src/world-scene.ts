@@ -27,6 +27,7 @@ import {
   renderStatus,
   renderTrade,
   showDefeatBanner,
+  showFortuneBanner,
   showToast,
 } from "./ui.ts";
 
@@ -278,6 +279,9 @@ export class WorldScene extends Scene {
         this.defeated = true;
         showDefeatBanner();
         this.scene.restart({ state: this.state } satisfies WorldSceneData);
+        break;
+      case "fortune-made":
+        showFortuneBanner();
         break;
       case "movement-blocked":
       case "dialogue-started":

@@ -175,6 +175,18 @@ export function hideDefeatBanner(): void {
   element<HTMLElement>("#defeat-banner").hidden = true;
 }
 
+let fortuneBannerTimer: number | undefined;
+
+/** Celebratory beat for `fortune-made`; auto-hides so it never blocks input. */
+export function showFortuneBanner(): void {
+  const banner = element<HTMLElement>("#fortune-banner");
+  banner.hidden = false;
+  window.clearTimeout(fortuneBannerTimer);
+  fortuneBannerTimer = window.setTimeout(() => {
+    banner.hidden = true;
+  }, 4000);
+}
+
 export function renderTrade(
   state: GameState,
   world: WorldDef,
