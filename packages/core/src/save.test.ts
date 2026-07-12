@@ -16,15 +16,29 @@ describe("save round-trip", () => {
     expect(deserialize(serialize(state))).toEqual(state);
   });
 
+  it("round-trips combat, rumors, and hunger", () => {
+    const state = {
+      ...createGameState({ seed: 7, world: fixtureWorld() }),
+      player: {
+        ...createGameState({ seed: 7, world: fixtureWorld() }).player,
+        hp: 4,
+        hunger: 18,
+      },
+      combat: { enemyIds: ["test:brute"] },
+      rumors: ["test:whisper"],
+    };
+    expect(deserialize(serialize(state))).toEqual(state);
+  });
+
   it("rejects malformed JSON", () => {
     expect(() => deserialize("not json{")).toThrow(SaveError);
   });
 
-  it("rejects the M2 save version", () => {
-    expect(() => deserialize(JSON.stringify({ version: 2, state: {} }))).toThrow(/version 2/);
+  it("rejects the M3 save version", () => {
+    expect(() => deserialize(JSON.stringify({ version: 3, state: {} }))).toThrow(/version 3/);
   });
 
   it("rejects a payload without state", () => {
-    expect(() => deserialize(JSON.stringify({ version: 3 }))).toThrow(SaveError);
+    expect(() => deserialize(JSON.stringify({ version: 4 }))).toThrow(SaveError);
   });
 });

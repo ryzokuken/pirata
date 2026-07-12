@@ -14,6 +14,26 @@ export interface ItemDef {
   readonly id: string;
   readonly name: string;
   readonly value: number;
+  readonly food?: { readonly nutrition: number };
+  readonly treasure?: boolean;
+}
+
+export interface DamageDie {
+  readonly count: number;
+  readonly sides: number;
+  readonly bonus: number;
+}
+
+export interface CombatantDef {
+  readonly maxHp: number;
+  readonly attackBonus: number;
+  readonly armorClass: number;
+  readonly damage: DamageDie;
+}
+
+export interface RumorDef {
+  readonly id: string;
+  readonly text: string;
 }
 
 export type CrimeVerb = "pickpocket" | "theft";
@@ -32,10 +52,13 @@ export interface NpcDef {
   readonly name: string;
   readonly factionId: string;
   readonly dialogueId: string;
+  readonly mapId: string;
   readonly schedule: readonly ScheduleEntry[];
   readonly pockets: readonly string[];
   readonly shop?: ShopDef;
   readonly confront?: ConfrontDef;
+  readonly combat?: CombatantDef;
+  readonly hostile?: boolean;
 }
 
 export type DialogueCondition =
@@ -47,7 +70,8 @@ export type DialogueCondition =
 
 export type DialogueEffect =
   | { readonly type: "deed"; readonly deedId: string }
-  | { readonly type: "pay"; readonly amount: number };
+  | { readonly type: "pay"; readonly amount: number }
+  | { readonly type: "rumor"; readonly rumorId: string };
 
 export interface DialogueChoice {
   readonly text: string;
@@ -74,11 +98,13 @@ export interface DeedDef {
 }
 
 export interface WorldDef {
-  readonly map: MapModel;
+  readonly maps: Readonly<Record<string, MapModel>>;
+  readonly startMapId: string;
   readonly factions: Readonly<Record<string, FactionDef>>;
   readonly npcs: Readonly<Record<string, NpcDef>>;
   readonly dialogues: Readonly<Record<string, DialogueDef>>;
   readonly deeds: Readonly<Record<string, DeedDef>>;
   readonly items: Readonly<Record<string, ItemDef>>;
   readonly crimes: Readonly<Partial<Record<CrimeVerb, string>>>;
+  readonly rumors: Readonly<Record<string, RumorDef>>;
 }

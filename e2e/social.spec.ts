@@ -10,21 +10,25 @@ test("NPCs stand at their scheduled morning posts", async ({ page }) => {
   const npcs = await page.evaluate(() => window.__pirata?.getState().npcs);
   expect(npcs).toContainEqual({
     id: "base:tavernkeeper",
+    mapId: "port_town",
     pos: { x: 3, y: 3 },
     pockets: ["base:rum_bottle"],
   });
   expect(npcs).toContainEqual({
     id: "base:merchant",
+    mapId: "port_town",
     pos: { x: 12, y: 3 },
     pockets: ["base:silver_ring"],
   });
   expect(npcs).toContainEqual({
     id: "base:harbormaster",
+    mapId: "port_town",
     pos: { x: 32, y: 17 },
     pockets: ["base:tobacco_pouch"],
   });
   expect(npcs).toContainEqual({
     id: "base:stevedore",
+    mapId: "port_town",
     pos: { x: 31, y: 20 },
     pockets: ["base:dried_fish"],
   });

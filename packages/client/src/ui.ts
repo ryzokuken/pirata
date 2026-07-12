@@ -3,7 +3,9 @@ import {
   clockOf,
   currentNode,
   factionStanding,
+  hungerStage,
   npcStanding,
+  PLAYER_COMBAT,
   sellPrice,
   visibleChoices,
   type GameState,
@@ -23,6 +25,16 @@ export function renderClock(state: GameState): void {
   const hour = String(clock.hour).padStart(2, "0");
   const minute = String(clock.minute).padStart(2, "0");
   element<HTMLElement>("#clock").textContent = `Day ${String(clock.day)} — ${hour}:${minute}`;
+}
+
+function capitalize(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+export function renderStatus(state: GameState): void {
+  element<HTMLElement>("#hp").textContent =
+    `HP ${String(state.player.hp)}/${String(PLAYER_COMBAT.maxHp)}`;
+  element<HTMLElement>("#hunger").textContent = capitalize(hungerStage(state.player.hunger));
 }
 
 export function renderReputation(state: GameState, world: WorldDef): void {
@@ -73,15 +85,106 @@ export function renderDialogue(
   );
 }
 
-export function renderInventory(state: GameState, world: WorldDef): void {
+export function renderInventory(
+  state: GameState,
+  world: WorldDef,
+  onEat: (index: number) => void,
+): void {
   element<HTMLElement>("#coin").textContent = `Coin: ${String(state.player.coin)}`;
   element<HTMLElement>("#inventory-list").replaceChildren(
-    ...state.player.items.map((itemId) => {
+    ...state.player.items.map((itemId, index) => {
       const row = document.createElement("li");
-      row.textContent = world.items[itemId]?.name ?? itemId;
+      const def = world.items[itemId];
+      const label = document.createElement("span");
+      label.textContent = def?.name ?? itemId;
+      row.append(label);
+      if (def?.food !== undefined) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Eat";
+        button.addEventListener("click", () => {
+          onEat(index);
+        });
+        row.append(button);
+      }
       return row;
     }),
   );
+}
+
+export function renderJournal(state: GameState, world: WorldDef): void {
+  element<HTMLElement>("#journal-list").replaceChildren(
+    ...state.rumors.map((rumorId) => {
+      const row = document.createElement("li");
+      row.textContent = world.rumors[rumorId]?.text ?? rumorId;
+      return row;
+    }),
+  );
+}
+
+export function renderCombat(
+  state: GameState,
+  world: WorldDef,
+  onAttack: (index: number) => void,
+): void {
+  const panel = element<HTMLElement>("#combat");
+  if (state.combat === null) {
+    panel.hidden = true;
+    return;
+  }
+  const combat = state.combat;
+  panel.hidden = false;
+  element<HTMLElement>("#combat-enemies").replaceChildren(
+    ...combat.enemyIds.map((npcId, index) => combatRow(state, world, npcId, index, onAttack)),
+  );
+}
+
+function combatRow(
+  state: GameState,
+  world: WorldDef,
+  npcId: string,
+  index: number,
+  onAttack: (index: number) => void,
+): HTMLElement {
+  const def = world.npcs[npcId];
+  const npc = state.npcs.find((candidate) => candidate.id === npcId);
+  const maxHp = def?.combat?.maxHp ?? 0;
+  const hp = npc?.hp ?? 0;
+  const row = document.createElement("li");
+  row.setAttribute("data-testid", npcId);
+  const label = document.createElement("span");
+  label.textContent = `${def?.name ?? npcId} — HP ${String(hp)}/${String(maxHp)}`;
+  const bar = document.createElement("progress");
+  bar.max = maxHp;
+  bar.value = hp;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = "Attack";
+  button.addEventListener("click", () => {
+    onAttack(index);
+  });
+  row.append(label, bar, button);
+  return row;
+}
+
+export function showDefeatBanner(): void {
+  element<HTMLElement>("#defeat-banner").hidden = false;
+}
+
+export function hideDefeatBanner(): void {
+  element<HTMLElement>("#defeat-banner").hidden = true;
+}
+
+let fortuneBannerTimer: number | undefined;
+
+/** Celebratory beat for `fortune-made`; auto-hides so it never blocks input. */
+export function showFortuneBanner(): void {
+  const banner = element<HTMLElement>("#fortune-banner");
+  banner.hidden = false;
+  window.clearTimeout(fortuneBannerTimer);
+  fortuneBannerTimer = window.setTimeout(() => {
+    banner.hidden = true;
+  }, 4000);
 }
 
 export function renderTrade(

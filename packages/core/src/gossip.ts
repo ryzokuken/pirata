@@ -1,28 +1,33 @@
 import { lineOfSight } from "./awareness.ts";
+import type { WorldDef } from "./defs.ts";
 import type { GameEvent } from "./event.ts";
-import type { MapModel } from "./map.ts";
 import type { DeedRecord, NpcState } from "./state.ts";
 
 export const GOSSIP_RANGE = 2;
 
 /**
- * One gossip pass: every NPC pair in conversation range (Chebyshev ≤ 2 with
- * line of sight) merges deed knowledge, both directions. Deterministic: pairs
- * in array order, knownBy kept sorted. Knowledge travels because schedules
- * co-locate people — no rates, no rng.
+ * One gossip pass: every NPC pair on the same map, in conversation range
+ * (Chebyshev ≤ 2 with line of sight), merges deed knowledge, both
+ * directions. Deterministic: pairs in array order, knownBy kept sorted.
+ * Knowledge travels because schedules co-locate people — no rates, no rng.
+ * NPCs never cross maps in v0, so pairs on different maps never gossip.
  */
 export function spreadGossip(options: {
   readonly deeds: readonly DeedRecord[];
   readonly npcs: readonly NpcState[];
-  readonly map: MapModel;
+  readonly world: WorldDef;
 }): { readonly deeds: readonly DeedRecord[]; readonly events: readonly GameEvent[] } {
-  const { npcs, map } = options;
+  const { npcs, world } = options;
   const events: GameEvent[] = [];
   const known = options.deeds.map((deed) => new Set(deed.knownBy));
 
   for (const [i, a] of npcs.entries()) {
     for (const b of npcs.slice(i + 1)) {
+      const map = world.maps[a.mapId];
       const distance = Math.max(Math.abs(a.pos.x - b.pos.x), Math.abs(a.pos.y - b.pos.y));
+      if (a.mapId !== b.mapId || map === undefined) {
+        continue;
+      }
       if (distance > GOSSIP_RANGE || !lineOfSight(map, a.pos, b.pos)) {
         continue;
       }

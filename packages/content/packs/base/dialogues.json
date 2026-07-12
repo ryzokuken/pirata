@@ -23,6 +23,15 @@
             "effects": [{ "type": "deed", "deed": "base:kind_word" }],
             "next": "cold"
           },
+          {
+            "text": "What's the word on the coast? (10 coin)",
+            "condition": { "type": "coin-at-least", "value": 10 },
+            "effects": [
+              { "type": "pay", "amount": 10 },
+              { "type": "rumor", "rumor": "base:cove_cache" }
+            ],
+            "next": "word"
+          },
           { "text": "Nothing for now." },
           {
             "text": "This place smells of bilgewater.",
@@ -41,6 +50,10 @@
       "cold": {
         "text": "Marisol wipes a mug and says nothing.",
         "choices": [{ "text": "Right." }]
+      },
+      "word": {
+        "text": "Marisol lowers her voice. 'The Brethren cache their haul in the cove up the north road. The old quartermaster drinks at the cave mouth from midday — his cellar stands unwatched till dark, if you know the tide-tunnel.'",
+        "choices": [{ "text": "Much obliged." }]
       }
     }
   },
@@ -95,6 +108,7 @@
           {
             "text": "Anything moving tonight?",
             "condition": { "type": "faction-standing-at-least", "value": 20 },
+            "effects": [{ "type": "rumor", "rumor": "base:cove_cache" }],
             "next": "hint"
           },
           { "text": "Nothing. Just passing through." },
@@ -184,6 +198,17 @@
       "paid": {
         "text": "'Smart. Don't make me come find you again.'",
         "choices": [{ "text": "Understood." }]
+      }
+    }
+  },
+  {
+    "type": "dialogue",
+    "id": "base:smuggler_talk",
+    "start": "bark",
+    "nodes": {
+      "bark": {
+        "text": "You shouldn't be here.",
+        "choices": [{ "text": "Leaving." }]
       }
     }
   }

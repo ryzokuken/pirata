@@ -1,6 +1,6 @@
 import { isBlocked, type MapModel } from "./map.ts";
 import type { WorldDef } from "./defs.ts";
-import type { GameState, Vec2 } from "./state.ts";
+import { currentMap, type GameState, type Vec2 } from "./state.ts";
 import { hourOf } from "./time.ts";
 
 export const BASE_PERCEPTION = 5;
@@ -47,16 +47,22 @@ export function lineOfSight(map: MapModel, from: Vec2, to: Vec2): boolean {
   }
 }
 
+/** Whether a watcher at `from`, with the given perception radius, can see `to`. */
+export function canPerceive(map: MapModel, radius: number, from: Vec2, to: Vec2): boolean {
+  const distance = Math.max(Math.abs(from.x - to.x), Math.abs(from.y - to.y));
+  return distance <= radius && lineOfSight(map, from, to);
+}
+
 /** NPC ids (sorted) that can see an act at `at` right now. */
 export function witnesses(state: GameState, world: WorldDef, at: Vec2): readonly string[] {
+  const map = currentMap(state, world);
   const radius = perceptionRadius(hourOf(state.tick), state.player.sneaking);
   const seen: string[] = [];
   for (const npc of state.npcs) {
-    const distance = Math.max(Math.abs(npc.pos.x - at.x), Math.abs(npc.pos.y - at.y));
-    if (distance > radius) {
+    if (npc.mapId !== state.mapId) {
       continue;
     }
-    if (!lineOfSight(world.map, npc.pos, at)) {
+    if (!canPerceive(map, radius, npc.pos, at)) {
       continue;
     }
     seen.push(npc.id);

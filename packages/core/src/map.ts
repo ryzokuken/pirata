@@ -5,6 +5,12 @@ export interface MapItem {
   readonly pos: Vec2;
 }
 
+export interface MapPortal {
+  readonly at: Vec2;
+  readonly toMapId: string;
+  readonly toLocation: string;
+}
+
 export interface MapModel {
   readonly id: string;
   readonly width: number;
@@ -13,6 +19,7 @@ export interface MapModel {
   readonly playerSpawn: Vec2;
   readonly locations: Readonly<Record<string, Vec2>>;
   readonly items: readonly MapItem[];
+  readonly portals: readonly MapPortal[];
 }
 
 interface TiledObject {
@@ -125,6 +132,32 @@ export function parseTiledMap(id: string, raw: unknown): MapModel {
     items.push({ itemId: object.name, pos });
   }
 
+  const portals: MapPortal[] = [];
+  const portalLayer = layers.find(
+    (layer) => layer.type === "objectgroup" && layer.name === "portals",
+  );
+  for (const object of portalLayer?.objects ?? []) {
+    const pos = {
+      x: Math.floor(object.x / map.tilewidth),
+      y: Math.floor(object.y / map.tileheight),
+    };
+    const outOfBounds = pos.x < 0 || pos.y < 0 || pos.x >= map.width || pos.y >= map.height;
+    if (outOfBounds || (blocked[pos.y * map.width + pos.x] ?? true)) {
+      throw new MapParseError(
+        `map "${id}": portal "${object.name}" at (${pos.x},${pos.y}) is not on walkable ground`,
+      );
+    }
+    const separator = object.name.indexOf("/");
+    const toMapId = separator === -1 ? "" : object.name.slice(0, separator);
+    const toLocation = separator === -1 ? "" : object.name.slice(separator + 1);
+    if (toMapId === "" || toLocation === "") {
+      throw new MapParseError(
+        `map "${id}": portal "${object.name}" must be named "<mapId>/<location>"`,
+      );
+    }
+    portals.push({ at: pos, toMapId, toLocation });
+  }
+
   return {
     id,
     width: map.width,
@@ -133,6 +166,7 @@ export function parseTiledMap(id: string, raw: unknown): MapModel {
     playerSpawn,
     locations,
     items,
+    portals,
   };
 }
 

@@ -1,7 +1,26 @@
 [
   { "type": "item", "id": "base:silk_bolt", "name": "Bolt of silk", "value": 24 },
-  { "type": "item", "id": "base:rum_bottle", "name": "Bottle of rum", "value": 6 },
-  { "type": "item", "id": "base:dried_fish", "name": "Dried fish", "value": 3 },
+  {
+    "type": "item",
+    "id": "base:rum_bottle",
+    "name": "Bottle of rum",
+    "value": 6,
+    "food": { "nutrition": 2 }
+  },
+  {
+    "type": "item",
+    "id": "base:dried_fish",
+    "name": "Dried fish",
+    "value": 3,
+    "food": { "nutrition": 8 }
+  },
   { "type": "item", "id": "base:silver_ring", "name": "Silver ring", "value": 15 },
-  { "type": "item", "id": "base:tobacco_pouch", "name": "Tobacco pouch", "value": 8 }
+  { "type": "item", "id": "base:tobacco_pouch", "name": "Tobacco pouch", "value": 8 },
+  {
+    "type": "item",
+    "id": "base:pearl_strand",
+    "name": "Strand of pearls",
+    "value": 60,
+    "treasure": true
+  }
 ]

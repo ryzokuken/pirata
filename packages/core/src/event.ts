@@ -1,3 +1,4 @@
+import type { HungerStage } from "./hunger.ts";
 import type { Vec2 } from "./state.ts";
 
 export interface PlayerMovedEvent {
@@ -17,6 +18,13 @@ export interface NpcMovedEvent {
   readonly npcId: string;
   readonly from: Vec2;
   readonly to: Vec2;
+}
+
+export interface MapChangedEvent {
+  readonly type: "map-changed";
+  readonly fromMapId: string;
+  readonly toMapId: string;
+  readonly at: Vec2;
 }
 
 export interface DialogueStartedEvent {
@@ -118,10 +126,72 @@ export interface ItemSoldEvent {
   readonly price: number;
 }
 
+export interface RumorHeardEvent {
+  readonly type: "rumor-heard";
+  readonly rumorId: string;
+}
+
+export interface AteFoodEvent {
+  readonly type: "ate-food";
+  readonly itemId: string;
+}
+
+export interface HungerChangedEvent {
+  readonly type: "hunger-changed";
+  readonly stage: HungerStage;
+}
+
+export interface NpcAlertedEvent {
+  readonly type: "npc-alerted";
+  readonly npcId: string;
+}
+
+export interface NpcCalmedEvent {
+  readonly type: "npc-calmed";
+  readonly npcId: string;
+}
+
+export interface CombatStartedEvent {
+  readonly type: "combat-started";
+  readonly enemyIds: readonly string[];
+}
+
+export interface AttackHitEvent {
+  readonly type: "attack-hit";
+  readonly attackerId: string;
+  readonly targetId: string;
+  readonly damage: number;
+}
+
+export interface AttackMissedEvent {
+  readonly type: "attack-missed";
+  readonly attackerId: string;
+  readonly targetId: string;
+}
+
+export interface NpcDiedEvent {
+  readonly type: "npc-died";
+  readonly npcId: string;
+}
+
+export interface CombatEndedEvent {
+  readonly type: "combat-ended";
+  readonly outcome: "victory" | "fled";
+}
+
+export interface PlayerDefeatedEvent {
+  readonly type: "player-defeated";
+}
+
+export interface FortuneMadeEvent {
+  readonly type: "fortune-made";
+}
+
 export type GameEvent =
   | PlayerMovedEvent
   | MovementBlockedEvent
   | NpcMovedEvent
+  | MapChangedEvent
   | DialogueStartedEvent
   | DialogueAdvancedEvent
   | DialogueEndedEvent
@@ -138,4 +208,16 @@ export type GameEvent =
   | TradeStartedEvent
   | TradeEndedEvent
   | ItemBoughtEvent
-  | ItemSoldEvent;
+  | ItemSoldEvent
+  | RumorHeardEvent
+  | AteFoodEvent
+  | HungerChangedEvent
+  | NpcAlertedEvent
+  | NpcCalmedEvent
+  | CombatStartedEvent
+  | AttackHitEvent
+  | AttackMissedEvent
+  | NpcDiedEvent
+  | CombatEndedEvent
+  | PlayerDefeatedEvent
+  | FortuneMadeEvent;

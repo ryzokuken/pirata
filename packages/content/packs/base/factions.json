@@ -1,5 +1,6 @@
 [
   { "type": "faction", "id": "base:merchants_guild", "name": "The Merchants' Guild" },
   { "type": "faction", "id": "base:dockworkers", "name": "The Dockworkers' Fellowship" },
-  { "type": "faction", "id": "base:town_watch", "name": "The Town Watch" }
+  { "type": "faction", "id": "base:town_watch", "name": "The Town Watch" },
+  { "type": "faction", "id": "base:smugglers", "name": "The Brethren of the Cove" }
 ]

@@ -25,6 +25,11 @@ function tiledFixture(): Record<string, unknown> {
         type: "objectgroup",
         objects: [{ name: "test:coin_pouch", x: 32, y: 32 }],
       },
+      {
+        name: "portals",
+        type: "objectgroup",
+        objects: [{ name: "other/arrival", x: 32, y: 32 }],
+      },
     ],
   };
 }
@@ -176,5 +181,43 @@ describe("parseTiledMap items", () => {
         y: 0,
       });
     expect(() => parseTiledMap("blocked", fixture)).toThrow(/"test:anchor".*not on walkable/);
+  });
+});
+
+describe("parseTiledMap portals", () => {
+  it("reads named portals in tile coordinates", () => {
+    const map = parseTiledMap("test", tiledFixture());
+    expect(map.portals).toEqual([{ at: { x: 1, y: 1 }, toMapId: "other", toLocation: "arrival" }]);
+  });
+
+  it("defaults to no portals when the layer is absent", () => {
+    const fixture = tiledFixture();
+    fixture["layers"] = (fixture["layers"] as { name: string }[]).filter(
+      (layer) => layer.name !== "portals",
+    );
+    expect(parseTiledMap("test", fixture).portals).toEqual([]);
+  });
+
+  it("rejects a portal on a blocked tile", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as { name: string; objects?: object[] }[];
+    layers
+      .find((layer) => layer.name === "portals")
+      ?.objects?.push({ name: "other/blocked", x: 0, y: 0 });
+    expect(() => parseTiledMap("blocked", fixture)).toThrow(
+      /"other\/blocked".*not on walkable ground/,
+    );
+  });
+
+  it("rejects a portal name without a slash", () => {
+    const fixture = tiledFixture();
+    const layers = fixture["layers"] as { name: string; objects?: object[] }[];
+    const portals = layers.find((layer) => layer.name === "portals");
+    if (portals?.objects !== undefined) {
+      portals.objects = [{ name: "bad", x: 32, y: 32 }];
+    }
+    expect(() => parseTiledMap("test", fixture)).toThrow(
+      /map "test": portal "bad" must be named "<mapId>\/<location>"/,
+    );
   });
 });
