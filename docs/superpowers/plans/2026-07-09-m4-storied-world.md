@@ -582,9 +582,55 @@ Why this geometry (the encounter design, verified against day perception radius 
 
 ## Task 15: ADR-0004, deviations, PR
 
-- [ ] **Step 1:** `docs/adr/0004-many-maps-rumors-and-steel.md` (ADR-0003's format): multi-map + portals model; rumors as knowledge not quests; D&D-shaped combat encounter mode pointed at party combat + detailed inventory (owner direction); aggro via awareness; robbed-not-dead; hunger clock with the no-starvation-death v0 cap; deferred: murder-as-crime, combat XP/gear, eavesdropping/lockpicking (M5+), per-pack combat/hunger tuning.
-- [ ] **Step 2:** Record execution deviations in this plan (M3's format). Reread the plan start-to-finish against the diff.
-- [ ] **Step 3:** Full release gate (`lint`, `format:check`, `typecheck`, `test`, `test:e2e`, `validate:content`, `check:attribution`), push, PR titled `M4: a storied world — rumors, the cove heist, first steel (v0)`, body describing what's in the diff (factual, no superlatives), ending with the standard generated-with footer.
+- [x] **Step 1:** `docs/adr/0004-many-maps-rumors-and-steel.md` (ADR-0003's format): multi-map + portals model; rumors as knowledge not quests; D&D-shaped combat encounter mode pointed at party combat + detailed inventory (owner direction); aggro via awareness; robbed-not-dead; hunger clock with the no-starvation-death v0 cap; deferred: murder-as-crime, combat XP/gear, eavesdropping/lockpicking (M5+), per-pack combat/hunger tuning.
+- [x] **Step 2:** Record execution deviations in this plan (M3's format). Reread the plan start-to-finish against the diff.
+- [x] **Step 3:** Full release gate (`lint`, `format:check`, `typecheck`, `test`, `test:e2e`, `validate:content`, `check:attribution`), push, PR titled `M4: a storied world — rumors, the cove heist, first steel (v0)`, body describing what's in the diff (factual, no superlatives), ending with the standard generated-with footer.
+
+---
+
+## Execution deviations (recorded 2026-07-12)
+
+- **Task 1:** compile fallout beyond the plan's list: `applyChoose`'s two-variant
+  `if/else` on effects needed explicit narrowing once the `rumor` variant existed;
+  several test files with `WorldDef`/`NpcDef`/`MapModel` literals needed shape updates;
+  `dialogue.ts` needed none.
+- **Task 2:** the lair brute's coordinates coincide with open town tiles, which exposed
+  the not-yet-per-map simulation early — minimal `npc.mapId === state.mapId` filters
+  were added at three call sites ahead of Task 3 (which then formalized them).
+- **Task 3:** found and fixed a real cross-map bug the plan missed: `applyTake` matched
+  world items by coordinates with no map filter; regression test added.
+- **Task 5:** adding "Any whispers?" to the fixture dialogue changed `visibleChoices`
+  counts — two `dialogue.test.ts` expectations updated (the plan claimed no
+  dialogue-test changes).
+- **Task 6:** plan ambiguity resolved: the tick that crosses INTO starving does cost
+  1 hp (the stage check runs on the post-increment value).
+- **Tasks 9/10:** Task 10 (defeat) was pulled forward into Task 9's commit — the
+  plan-sanctioned option, since a stub would leave the game stuck at hp ≤ 0.
+- **Task 11:** reachability error text became "unreachable from the map's entry points"
+  (non-start maps have no player spawn). Known limitation: the `validate` CLI picks the
+  start map alphabetically (`port_town` < `smugglers_cove` keeps it correct); an
+  explicit start-map field in `pack.json` is the right fix when a pack needs it.
+- **Task 12:** the cove needed a throwaway `P` spawn at (13,15) — `parseTiledMap`
+  requires a spawn on every map; it is inert for reachability (only start-spawn +
+  portal arrivals are entry points). Spawn-position test assertions use `START_HOUR` 8,
+  not hour 0 (Vico spawns at `cove_east`).
+- **Task 13:** scene-restart state handoff uses Phaser's official `init(data)` contract
+  (`scene.restart({ state })`) rather than relying on instance-field reuse.
+- **Task 14:** `e2e/storied.spec.ts` derives every route from the actual generated
+  `.map.json` files via a terrain-only BFS (walls, no game rules) instead of hand-picked
+  waypoints, so a map edit that changes geometry breaks the test loudly rather than
+  silently walking into a wall. The heist route dodges the tavernkeeper detour's ~40
+  ticks (enough for Old Tano's cellar → mouth schedule swap at noon) by walking the
+  tide tunnel (column 2) rather than the mouth corridor (column 14, within his day
+  radius down to row 14). The steel test enters via the shorter direct portal route
+  (~19 ticks, before noon) and flees south toward the beach; leaving the map clears
+  the lookout's alert per Task 8 even though he's still hunting on his own map. The
+  hunger test buys several dried fish rather than exactly enough, since the exact
+  tick count to catch the merchant on her evening schedule varies.
+- **Process:** per-task subagents with coordinator review; session limits interrupted
+  the Task 8 agent before any edits (clean re-dispatch) and the Task 14 agent after its
+  work was complete but uncommitted — the coordinator ran the final e2e (12/12) and
+  committed.
 
 ---
 
