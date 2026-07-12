@@ -15,8 +15,9 @@ and maps); art direction (LPC 32px, Kenney/CC0 for gaps) is unchanged.
   variety: grass, cobble paths, building walls, dock planks, water with
   shoreline edges, and decorative props.
 - Animated LPC characters replace the player and NPC rectangles: four-direction
-  walk cycles, distinct looks for the player and each of the four base-pack
-  NPCs (tavernkeeper, merchant, harbormaster, stevedore).
+  walk cycles, distinct looks for the player and each of the five base-pack
+  NPCs (tavernkeeper, merchant, harbormaster, stevedore, watchwoman). World
+  item pickups swap their gold circles for a tileset chest tile.
 - The DOM UI (dialogue, clock, reputation, toasts) gets a coherent skin: CSS
   panels plus one pixel font.
 - Every binary asset has an `ATTRIBUTION.md` row (CI-enforced, already wired),
@@ -27,11 +28,25 @@ customization, and animations beyond walk/idle. Each is deferred until needed.
 
 ## 2. Asset Pipeline: Vendored, Direct-Load
 
-Assets are downloaded once, committed to the repository under
-`packages/content/packs/base/assets/`, and loaded directly by Phaser. No
-asset-processing build step (the existing `pnpm build:maps` map generator is
-untouched by this rule), no new dependencies, no runtime fetches from
-third-party hosts.
+Assets are generated once by committed scripts, checked in under
+`packages/content/packs/base/assets/`, and loaded directly by Phaser — the
+same regenerate-don't-hand-edit model as `pnpm build:maps`. Nothing runs at
+build or load time, and the client fetches nothing from third-party hosts.
+Two generation scripts own the pipeline:
+
+- `scripts/build-tileset.ts` — downloads the LPC base assets zip (pinned URL,
+  SHA-256 verified), extracts the source sheets, and packs the curated tiles
+  into `tileset.png` per an in-script manifest that also exports the GID
+  constants `build-town-map.ts` consumes.
+- `scripts/compose-characters.ts` — sparse-clones the Universal LPC generator
+  repo at a pinned commit, alpha-composites per-layer `walk.png` sheets
+  (576×256, 9×4 frames of 64px) per character recipe, recolors garments and
+  hair by palette-ramp substitution from the repo's `palette_definitions`,
+  and emits each sheet's credits file from its `sheet_definitions` entries.
+
+Both scripts need `pngjs` (pure-JS PNG codec) and `build-tileset.ts` needs
+`fflate` (zip extraction); they are devDependencies used only by asset
+generation, never shipped.
 
 Alternatives considered and rejected:
 
@@ -44,13 +59,15 @@ Alternatives considered and rejected:
 
 - **Terrain:** curated 32px tiles from the LPC base assets collection
   (CC-BY-SA 3.0 / GPL 3.0 dual license).
-- **Characters:** five composite spritesheets from the Universal LPC
-  Spritesheet Character Generator. Composite sheets have many authors, so each
-  sheet's generator-exported credits file is committed alongside the PNG; the
-  sheet's `ATTRIBUTION.md` row points to it. This satisfies CC-BY-SA
-  attribution and the CI check.
-- **Font:** one pixel font, OFL or CC0, legible at 11–13px, Latin coverage.
-  The font file is a binary asset and gets an attribution row.
+- **Characters:** six composite spritesheets built by `compose-characters.ts`
+  from Universal LPC generator layers (CC-BY-SA 3.0 / GPL 3.0 per layer, some
+  OGA-BY 3.0). Composite sheets have many authors, so each sheet gets a
+  generated credits file committed alongside the PNG; the sheet's
+  `ATTRIBUTION.md` row points to it. This satisfies CC-BY-SA attribution and
+  the CI check.
+- **Font:** Pixelify Sans (OFL 1.1, vendored from google/fonts) for headings,
+  HUD, and toasts; dialogue body text stays `system-ui` for readability. The
+  font file is a binary asset and gets an attribution row.
 
 ## 3. Content Schema
 
@@ -85,12 +102,13 @@ current one. Visual variety is cosmetic; simulation behavior is untouched.
 
 ## 5. Characters and Animation (Client)
 
-- Phaser config gains `pixelArt: true` (nearest-neighbor filtering plus
-  rounded pixel positions), keeping 32px art crisp under the existing
-  device-pixel-ratio zoom.
+- Phaser already runs with `pixelArt: true`, which keeps 32px art crisp under
+  the existing device-pixel-ratio zoom; the plan verifies rather than adds it.
 - LPC sheets use 64×64 frames on the 32px grid. Sprites anchor with feet on
-  their tile (origin ≈ (0.5, 0.75)) and depth-sort by y, so characters pass
-  behind buildings correctly.
+  their tile (origin ≈ (0.5, 0.75)) and depth-sort by y among themselves, so
+  characters overlap each other correctly. Tile-versus-sprite occlusion
+  (walking behind building walls) is out of scope; characters render above
+  the tile layers as they do today.
 - The existing move tweens drive animation: a walk cycle plays for the tween's
   duration, facing follows travel direction, and the sprite returns to its
   idle frame on arrival. NPC name labels stay as they are.
