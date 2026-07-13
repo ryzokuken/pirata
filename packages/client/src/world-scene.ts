@@ -1,4 +1,4 @@
-import { loadBaseWorld } from "@pirata/content";
+import { loadBaseAssets, loadBaseWorld } from "@pirata/content";
 import coveJson from "@pirata/content/packs/base/maps/smugglers_cove.map.json";
 import townJson from "@pirata/content/packs/base/maps/port_town.map.json";
 import {
@@ -17,6 +17,7 @@ import {
   type WorldDef,
 } from "@pirata/core";
 import { GameObjects, Input, Scene } from "phaser";
+import { bundledPackAssets, resolvePackAssetUrl } from "./assets.ts";
 import {
   hideDefeatBanner,
   renderClock,
@@ -35,12 +36,7 @@ import {
 const TILE = 32;
 const MOVE_COOLDOWN_MS = 140;
 const SAVE_KEY = "pirata-save";
-const TILE_COLORS = [0x8a795d, 0x4d4338, 0x1d3f6e];
-const FACTION_COLORS: Readonly<Record<string, number>> = {
-  "base:merchants_guild": 0x7fb069,
-  "base:dockworkers": 0x5b8dbe,
-  "base:town_watch": 0xb1493f,
-};
+const CHEST_FRAME = 22; // tileset frame for "chest" (gid 23 - 1); see scripts/tileset-manifest.ts
 const CHOICE_KEYS = ["ONE", "TWO", "THREE", "FOUR", "FIVE"] as const;
 const DPR = window.devicePixelRatio || 1;
 const LABEL_STYLE = {
@@ -70,10 +66,14 @@ interface WorldSceneData {
 export class WorldScene extends Scene {
   private world!: WorldDef;
   private state!: GameState;
+  private assets = loadBaseAssets();
   private pendingState: GameState | undefined;
-  private playerSprite!: GameObjects.Rectangle;
-  private npcSprites = new Map<string, GameObjects.Container>();
-  private itemSprites: GameObjects.Arc[] = [];
+  private playerSprite!: GameObjects.Sprite;
+  private npcSprites = new Map<
+    string,
+    { container: GameObjects.Container; sprite: GameObjects.Sprite }
+  >();
+  private itemSprites: GameObjects.Image[] = [];
   private polledKeys!: ReadonlyArray<readonly [Intent, Input.Keyboard.Key]>;
   private lastMoveAt = 0;
   private defeated = false;
@@ -93,6 +93,67 @@ export class WorldScene extends Scene {
     if (!this.cache.tilemap.exists("smugglers_cove")) {
       this.load.tilemapTiledJSON("smugglers_cove", coveJson as unknown as object);
     }
+    if (!this.textures.exists("tileset")) {
+      const { tileset } = this.assets;
+      this.load.spritesheet("tileset", resolvePackAssetUrl(bundledPackAssets, tileset.image), {
+        frameWidth: tileset.tileWidth,
+        frameHeight: tileset.tileHeight,
+      });
+    }
+    const { frame } = this.assets;
+    for (const [key, character] of Object.entries(this.assets.characters)) {
+      if (!this.textures.exists(key)) {
+        this.load.spritesheet(key, resolvePackAssetUrl(bundledPackAssets, character.image), {
+          frameWidth: frame.width,
+          frameHeight: frame.height,
+        });
+      }
+    }
+  }
+
+  private walkRow(direction: Direction): number {
+    return this.assets.frame.rows[direction];
+  }
+
+  private createWalkAnimations(textureKey: string): void {
+    const { walkFrames } = this.assets.frame;
+    for (const direction of ["north", "west", "south", "east"] as const) {
+      const key = `${textureKey}:walk:${direction}`;
+      if (this.anims.exists(key)) {
+        continue;
+      }
+      const start = this.walkRow(direction) * walkFrames;
+      this.anims.create({
+        key,
+        frames: this.anims.generateFrameNumbers(textureKey, {
+          start: start + 1,
+          end: start + walkFrames - 1,
+        }),
+        frameRate: 12,
+        repeat: -1,
+      });
+    }
+  }
+
+  private idleFrame(direction: Direction): number {
+    return this.walkRow(direction) * this.assets.frame.walkFrames;
+  }
+
+  private directionOf(from: { x: number; y: number }, to: { x: number; y: number }): Direction {
+    if (to.x > from.x) {
+      return "east";
+    }
+    if (to.x < from.x) {
+      return "west";
+    }
+    if (to.y > from.y) {
+      return "south";
+    }
+    return "north";
+  }
+
+  private spriteKeyFor(npcId: string): string {
+    return this.assets.characters[npcId] !== undefined ? npcId : "player";
   }
 
   create(): void {
@@ -110,23 +171,23 @@ export class WorldScene extends Scene {
     // stay 768x512, the camera renders them at native pixel density.
     this.cameras.main.setZoom(DPR);
 
-    this.createPlaceholderTileset();
     const tilemap = this.make.tilemap({ key: this.state.mapId });
-    const tileset = tilemap.addTilesetImage("placeholder", "placeholder");
+    const tileset = tilemap.addTilesetImage("lpc_base", "tileset");
     if (tileset === null) {
-      throw new Error("failed to attach placeholder tileset to tilemap");
+      throw new Error("failed to attach lpc_base tileset to tilemap");
     }
     tilemap.createLayer("ground", tileset);
+    tilemap.createLayer("decor", tileset);
     tilemap.createLayer("walls", tileset);
 
+    for (const key of Object.keys(this.assets.characters)) {
+      this.createWalkAnimations(key);
+    }
+
     const { x, y } = this.state.player.pos;
-    this.playerSprite = this.add.rectangle(
-      x * TILE + TILE / 2,
-      y * TILE + TILE / 2,
-      TILE - 8,
-      TILE - 4,
-      0xd9a441,
-    );
+    this.playerSprite = this.add
+      .sprite(x * TILE + TILE / 2, y * TILE + TILE / 2, "player", this.idleFrame("south"))
+      .setOrigin(0.5, 0.75);
     this.playerSprite.setAlpha(this.state.player.sneaking ? 0.5 : 1);
     this.playerSprite.setDepth(y);
 
@@ -184,24 +245,37 @@ export class WorldScene extends Scene {
 
   private renderEvent(event: GameEvent): void {
     switch (event.type) {
-      case "player-moved":
+      case "player-moved": {
+        const direction = this.directionOf(event.from, event.to);
+        this.playerSprite.play(`player:walk:${direction}`, true);
         this.playerSprite.setDepth(event.to.y);
         this.tweens.add({
           targets: this.playerSprite,
           x: event.to.x * TILE + TILE / 2,
           y: event.to.y * TILE + TILE / 2,
           duration: 110,
+          onComplete: () => {
+            this.playerSprite.stop();
+            this.playerSprite.setFrame(this.idleFrame(direction));
+          },
         });
         break;
+      }
       case "npc-moved": {
-        const sprite = this.npcSprites.get(event.npcId);
-        if (sprite !== undefined) {
-          sprite.setDepth(event.to.y);
+        const handles = this.npcSprites.get(event.npcId);
+        if (handles !== undefined) {
+          const direction = this.directionOf(event.from, event.to);
+          handles.sprite.play(`${this.spriteKeyFor(event.npcId)}:walk:${direction}`, true);
+          handles.container.setDepth(event.to.y);
           this.tweens.add({
-            targets: sprite,
+            targets: handles.container,
             x: event.to.x * TILE + TILE / 2,
             y: event.to.y * TILE + TILE / 2,
             duration: 110,
+            onComplete: () => {
+              handles.sprite.stop();
+              handles.sprite.setFrame(this.idleFrame(direction));
+            },
           });
         }
         break;
@@ -234,7 +308,7 @@ export class WorldScene extends Scene {
       case "gossip-shared": {
         const to = this.npcSprites.get(event.toNpcId);
         if (to !== undefined) {
-          this.floatTextAt(to.x, to.y - 24, "psst…", "#8a93a3");
+          this.floatTextAt(to.container.x, to.container.y - 24, "psst…", "#8a93a3");
         }
         break;
       }
@@ -281,7 +355,7 @@ export class WorldScene extends Scene {
         break;
       case "npc-died": {
         const name = this.world.npcs[event.npcId]?.name ?? event.npcId;
-        this.npcSprites.get(event.npcId)?.destroy();
+        this.npcSprites.get(event.npcId)?.container.destroy();
         this.npcSprites.delete(event.npcId);
         showToast(`${name} falls!`);
         break;
@@ -313,9 +387,9 @@ export class WorldScene extends Scene {
       this.floatText(text, color);
       return;
     }
-    const sprite = this.npcSprites.get(id);
-    if (sprite !== undefined) {
-      this.floatTextAt(sprite.x, sprite.y - 24, text, color);
+    const handles = this.npcSprites.get(id);
+    if (handles !== undefined) {
+      this.floatTextAt(handles.container.x, handles.container.y - 24, text, color);
     }
   }
 
@@ -386,24 +460,21 @@ export class WorldScene extends Scene {
       if (def === undefined) {
         continue;
       }
-      const body = this.add.rectangle(
-        0,
-        0,
-        TILE - 10,
-        TILE - 6,
-        FACTION_COLORS[def.factionId] ?? 0xcccccc,
-      );
+      const textureKey = this.spriteKeyFor(npc.id);
+      const sprite = this.add
+        .sprite(0, 0, textureKey, this.idleFrame("south"))
+        .setOrigin(0.5, 0.75);
       const label = this.add
-        .text(0, -TILE / 2, def.name, LABEL_STYLE)
+        .text(0, -TILE * 1.5, def.name, LABEL_STYLE)
         .setStroke("#101418", 3)
         .setOrigin(0.5, 1);
       const container = this.add.container(
         npc.pos.x * TILE + TILE / 2,
         npc.pos.y * TILE + TILE / 2,
-        [body, label],
+        [sprite, label],
       );
       container.setDepth(npc.pos.y);
-      this.npcSprites.set(npc.id, container);
+      this.npcSprites.set(npc.id, { container, sprite });
     }
   }
 
@@ -415,7 +486,7 @@ export class WorldScene extends Scene {
       .filter((item) => item.mapId === this.state.mapId)
       .map((item) =>
         this.add
-          .circle(item.pos.x * TILE + TILE / 2, item.pos.y * TILE + TILE / 2, 6, 0xd9a441)
+          .image(item.pos.x * TILE + TILE / 2, item.pos.y * TILE + TILE / 2, "tileset", CHEST_FRAME)
           .setDepth(0),
       );
   }
@@ -445,19 +516,6 @@ export class WorldScene extends Scene {
         .container(portal.at.x * TILE + TILE / 2, portal.at.y * TILE + TILE / 2, [marker, label])
         .setDepth(0);
     }
-  }
-
-  private createPlaceholderTileset(): void {
-    if (this.textures.exists("placeholder")) {
-      return;
-    }
-    const graphics = this.add.graphics();
-    TILE_COLORS.forEach((color, index) => {
-      graphics.fillStyle(color, 1);
-      graphics.fillRect(index * TILE, 0, TILE, TILE);
-    });
-    graphics.generateTexture("placeholder", TILE * TILE_COLORS.length, TILE);
-    graphics.destroy();
   }
 
   private loadOrCreateState(): GameState {

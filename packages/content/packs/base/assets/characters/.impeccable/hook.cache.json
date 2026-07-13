@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "sessions": {
+    "b91740d0-07d4-4f85-b1c8-0c753a8cb8de": {
+      "updatedAt": 1783969818410,
+      "files": {
+        "/home/ryzo/code/ryzokuken/pirata/.claude/worktrees/asset-overhaul-spec/scripts/map-defs.ts": {
+          "editCount": 1,
+          "findings": []
+        },
+        "/home/ryzo/code/ryzokuken/pirata/.claude/worktrees/asset-overhaul-spec/scripts/compose-characters.ts": {
+          "editCount": 2,
+          "findings": []
+        }
+      }
+    }
+  }
+}

@@ -12,6 +12,8 @@
     "test:e2e": "pnpm --filter @pirata/client build && playwright test",
     "build": "pnpm -r --if-present build",
     "build:maps": "node scripts/build-maps.ts",
+    "build:tileset": "node scripts/build-tileset.ts",
+    "build:characters": "node scripts/compose-characters.ts",
     "validate:content": "node packages/content/src/validate.ts",
     "check:attribution": "node scripts/check-attribution.ts"
   },
@@ -19,9 +21,12 @@
     "@pirata/core": "workspace:*",
     "@playwright/test": "1.61.1",
     "@types/node": "24.13.2",
+    "@types/pngjs": "6.0.5",
     "fast-check": "4.8.0",
+    "fflate": "0.8.3",
     "oxfmt": "0.57.0",
     "oxlint": "1.72.0",
+    "pngjs": "7.0.0",
     "typescript": "6.0.3",
     "vitest": "4.1.9"
   },
