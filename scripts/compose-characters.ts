@@ -246,6 +246,30 @@ function creditsFor(
   throw new Error(`no sheet_definitions credits found for layer "${layerPath}"`);
 }
 
+function hasMagick(): boolean {
+  try {
+    execFileSync("magick", ["-version"], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const magickAvailable = hasMagick();
+if (!magickAvailable) {
+  console.warn("magick not found — sheets stay RGBA (~8x larger); install ImageMagick and rerun");
+}
+
+/**
+ * Sheets use ~40 colors with binary alpha, so indexed PNG8 is pixel-identical
+ * at roughly an eighth of the size — this keeps the asset budget honest.
+ */
+function palettize(path: string): void {
+  if (magickAvailable) {
+    execFileSync("magick", [path, `PNG8:${path}`], { stdio: "inherit" });
+  }
+}
+
 ensureRepo();
 mkdirSync(OUT_DIR, { recursive: true });
 const palettes = {
@@ -296,6 +320,7 @@ for (const recipe of RECIPES) {
     }
   }
   writePngFile(`${OUT_DIR}/${recipe.id}.png`, sheet);
+  palettize(`${OUT_DIR}/${recipe.id}.png`);
   const creditsText = usedCredits
     .map((credit) =>
       [
