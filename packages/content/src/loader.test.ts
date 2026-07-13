@@ -313,6 +313,30 @@ describe("item food and treasure fields", () => {
   });
 });
 
+const validAssets = {
+  tileset: { image: "assets/tileset.png", tileWidth: 32, tileHeight: 32, columns: 8 },
+  frame: { width: 64, height: 64, walkFrames: 9, rows: { north: 0, west: 1, south: 2, east: 3 } },
+  characters: { player: { image: "assets/characters/player.png" } },
+};
+
+describe("pack assets", () => {
+  it("parses a manifest with an assets section", () => {
+    const manifest = parsePackManifest({ ...valid, assets: validAssets }, "p.json");
+    expect(manifest.assets?.tileset.columns).toBe(8);
+  });
+
+  it("requires a player character sheet", () => {
+    const noPlayer = { ...validAssets, characters: { "base:x": { image: "a.png" } } };
+    expect(() => parsePackManifest({ ...valid, assets: noPlayer }, "p.json")).toThrow(/player/);
+  });
+
+  it("accepts an npc sprite reference", () => {
+    const npcWithSprite = { ...npc, sprite: "base:tavernkeeper" };
+    const [parsed] = parsePackObjects([npcWithSprite], "npcs.json");
+    expect(parsed?.type === "npc" && parsed.sprite).toBe("base:tavernkeeper");
+  });
+});
+
 describe("rumor dialogue effect", () => {
   it("parses a rumor effect", () => {
     const objects = parsePackObjects(

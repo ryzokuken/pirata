@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createGameState, parseTiledMap, type MapModel } from "@pirata/core";
 import { finalizeWorld } from "./finalize.ts";
@@ -33,6 +33,29 @@ const objects = readdirSync(packDir)
 
 const world = finalizeWorld({ objects, maps, startMapId: startMap.id });
 createGameState({ seed: 1, world });
+
+if (manifest.assets !== undefined) {
+  const images = [
+    manifest.assets.tileset.image,
+    ...Object.values(manifest.assets.characters).map((character) => character.image),
+  ];
+  const missingFiles = images.filter((image) => !existsSync(join(packDir, image)));
+  if (missingFiles.length > 0) {
+    console.error(`${packDir}: asset files missing on disk:\n${missingFiles.join("\n")}`);
+    process.exit(1);
+  }
+  for (const object of objects) {
+    if (object.type === "npc" && object.sprite !== undefined) {
+      if (manifest.assets.characters[object.sprite] === undefined) {
+        console.error(
+          `${packDir}: npc "${object.id}" sprite "${object.sprite}" has no character sheet`,
+        );
+        process.exit(1);
+      }
+    }
+  }
+}
+
 console.log(
-  `pack "${manifest.id}" OK: ${String(maps.length)} map(s), ${String(objects.length)} object(s), links resolve, world boots`,
+  `pack "${manifest.id}" OK: ${String(maps.length)} map(s), ${String(objects.length)} object(s), links resolve, world boots${manifest.assets !== undefined ? ", assets OK" : ""}`,
 );

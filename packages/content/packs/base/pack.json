@@ -1,8 +1,27 @@
 {
   "id": "base",
   "name": "Pirata Base Game",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "dependencies": [],
   "license": "CC-BY-SA-4.0",
-  "authors": ["Pirata contributors"]
+  "authors": ["Pirata contributors"],
+  "assets": {
+    "tileset": { "image": "assets/tileset.png", "tileWidth": 32, "tileHeight": 32, "columns": 8 },
+    "frame": {
+      "width": 64,
+      "height": 64,
+      "walkFrames": 9,
+      "rows": { "north": 0, "west": 1, "south": 2, "east": 3 }
+    },
+    "characters": {
+      "player": { "image": "assets/characters/player.png" },
+      "base:tavernkeeper": { "image": "assets/characters/tavernkeeper.png" },
+      "base:merchant": { "image": "assets/characters/merchant.png" },
+      "base:harbormaster": { "image": "assets/characters/harbormaster.png" },
+      "base:stevedore": { "image": "assets/characters/stevedore.png" },
+      "base:watchwoman": { "image": "assets/characters/watchwoman.png" },
+      "base:smuggler_lookout": { "image": "assets/characters/smuggler_lookout.png" },
+      "base:smuggler_quartermaster": { "image": "assets/characters/smuggler_quartermaster.png" }
+    }
+  }
 }

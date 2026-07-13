@@ -2,6 +2,7 @@
   {
     "type": "npc",
     "id": "base:tavernkeeper",
+    "sprite": "base:tavernkeeper",
     "name": "Marisol",
     "faction": "base:merchants_guild",
     "dialogue": "base:tavernkeeper_talk",
@@ -11,6 +12,7 @@
   {
     "type": "npc",
     "id": "base:merchant",
+    "sprite": "base:merchant",
     "name": "Beatriz",
     "faction": "base:merchants_guild",
     "dialogue": "base:merchant_talk",
@@ -24,6 +26,7 @@
   {
     "type": "npc",
     "id": "base:harbormaster",
+    "sprite": "base:harbormaster",
     "name": "Duarte",
     "faction": "base:dockworkers",
     "dialogue": "base:harbormaster_talk",
@@ -36,6 +39,7 @@
   {
     "type": "npc",
     "id": "base:stevedore",
+    "sprite": "base:stevedore",
     "name": "Jorge",
     "faction": "base:dockworkers",
     "dialogue": "base:stevedore_talk",
@@ -49,6 +53,7 @@
   {
     "type": "npc",
     "id": "base:watchwoman",
+    "sprite": "base:watchwoman",
     "name": "Rosa",
     "faction": "base:town_watch",
     "dialogue": "base:watchwoman_talk",
@@ -63,6 +68,7 @@
   {
     "type": "npc",
     "id": "base:smuggler_lookout",
+    "sprite": "base:smuggler_lookout",
     "name": "Vico",
     "faction": "base:smugglers",
     "dialogue": "base:smuggler_talk",
@@ -85,6 +91,7 @@
   {
     "type": "npc",
     "id": "base:smuggler_quartermaster",
+    "sprite": "base:smuggler_quartermaster",
     "name": "Old Tano",
     "faction": "base:smugglers",
     "dialogue": "base:smuggler_talk",

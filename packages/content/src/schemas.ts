@@ -1,5 +1,32 @@
 import { z } from "zod";
 
+export const packAssetsSchema = z.strictObject({
+  tileset: z.strictObject({
+    image: z.string().min(1),
+    tileWidth: z.number().int().positive(),
+    tileHeight: z.number().int().positive(),
+    columns: z.number().int().positive(),
+  }),
+  frame: z.strictObject({
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+    walkFrames: z.number().int().positive(),
+    rows: z.strictObject({
+      north: z.number().int().min(0),
+      west: z.number().int().min(0),
+      south: z.number().int().min(0),
+      east: z.number().int().min(0),
+    }),
+  }),
+  characters: z
+    .record(z.string(), z.strictObject({ image: z.string().min(1) }))
+    .refine((characters) => "player" in characters, {
+      message: 'characters must include a "player" sheet',
+    }),
+});
+
+export type PackAssets = z.infer<typeof packAssetsSchema>;
+
 export const packManifestSchema = z.strictObject({
   id: z
     .string()
@@ -9,6 +36,7 @@ export const packManifestSchema = z.strictObject({
   dependencies: z.array(z.string()).default([]),
   license: z.string().min(1),
   authors: z.array(z.string().min(1)).min(1),
+  assets: packAssetsSchema.optional(),
 });
 
 export type PackManifest = z.infer<typeof packManifestSchema>;
@@ -84,6 +112,7 @@ export const npcSchema = z.strictObject({
   confront: z.strictObject({ standingBelow: z.number().int(), dialogue: objectId }).optional(),
   hostile: z.boolean().optional(),
   combat: combatantSchema.optional(),
+  sprite: z.string().min(1).optional(),
 });
 
 const conditionSchema = z.strictObject({
