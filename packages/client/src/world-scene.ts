@@ -1,4 +1,4 @@
-import { loadBaseWorld } from "@pirata/content";
+import { loadBaseAssets, loadBaseWorld } from "@pirata/content";
 import coveJson from "@pirata/content/packs/base/maps/smugglers_cove.map.json";
 import townJson from "@pirata/content/packs/base/maps/port_town.map.json";
 import {
@@ -17,6 +17,7 @@ import {
   type WorldDef,
 } from "@pirata/core";
 import { GameObjects, Input, Scene } from "phaser";
+import { bundledPackAssets, resolvePackAssetUrl } from "./assets.ts";
 import {
   hideDefeatBanner,
   renderClock,
@@ -35,7 +36,6 @@ import {
 const TILE = 32;
 const MOVE_COOLDOWN_MS = 140;
 const SAVE_KEY = "pirata-save";
-const TILE_COLORS = [0x8a795d, 0x4d4338, 0x1d3f6e];
 const FACTION_COLORS: Readonly<Record<string, number>> = {
   "base:merchants_guild": 0x7fb069,
   "base:dockworkers": 0x5b8dbe,
@@ -70,6 +70,7 @@ interface WorldSceneData {
 export class WorldScene extends Scene {
   private world!: WorldDef;
   private state!: GameState;
+  private assets = loadBaseAssets();
   private pendingState: GameState | undefined;
   private playerSprite!: GameObjects.Rectangle;
   private npcSprites = new Map<string, GameObjects.Container>();
@@ -93,6 +94,13 @@ export class WorldScene extends Scene {
     if (!this.cache.tilemap.exists("smugglers_cove")) {
       this.load.tilemapTiledJSON("smugglers_cove", coveJson as unknown as object);
     }
+    if (!this.textures.exists("tileset")) {
+      const { tileset } = this.assets;
+      this.load.spritesheet("tileset", resolvePackAssetUrl(bundledPackAssets, tileset.image), {
+        frameWidth: tileset.tileWidth,
+        frameHeight: tileset.tileHeight,
+      });
+    }
   }
 
   create(): void {
@@ -110,13 +118,13 @@ export class WorldScene extends Scene {
     // stay 768x512, the camera renders them at native pixel density.
     this.cameras.main.setZoom(DPR);
 
-    this.createPlaceholderTileset();
     const tilemap = this.make.tilemap({ key: this.state.mapId });
-    const tileset = tilemap.addTilesetImage("placeholder", "placeholder");
+    const tileset = tilemap.addTilesetImage("lpc_base", "tileset");
     if (tileset === null) {
-      throw new Error("failed to attach placeholder tileset to tilemap");
+      throw new Error("failed to attach lpc_base tileset to tilemap");
     }
     tilemap.createLayer("ground", tileset);
+    tilemap.createLayer("decor", tileset);
     tilemap.createLayer("walls", tileset);
 
     const { x, y } = this.state.player.pos;
@@ -445,19 +453,6 @@ export class WorldScene extends Scene {
         .container(portal.at.x * TILE + TILE / 2, portal.at.y * TILE + TILE / 2, [marker, label])
         .setDepth(0);
     }
-  }
-
-  private createPlaceholderTileset(): void {
-    if (this.textures.exists("placeholder")) {
-      return;
-    }
-    const graphics = this.add.graphics();
-    TILE_COLORS.forEach((color, index) => {
-      graphics.fillStyle(color, 1);
-      graphics.fillRect(index * TILE, 0, TILE, TILE);
-    });
-    graphics.generateTexture("placeholder", TILE * TILE_COLORS.length, TILE);
-    graphics.destroy();
   }
 
   private loadOrCreateState(): GameState {
