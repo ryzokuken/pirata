@@ -887,6 +887,8 @@ for (const recipe of RECIPES) {
 
 Implementation note: credits matching works by `credits[].file` prefix lookup (see `creditsFor`) — do not try to map the `layer_N` values in the definition JSONs; the prefix match is sufficient and simpler.
 
+Execution deviation (2026-07-13): the RGBA sheets pngjs writes average ~70KB each, which blew the 600KB budget (640KB total). The script now re-encodes each sheet as indexed PNG8 via ImageMagick (`magick sheet.png PNG8:sheet.png`) right after writing — pixel-identical (sheets have ~40 colors, binary alpha; verified with `magick compare -metric AE` = 0) at ~9KB each. If `magick` is absent the script warns and leaves RGBA output.
+
 - [ ] **Step 2: Run it and eyeball every sheet**
 
 ```bash
@@ -1443,6 +1445,12 @@ function waterGid(spec: MapSpec, x: number, y: number): number {
   return gid("water");
 }
 
+// Execution deviation (2026-07-13): the original facade/roof split
+// (`roof` when the cell below is "#", brick otherwise) rendered hollow
+// 1-tile-thick buildings as red frames with gray sides — there is no
+// consistent facade orientation when both sides of a wall are walkable.
+// Buildings now use uniform brick; the `roof` tile stays in the tileset
+// for future multi-tile structures.
 function wallGid(spec: MapSpec, x: number, y: number, width: number, height: number): number {
   if (spec.theme === "cave") {
     return gid("cave_wall");
@@ -1450,7 +1458,7 @@ function wallGid(spec: MapSpec, x: number, y: number, width: number, height: num
   if (x === 0 || y === 0 || x === width - 1 || y === height - 1) {
     return gid("wall_stone");
   }
-  return spec.layout[y + 1]?.[x] === "#" ? gid("roof") : gid("wall_brick");
+  return gid("wall_brick");
 }
 
 function groundGid(spec: MapSpec, x: number, y: number): number {

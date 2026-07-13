@@ -283,6 +283,8 @@ function waterGid(spec: MapSpec, x: number, y: number): number {
   return gid("water");
 }
 
+// Buildings are hollow (enterable) with 1-tile walls, so a facade/roof split
+// has no consistent orientation — uniform brick per structure reads best.
 function wallGid(spec: MapSpec, x: number, y: number, width: number, height: number): number {
   if (spec.theme === "cave") {
     return gid("cave_wall");
@@ -290,7 +292,7 @@ function wallGid(spec: MapSpec, x: number, y: number, width: number, height: num
   if (x === 0 || y === 0 || x === width - 1 || y === height - 1) {
     return gid("wall_stone");
   }
-  return spec.layout[y + 1]?.[x] === "#" ? gid("roof") : gid("wall_brick");
+  return gid("wall_brick");
 }
 
 function groundGid(spec: MapSpec, x: number, y: number): number {
