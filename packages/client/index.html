@@ -5,18 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pirata</title>
     <style>
+      @font-face {
+        font-family: "Pixelify Sans";
+        src: url("/fonts/PixelifySans.ttf") format("truetype");
+        font-display: swap;
+      }
       :root {
         color-scheme: dark;
-        --panel: #1b2129;
-        --border: #3a4453;
-        --ink: #e8e0c9;
+        --panel: #241a12;
+        --panel-deep: #1a130d;
+        --border: #57422b;
+        --ink: #e8dcc9;
+        --ink-dim: #a89678;
         --accent: #d9a441;
+        --pixel: "Pixelify Sans", system-ui, sans-serif;
       }
       html,
       body {
         margin: 0;
         min-height: 100%;
-        background: #101418;
+        background: #14100c;
         color: var(--ink);
         font-family: system-ui, sans-serif;
       }
@@ -30,14 +38,16 @@
         display: flex;
         justify-content: space-between;
         gap: 16px;
-        font-size: 14px;
+        font-family: var(--pixel);
+        font-size: 15px;
       }
       #hud-status {
         display: flex;
         gap: 16px;
       }
       #hint {
-        color: #8a93a3;
+        color: var(--ink-dim);
+        font-size: 13px;
       }
       #stage {
         display: grid;
@@ -53,8 +63,8 @@
       #inventory,
       #journal {
         background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 6px;
+        border: 2px solid var(--border);
+        border-radius: 4px;
         padding: 10px;
         font-size: 13px;
       }
@@ -62,7 +72,9 @@
       #inventory h2,
       #journal h2 {
         margin: 0 0 6px;
-        font-size: 13px;
+        font-family: var(--pixel);
+        font-size: 14px;
+        letter-spacing: 0.5px;
         color: var(--accent);
       }
       #reputation ul,
@@ -82,20 +94,23 @@
       }
       #inventory-list button,
       #combat-enemies button {
-        background: #232b36;
+        background: var(--panel-deep);
         color: var(--ink);
         border: 1px solid var(--border);
-        border-radius: 4px;
+        border-radius: 3px;
         padding: 2px 8px;
         font: inherit;
         cursor: pointer;
+        transition:
+          border-color 120ms,
+          background 120ms;
       }
       #dialogue,
       #trade,
       #combat {
         background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 6px;
+        border: 2px solid var(--border);
+        border-radius: 4px;
         padding: 12px 14px;
         max-width: 640px;
       }
@@ -103,17 +118,20 @@
       #trade h2,
       #combat h2 {
         margin: 0 0 4px;
-        font-size: 14px;
+        font-family: var(--pixel);
+        font-size: 16px;
         color: var(--accent);
       }
       #trade h3 {
         margin: 8px 0 4px;
-        font-size: 12px;
-        color: #8a93a3;
+        font-family: var(--pixel);
+        font-size: 13px;
+        color: var(--ink-dim);
       }
       #dialogue p,
       #combat p {
         margin: 0 0 8px;
+        line-height: 1.45;
       }
       #dialogue ol,
       #trade ol {
@@ -138,23 +156,28 @@
       }
       #combat-enemies progress {
         flex: 1;
+        accent-color: var(--accent);
       }
       #dialogue button,
       #trade button {
         width: 100%;
         text-align: left;
-        background: #232b36;
+        background: var(--panel-deep);
         color: var(--ink);
         border: 1px solid var(--border);
-        border-radius: 4px;
+        border-radius: 3px;
         padding: 6px 10px;
         font: inherit;
         cursor: pointer;
+        transition:
+          border-color 120ms,
+          background 120ms;
       }
       #dialogue button::before {
         counter-increment: choice;
         content: counter(choice) ". ";
         color: var(--accent);
+        font-family: var(--pixel);
       }
       #dialogue button:hover,
       #dialogue button:focus-visible,
@@ -165,6 +188,7 @@
       #inventory-list button:hover,
       #inventory-list button:focus-visible {
         border-color: var(--accent);
+        background: #2c2117;
       }
       #defeat-banner,
       #fortune-banner {
@@ -173,16 +197,17 @@
         display: grid;
         place-items: center;
         color: var(--ink);
-        font-size: 20px;
+        font-family: var(--pixel);
+        font-size: 22px;
         text-align: center;
         padding: 24px;
         z-index: 10;
       }
       #defeat-banner {
-        background: rgba(16, 20, 24, 0.92);
+        background: rgba(20, 16, 12, 0.92);
       }
       #fortune-banner {
-        background: rgba(16, 20, 24, 0.7);
+        background: rgba(20, 16, 12, 0.7);
         color: var(--accent);
         pointer-events: none;
       }
@@ -201,10 +226,19 @@
         margin: auto;
         width: fit-content;
         background: var(--panel);
-        border: 1px solid var(--border);
+        border: 2px solid var(--border);
         border-radius: 4px;
         padding: 6px 12px;
-        font-size: 13px;
+        font-family: var(--pixel);
+        font-size: 14px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #dialogue button,
+        #trade button,
+        #combat-enemies button,
+        #inventory-list button {
+          transition: none;
+        }
       }
     </style>
   </head>
