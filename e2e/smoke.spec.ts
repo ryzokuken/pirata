@@ -19,3 +19,15 @@ test("keyboard input moves the player", async ({ page }) => {
   await page.waitForFunction((tick) => (window.__pirata?.getState().tick ?? 0) > tick, before);
   await page.keyboard.up("ArrowRight");
 });
+
+test("boots with no console errors (assets all load)", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      errors.push(message.text());
+    }
+  });
+  await page.goto("/");
+  await page.waitForFunction(() => window.__pirata !== undefined);
+  expect(errors).toEqual([]);
+});

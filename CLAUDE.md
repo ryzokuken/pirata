@@ -24,10 +24,13 @@ Live build: <https://www.ryzokuken.dev/pirata/> (deployed from `main` via Pages)
 - Full gate (green before every commit):
   `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test`
 - `pnpm test:e2e` — builds client, runs Playwright smoke tests.
-- `pnpm validate:content` — validates packs; `pnpm check:attribution` — every
-  binary asset needs an ATTRIBUTION.md row (CI enforces both).
-- `pnpm build:maps` — regenerates `port_town.map.json` from the ASCII layout in
-  `scripts/build-town-map.ts`; regenerate, don't hand-edit generated maps.
+- `pnpm validate:content` — validates packs (schema, links, asset files);
+  `pnpm check:attribution` — every binary asset needs an ATTRIBUTION.md row and
+  the total must stay ≤ 600KB (CI enforces both).
+- `pnpm build:maps` — regenerates both map JSONs from the ASCII layouts in
+  `scripts/map-defs.ts`; `pnpm build:tileset` / `pnpm build:characters`
+  regenerate the committed PNGs from pinned upstream sources (cached in
+  `.cache/`). Regenerate, don't hand-edit generated files.
 - `pnpm format` fixes formatting; oxfmt formats **markdown too** by policy.
 - Workflows: `actionlint .github/workflows/` and `zizmor .github/workflows/`
   must stay clean (`prek` and `zizmor` may live in `~/.cargo/bin/`).
