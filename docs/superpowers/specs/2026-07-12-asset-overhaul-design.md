@@ -11,13 +11,15 @@ and maps); art direction (LPC 32px, Kenney/CC0 for gaps) is unchanged.
 
 **Goals:**
 
-- Real LPC terrain replaces the three-color placeholder tileset, with visual
-  variety: grass, cobble paths, building walls, dock planks, water with
-  shoreline edges, and decorative props.
+- Real LPC terrain replaces the three-color placeholder tileset on both maps,
+  with visual variety: grass, dirt roads, building walls with roofs, dock
+  planks, water with shoreline edges, decorative props — and a cave theme
+  (dark rock walls, cobbled floor, sandy beach) for the smugglers' cove.
 - Animated LPC characters replace the player and NPC rectangles: four-direction
-  walk cycles, distinct looks for the player and each of the five base-pack
-  NPCs (tavernkeeper, merchant, harbormaster, stevedore, watchwoman). World
-  item pickups swap their gold circles for a tileset chest tile.
+  walk cycles, distinct looks for the player and each of the seven base-pack
+  NPCs (tavernkeeper, merchant, harbormaster, stevedore, watchwoman, smuggler
+  lookout, smuggler quartermaster). World item pickups swap their gold circles
+  for a tileset chest tile.
 - The DOM UI (dialogue, clock, reputation, toasts) gets a coherent skin: CSS
   panels plus one pixel font.
 - Every binary asset has an `ATTRIBUTION.md` row (CI-enforced, already wired),
@@ -37,7 +39,7 @@ Two generation scripts own the pipeline:
 - `scripts/build-tileset.ts` — downloads the LPC base assets zip (pinned URL,
   SHA-256 verified), extracts the source sheets, and packs the curated tiles
   into `tileset.png` per an in-script manifest that also exports the GID
-  constants `build-town-map.ts` consumes.
+  constants the map builder consumes.
 - `scripts/compose-characters.ts` — sparse-clones the Universal LPC generator
   repo at a pinned commit, alpha-composites per-layer `walk.png` sheets
   (576×256, 9×4 frames of 64px) per character recipe, recolors garments and
@@ -50,7 +52,7 @@ generation, never shipped.
 
 Alternatives considered and rejected:
 
-- **Build-time atlas packing:** negligible win at one tileset plus five
+- **Build-time atlas packing:** negligible win at one tileset plus eight
   character sheets; permanent tooling cost. Revisit when asset count grows.
 - **Runtime CDN fetch:** breaks offline development, bypasses the attribution
   discipline, and adds supply-chain risk.
@@ -59,7 +61,7 @@ Alternatives considered and rejected:
 
 - **Terrain:** curated 32px tiles from the LPC base assets collection
   (CC-BY-SA 3.0 / GPL 3.0 dual license).
-- **Characters:** six composite spritesheets built by `compose-characters.ts`
+- **Characters:** eight composite spritesheets built by `compose-characters.ts`
   from Universal LPC generator layers (CC-BY-SA 3.0 / GPL 3.0 per layer, some
   OGA-BY 3.0). Composite sheets have many authors, so each sheet gets a
   generated credits file committed alongside the PNG; the sheet's
@@ -88,16 +90,19 @@ the client; `WorldDef` and the simulation types do not change. The base game
 remains an ordinary content pack — a third-party pack declares its art the
 same way, and any expressiveness gap is a loader bug to fix.
 
-## 4. Terrain and Map
+## 4. Terrain and Maps
 
-`scripts/build-town-map.ts` remains the single source of truth for the town
-map. Its legend expands from three tile kinds to the richer set above, and it
-gains simple neighbor-aware autotiling for shoreline edges (logic lives in the
-script, not the client). A new non-colliding `decor` tile layer places props
-such as barrels and market stalls.
+`scripts/build-maps.ts` (via a pure `map-defs.ts` module) remains the single
+source of truth for both maps. Each map spec gains a terrain theme — coastal
+for the port town (grass, dirt roads, brick buildings with roofs, stone
+perimeter, neighbor-aware shoreline autotiling), cave for the smugglers' cove
+(dark rock walls, cobbled floor, sandy beach) — plus overlay grids for ground
+variety and a new non-colliding `decor` tile layer placing props such as
+barrels, chests, and the tavern sign. All logic lives in the scripts, not the
+client.
 
-**Walkability is preserved exactly.** A golden test pins the collision grid:
-the regenerated map must block and permit precisely the same tiles as the
+**Walkability is preserved exactly.** Golden tests pin both collision grids:
+each regenerated map must block and permit precisely the same tiles as the
 current one. Visual variety is cosmetic; simulation behavior is untouched.
 
 ## 5. Characters and Animation (Client)
@@ -126,14 +131,15 @@ dialogue box, clock, reputation panel, and toasts; the pixel font loads via
   check: it already walks every binary asset, so it also sums their sizes and
   fails CI over budget.
 - Assets load once in the Phaser preloader and are cached by the browser
-  thereafter. Sprite count is unchanged (five characters plus tilemap layers),
+  thereafter. Sprite count is unchanged (a handful of characters plus tilemap
+  layers),
   so runtime cost does not change measurably.
 
 ## 8. Testing
 
 - **Loader:** colocated unit tests for the new asset schema — valid packs
   parse, missing files and dangling sprite references fail with clear errors.
-- **Map:** the collision-grid golden test from §4.
+- **Maps:** the collision-grid golden tests from §4, one per map.
 - **Content:** `pnpm validate:content` asset pass (schema, links, file
   existence).
 - **E2E:** existing Playwright tests keep passing unchanged (they drive
